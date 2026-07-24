@@ -211,7 +211,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                           const SizedBox(height: 20),
                           Text(
-                            "DANIEL'S BARBER SHOP · Estilo & Tradición",
+                            'AUTO FRENOS ORIENTE · Frenos y Repuestos',
                             style: GoogleFonts.poppins(
                               fontSize: 11,
                               color: Colors.grey.shade500,

@@ -193,7 +193,7 @@ class _AppShellState extends ConsumerState<AppShell> {
                       if (!esAngosto) ...[
                         const SizedBox(width: 12),
                         Text(
-                          "DANIEL'S BARBER SHOP",
+                          'AUTO FRENOS ORIENTE',
                           style: GoogleFonts.poppins(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: 1),
                         ),
                       ],

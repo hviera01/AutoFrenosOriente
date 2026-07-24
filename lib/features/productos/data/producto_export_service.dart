@@ -49,7 +49,7 @@ class ProductoExportService {
         header: (context) => pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            pw.Text("Inventario · DANIEL'S BARBER SHOP", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColor.fromInt(0xFF0D2B4E))),
+            pw.Text('Inventario · AUTO FRENOS ORIENTE', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColor.fromInt(0xFF0D2B4E))),
             pw.SizedBox(height: 4),
             pw.Text('Total de productos: ${lista.length}', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
             pw.SizedBox(height: 14),
@@ -107,7 +107,7 @@ class ProductoExportService {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Center(child: pw.Text("DANIEL'S BARBER SHOP", style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold))),
+              pw.Center(child: pw.Text('AUTO FRENOS ORIENTE', style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold))),
               pw.Center(child: pw.Text('Listado de Inventario', style: const pw.TextStyle(fontSize: 9))),
               pw.SizedBox(height: 8),
               pw.Divider(),
