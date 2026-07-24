@@ -40,12 +40,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
+          Image.asset(
+            'assets/images/fondo.jpg',
+            fit: BoxFit.cover,
+          ),
+          ImageFiltered(
+            imageFilter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+            child: Image.asset(
+              'assets/images/fondo.jpg',
+              fit: BoxFit.cover,
+            ),
+          ),
           Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFF0A1A33), Color(0xFF0D2B4E)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  const Color(0xFF0A1A33).withOpacity(0.55),
+                  const Color(0xFF0D2B4E).withOpacity(0.80),
+                ],
               ),
             ),
           ),
