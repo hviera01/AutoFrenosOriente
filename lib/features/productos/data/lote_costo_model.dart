@@ -1,0 +1,50 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+/// Un lote de costo: la cantidad de un producto que entró de una sola vez
+/// (una compra o un ajuste manual de stock) a un costo unitario propio. El
+/// costeo FIFO consume primero el lote más viejo con cantidadRestante > 0,
+/// para que si un producto se compró una vez a 10 y otra vez a 12, la
+/// primera unidad vendida cueste 10 y la segunda 12 (en vez de un costo
+/// promediado por producto).
+class LoteCostoModel {
+  final String id;
+  final double cantidadOriginal;
+  final double cantidadRestante;
+  final double costoUnitario;
+  final DateTime fecha;
+  final String origen; // 'compra' | 'ajuste'
+  final String? idCompra;
+
+  LoteCostoModel({
+    required this.id,
+    required this.cantidadOriginal,
+    required this.cantidadRestante,
+    required this.costoUnitario,
+    required this.fecha,
+    required this.origen,
+    this.idCompra,
+  });
+
+  factory LoteCostoModel.fromMap(String id, Map<String, dynamic> data) {
+    return LoteCostoModel(
+      id: id,
+      cantidadOriginal: (data['cantidadOriginal'] ?? 0).toDouble(),
+      cantidadRestante: (data['cantidadRestante'] ?? 0).toDouble(),
+      costoUnitario: (data['costoUnitario'] ?? 0).toDouble(),
+      fecha: (data['fecha'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      origen: data['origen'] ?? 'compra',
+      idCompra: data['idCompra'],
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'cantidadOriginal': cantidadOriginal,
+      'cantidadRestante': cantidadRestante,
+      'costoUnitario': costoUnitario,
+      'fecha': Timestamp.fromDate(fecha),
+      'origen': origen,
+      'idCompra': idCompra,
+    };
+  }
+}
