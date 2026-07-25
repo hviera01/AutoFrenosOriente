@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'traslado_model.dart';
-import '../../../core/utils/logo_pdf.dart';
 import '../../../core/utils/pdf_tema.dart';
 import '../../negocio/data/negocio_model.dart';
 
@@ -31,7 +30,9 @@ class TrasladoExportService {
   }) async {
     final tema = await obtenerTemaImpresion();
     final doc = pw.Document(theme: tema);
-    final logo = decodificarLogoPdf(negocio.logoBnBase64, maxDimension: 400);
+    // Sin logo en el traslado (a pedido explícito) — el sistema viejo
+    // tampoco lo imprime en su ticket de traslado (solo en el de venta).
+    const logo = null;
     // Preferí el ancho que reportó el driver de la impresora si parece
     // válido; si no, el que el usuario configuró a mano en Negocio (no un
     // 80mm fijo a ciegas: el driver de Windows no siempre lo reporta bien,
@@ -164,13 +165,20 @@ class TrasladoExportService {
                           pw.Text(_formatoCantidad(item.cantidad), style: pw.TextStyle(fontSize: fNormal, fontWeight: pw.FontWeight.bold)),
                         ],
                       ),
-                      // Ubicación (bodega/estante): DETALLE_TRASLADO.Descripcion
-                      // en el sistema viejo, solo si el item la trae.
-                      if (item.ubicacion.trim().isNotEmpty)
-                        pw.Padding(
-                          padding: const pw.EdgeInsets.only(left: 46, top: 1),
-                          child: pw.Text('Ubicación: ${item.ubicacion}', style: pw.TextStyle(fontSize: fChica, color: PdfColor.fromInt(0xFF666A72))),
+                      // Ubicación (bodega/estante): Producto.Descripcion en
+                      // el momento de agregarlo al traslado. Se imprime
+                      // SIEMPRE (con "-" si no la trae) para que nunca
+                      // parezca que "falta" el renglón — y en negro sólido,
+                      // no gris: una impresora térmica no maneja grises de
+                      // verdad, los dithera y salen borrosos/desvanecidos en
+                      // papel real (aunque en pantalla se vean bien).
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.only(left: 46, top: 1),
+                        child: pw.Text(
+                          'Ubicación: ${item.ubicacion.trim().isEmpty ? '-' : item.ubicacion}',
+                          style: pw.TextStyle(fontSize: fChica, fontWeight: pw.FontWeight.bold),
                         ),
+                      ),
                     ],
                   ),
                 )),
@@ -185,7 +193,7 @@ class TrasladoExportService {
             pw.SizedBox(height: 16),
             _lineaFirma('Recibe Destino', fNormal),
             _separador(),
-            pw.Center(child: pw.Text('Documento generado por el sistema', style: pw.TextStyle(fontSize: fChica, color: PdfColor.fromInt(0xFF666A72)))),
+            pw.Center(child: pw.Text('Documento generado por el sistema', style: pw.TextStyle(fontSize: fChica))),
           ],
           ),
         ];
