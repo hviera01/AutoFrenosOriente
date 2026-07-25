@@ -13,7 +13,7 @@ class _TicketOpcionesDialogState extends State<TicketOpcionesDialog> {
 
   final _opciones = const [
     {'key': 'codigo', 'label': 'Código'},
-    {'key': 'descripcion', 'label': 'Descripción'},
+    {'key': 'descripcion', 'label': 'Ubicación'},
     {'key': 'categoria', 'label': 'Categoría'},
     {'key': 'existencia', 'label': 'Existencia'},
     {'key': 'precioVenta', 'label': 'Precio de Venta'},

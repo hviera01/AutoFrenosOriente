@@ -4,8 +4,11 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../providers/actualizacion_provider.dart';
 import '../providers/tabs_provider.dart';
 import '../models/tab_item.dart';
+import '../services/actualizacion_service.dart';
+import '../widgets/actualizacion_dialog.dart';
 import '../widgets/side_menu.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
@@ -56,6 +59,17 @@ class _AppShellState extends ConsumerState<AppShell> {
       final presencia = ref.read(presenciaImpresionRepositoryProvider);
       presencia.enviarLatido();
       _latidoTimer = Timer.periodic(const Duration(seconds: 25), (_) => presencia.enviarLatido());
+    }
+
+    // Solo en Windows/Android: ver ActualizacionService. No bloquea el
+    // arranque -si no hay internet o GitHub no responde a tiempo, sigue de
+    // largo sin avisar nada-.
+    if (ActualizacionService.aplica) {
+      ActualizacionService.buscarActualizacion().then((actualizacion) {
+        if (actualizacion == null || !mounted) return;
+        ref.read(actualizacionDisponibleProvider.notifier).establecer(actualizacion);
+        mostrarDialogoActualizacion(context, actualizacion);
+      });
     }
   }
 

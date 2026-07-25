@@ -71,6 +71,12 @@ class NegocioModel {
   // sistema operativo.
   final String impresoraRedIp;
   final int impresoraRedPuerto;
+  // Ancho real del rollo térmico (80 o 58mm): el driver de Windows no
+  // siempre reporta bien el ancho configurado de la impresora, así que se
+  // deja como ajuste manual en vez de confiar solo en la detección
+  // automática -si no coincide con el papel real, el ticket sale
+  // descentrado o recortado a los lados-.
+  final double anchoTicketMm;
 
   const NegocioModel({
     this.nombre = '',
@@ -97,6 +103,7 @@ class NegocioModel {
     this.modoImpresion = ModoImpresion.preguntar,
     this.impresoraRedIp = '',
     this.impresoraRedPuerto = 9100,
+    this.anchoTicketMm = 80,
   });
 
   bool get tieneClaveEspecial => claveEspecialHash.isNotEmpty;
@@ -130,6 +137,7 @@ class NegocioModel {
       modoImpresion: data['modoImpresion'] ?? ModoImpresion.preguntar,
       impresoraRedIp: data['impresoraRedIp'] ?? '',
       impresoraRedPuerto: ((data['impresoraRedPuerto'] ?? 9100) as num).toInt(),
+      anchoTicketMm: ((data['anchoTicketMm'] ?? 80) as num).toDouble(),
     );
   }
 
@@ -159,6 +167,7 @@ class NegocioModel {
       'modoImpresion': modoImpresion,
       'impresoraRedIp': impresoraRedIp,
       'impresoraRedPuerto': impresoraRedPuerto,
+      'anchoTicketMm': anchoTicketMm,
     };
   }
 
@@ -187,6 +196,7 @@ class NegocioModel {
     String? modoImpresion,
     String? impresoraRedIp,
     int? impresoraRedPuerto,
+    double? anchoTicketMm,
   }) {
     return NegocioModel(
       nombre: nombre ?? this.nombre,
@@ -213,6 +223,7 @@ class NegocioModel {
       modoImpresion: modoImpresion ?? this.modoImpresion,
       impresoraRedIp: impresoraRedIp ?? this.impresoraRedIp,
       impresoraRedPuerto: impresoraRedPuerto ?? this.impresoraRedPuerto,
+      anchoTicketMm: anchoTicketMm ?? this.anchoTicketMm,
     );
   }
 }

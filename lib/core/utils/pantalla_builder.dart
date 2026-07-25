@@ -8,7 +8,8 @@ import '../../features/negocio/presentation/screens/negocio_screen.dart';
 import '../../features/clientes/presentation/screens/clientes_screen.dart';
 import '../../features/proveedores/presentation/screens/proveedores_screen.dart';
 import '../../features/sucursales/presentation/screens/sucursales_screen.dart';
-import '../../features/traslados/presentation/screens/traslados_screen.dart';
+import '../../features/traslados/presentation/screens/registrar_traslado_screen.dart';
+import '../../features/traslados/presentation/screens/detalle_traslado_screen.dart';
 import '../../features/traslados/presentation/screens/reporte_traslados_screen.dart';
 import '../../features/vehiculos/presentation/screens/vehiculos_screen.dart';
 import '../../features/ventas_credito/presentation/screens/ventas_credito_screen.dart';
@@ -68,8 +69,10 @@ Widget construirPantalla(String moduleKey, String titulo, IconData icono, String
       return const ProveedoresScreen();
     case 'sucursales':
       return const SucursalesScreen();
-    case 'traslados':
-      return const TrasladosScreen();
+    case 'traslados_registrar':
+      return const RegistrarTrasladoScreen();
+    case 'traslados_detalle':
+      return const DetalleTrasladoScreen(esDialogo: false);
     case 'reporte_traslados':
       return const ReporteTrasladosScreen();
     case 'vehiculos':

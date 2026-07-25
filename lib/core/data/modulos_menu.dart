@@ -89,7 +89,15 @@ List<ModuloMenu> obtenerModulos() {
       color: const Color(0xFF0D2B4E),
       subModulos: [
         SubModulo(titulo: 'Sucursales', icono: Icons.store_mall_directory_outlined, moduleKey: 'sucursales', soloAdmin: true),
-        SubModulo(titulo: 'Traslados', icono: Icons.sync_alt_outlined, moduleKey: 'traslados'),
+      ],
+    ),
+    ModuloMenu(
+      titulo: 'Traslados',
+      icono: Icons.sync_alt_outlined,
+      color: const Color(0xFF6366F1),
+      subModulos: [
+        SubModulo(titulo: 'Registrar Traslado', icono: Icons.add_box_outlined, moduleKey: 'traslados_registrar'),
+        SubModulo(titulo: 'Ver Detalle', icono: Icons.receipt_long_outlined, moduleKey: 'traslados_detalle'),
       ],
     ),
     ModuloMenu(

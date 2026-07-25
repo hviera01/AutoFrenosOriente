@@ -103,7 +103,12 @@ class _PdfPreviewDialogState extends State<PdfPreviewDialog> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: PdfPreview(
-          build: (format) => widget.generarPdf(),
+          // Si hay generarPdfConFormato, se usa con el [format] real que la
+          // vista previa/impresión reporta en vez del genérico de siempre:
+          // antes esto ignoraba [format] y llamaba generarPdf() a ciegas,
+          // por lo que el botón de imprimir DENTRO de la vista previa nunca
+          // se enteraba del ancho real de la impresora térmica elegida.
+          build: (format) => widget.generarPdfConFormato != null ? widget.generarPdfConFormato!(format) : widget.generarPdf(),
           pdfFileName: widget.nombreArchivo,
           canChangeOrientation: false,
           canChangePageFormat: false,

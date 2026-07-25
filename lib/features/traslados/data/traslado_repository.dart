@@ -15,13 +15,20 @@ class TrasladoRepository {
 
   Stream<List<TrasladoModel>> obtenerTraslados() {
     return _col.orderBy('fecha', descending: true).snapshots().asyncMap((snap) async {
-      final lista = <TrasladoModel>[];
-      for (final doc in snap.docs) {
-        final detalleSnap = await doc.reference.collection('detalle').get();
-        final detalle = detalleSnap.docs.map((d) => ItemTrasladoModel.fromMap(d.data())).toList();
-        lista.add(TrasladoModel.fromMap(doc.id, doc.data(), detalle));
-      }
-      return lista;
+      // Los detalle de cada traslado se piden todos en paralelo (Future.wait)
+      // en vez de uno por uno en un for: con varios cientos de traslados, la
+      // versión secuencial hacía esa cantidad de round-trips a Firestore uno
+      // detrás del otro cada vez que llegaba un snapshot nuevo, lo que se
+      // sentía como una carga eterna al abrir la pantalla.
+      final detalles = await Future.wait(snap.docs.map((doc) => doc.reference.collection('detalle').get()));
+      return [
+        for (var i = 0; i < snap.docs.length; i++)
+          TrasladoModel.fromMap(
+            snap.docs[i].id,
+            snap.docs[i].data(),
+            detalles[i].docs.map((d) => ItemTrasladoModel.fromMap(d.data())).toList(),
+          ),
+      ];
     });
   }
 
@@ -38,6 +45,23 @@ class TrasladoRepository {
       lista.add(TrasladoModel.fromMap(doc.id, data, detalle));
     }
     return lista;
+  }
+
+  Future<TrasladoModel?> obtenerPorId(String id) async {
+    final doc = await _col.doc(id).get();
+    if (!doc.exists) return null;
+    final detalleSnap = await doc.reference.collection('detalle').get();
+    final detalle = detalleSnap.docs.map((d) => ItemTrasladoModel.fromMap(d.data())).toList();
+    return TrasladoModel.fromMap(doc.id, doc.data()!, detalle);
+  }
+
+  Future<TrasladoModel?> obtenerPorNumero(String numero) async {
+    final snap = await _col.where('numero', isEqualTo: numero.trim()).limit(1).get();
+    if (snap.docs.isEmpty) return null;
+    final doc = snap.docs.first;
+    final detalleSnap = await doc.reference.collection('detalle').get();
+    final detalle = detalleSnap.docs.map((d) => ItemTrasladoModel.fromMap(d.data())).toList();
+    return TrasladoModel.fromMap(doc.id, doc.data(), detalle);
   }
 
   Future<TrasladoModel> registrar({

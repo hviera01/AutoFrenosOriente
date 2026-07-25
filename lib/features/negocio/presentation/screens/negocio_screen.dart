@@ -558,6 +558,23 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
           const SizedBox(height: 20),
           Divider(color: Colors.grey.shade200),
           const SizedBox(height: 14),
+          Text('Ancho del rollo térmico', style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A))),
+          const SizedBox(height: 4),
+          Text(
+            'El driver de Windows no siempre reporta bien el ancho configurado de la impresora: si el ticket sale descentrado o recortado a los lados, elegí acá el ancho real del papel que tiene cargado la impresora.',
+            style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              _opcionAnchoTicket(80, 'Ancho normal (80mm)'),
+              const SizedBox(width: 10),
+              _opcionAnchoTicket(58, 'Angosto (58mm)'),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Divider(color: Colors.grey.shade200),
+          const SizedBox(height: 14),
           _filaSwitchFactura(
             titulo: 'Imprimir directo, sin preguntar',
             descripcion:
@@ -708,6 +725,28 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
               ],
             ),
         ],
+      ),
+    );
+  }
+
+  Widget _opcionAnchoTicket(double mm, String etiqueta) {
+    final activo = widget.modelo.anchoTicketMm == mm;
+    return Expanded(
+      child: InkWell(
+        onTap: () => ref.read(negocioRepositoryProvider).establecerAnchoTicketMm(mm),
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: activo ? const Color(0xFF0D2B4E) : const Color(0xFFE8EAF0),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            etiqueta,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600, color: activo ? Colors.white : const Color(0xFF3F434A)),
+          ),
+        ),
       ),
     );
   }

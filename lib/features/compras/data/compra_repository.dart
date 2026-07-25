@@ -118,6 +118,9 @@ class CompraRepository {
         if (item.precioVentaNuevo != null) {
           actualizacion['precioVenta'] = item.precioVentaNuevo!;
         }
+        if (item.descripcionNueva != null) {
+          actualizacion['descripcion'] = item.descripcionNueva!;
+        }
         transaction.update(ref, actualizacion);
 
         final historialRef = ref.collection('historial').doc();

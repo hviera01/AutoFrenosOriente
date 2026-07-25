@@ -15,7 +15,7 @@ class ProductoExportService {
     hoja.appendRow([
       xls.TextCellValue('Código'),
       xls.TextCellValue('Nombre'),
-      xls.TextCellValue('Descripción'),
+      xls.TextCellValue('Ubicación'),
       xls.TextCellValue('Categoría'),
       xls.TextCellValue('Existencia'),
       xls.TextCellValue('Precio Venta'),
@@ -57,7 +57,7 @@ class ProductoExportService {
         ),
         build: (context) => [
           pw.TableHelper.fromTextArray(
-            headers: ['Código', 'Nombre', 'Descripción', 'Categoría', 'Existencia', 'P. Venta', 'P. Compra', 'Estado'],
+            headers: ['Código', 'Nombre', 'Ubicación', 'Categoría', 'Existencia', 'P. Venta', 'P. Compra', 'Estado'],
             data: lista.map((p) {
               return [
                 p.codigo,

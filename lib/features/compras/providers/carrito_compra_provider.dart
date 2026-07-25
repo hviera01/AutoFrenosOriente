@@ -98,6 +98,7 @@ class CarritoCompraNotifier extends Notifier<CarritoCompraState> {
       cantidad: 1,
       subtotal: _subtotalLinea(producto.precioCompra, 1, 0),
       precioVentaNuevo: producto.precioVenta,
+      descripcionNueva: producto.descripcion,
     );
     state = state.copyWith(items: [...state.items, item]);
   }
@@ -107,9 +108,13 @@ class CarritoCompraNotifier extends Notifier<CarritoCompraState> {
     state = state.copyWith(items: nuevos);
   }
 
-  /// Actualiza cantidad, precio de costo, descuento y/o el nuevo precio de
-  /// venta de línea directamente desde la tabla, recalculando el subtotal.
-  void actualizarLinea(int index, {double? cantidad, double? precioCompra, double? descuentoPorcentaje, double? precioVentaNuevo}) {
+  /// Actualiza cantidad, precio de costo, descuento, el nuevo precio de
+  /// venta y/o la descripción de línea directamente desde la tabla,
+  /// recalculando el subtotal. La descripción, igual que el precio de
+  /// venta, se aplica al PRODUCTO (no solo a esta línea) al registrar la
+  /// compra -sirve para agregarle o corregirle algo sin tener que ir aparte
+  /// a Inventario.
+  void actualizarLinea(int index, {double? cantidad, double? precioCompra, double? descuentoPorcentaje, double? precioVentaNuevo, String? descripcionNueva}) {
     final actual = state.items[index];
     final nuevaCantidad = cantidad ?? actual.cantidad;
     final nuevoPrecio = precioCompra ?? actual.precioCompra;
@@ -124,6 +129,7 @@ class CarritoCompraNotifier extends Notifier<CarritoCompraState> {
       subtotal: _subtotalLinea(nuevoPrecio, nuevaCantidad, nuevoDescuento),
       descuentoPorcentaje: nuevoDescuento,
       precioVentaNuevo: precioVentaNuevo ?? actual.precioVentaNuevo,
+      descripcionNueva: descripcionNueva ?? actual.descripcionNueva,
     );
     state = state.copyWith(items: nuevos);
   }

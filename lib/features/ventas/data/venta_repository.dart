@@ -17,18 +17,20 @@ class VentaRepository {
     switch (tipoDocumento) {
       case 'Cotizacion':
         return 'cotizacion';
-      case 'VentaSinFacturar':
-        return 'ventaSinFacturar';
       default:
         return 'venta';
     }
   }
 
+  // Igual que el sistema viejo: "Venta" numera con 4 dígitos
+  // (ObtenerCorrelativoVentaSinFacturar) y "Cotización" con 10
+  // (ObtenerCorrelativoCotizacion) — formatos distintos a propósito, no un
+  // typo.
   String _formatearCorrelativo(String tipoDocumento, int numero) {
-    if (tipoDocumento == 'VentaSinFacturar') {
-      return numero.toString().padLeft(4, '0');
+    if (tipoDocumento == 'Cotizacion') {
+      return numero.toString().padLeft(10, '0');
     }
-    return numero.toString().padLeft(8, '0');
+    return numero.toString().padLeft(4, '0');
   }
 
   /// Próximo número que le tocaría a la próxima Factura/Boleta (comparten

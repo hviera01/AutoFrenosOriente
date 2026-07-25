@@ -9,6 +9,7 @@ import 'venta_model.dart';
 import 'numero_a_letras.dart';
 import '../../../core/utils/formato_moneda.dart';
 import '../../../core/utils/logo_pdf.dart';
+import '../../../core/utils/pdf_tema.dart';
 import '../../negocio/data/negocio_model.dart';
 
 class VentaExportService {
@@ -28,7 +29,8 @@ class VentaExportService {
     // el desglose de la tabla se muestra con o sin impuesto incluido.
     final esFacturable = venta.tipoDocumento != 'Cotizacion';
     final conIsv = esFacturable && (preciosConIsv ?? negocio.facturaPreciosConIsv);
-    final doc = pw.Document();
+    final tema = await obtenerTemaImpresion();
+    final doc = pw.Document(theme: tema);
     final logo = decodificarLogoPdf(negocio.logoColorBase64);
     final formatoDia = DateFormat('dd/MM/yyyy');
     final esCotizacion = venta.tipoDocumento == 'Cotizacion';
@@ -60,7 +62,7 @@ class VentaExportService {
                 ],
               ),
               pw.Spacer(),
-              _piePagina(venta, negocio, formatoDia, esCotizacion),
+              _piePagina(venta, negocio, esCotizacion),
             ],
           );
         },
@@ -278,6 +280,7 @@ class VentaExportService {
             _filaTotalFormal('Gravado 18%', formatearMoneda(0)),
             _filaTotalFormal('ISV (15%)', formatearMoneda(venta.impuesto)),
           ],
+          if (_montoRecargoTarjeta(venta) > 0) _filaTotalFormal('Recargo tarjeta (${_formatoCantidad(venta.porcentajeTarjeta)}%)', formatearMoneda(_montoRecargoTarjeta(venta))),
           pw.Divider(color: _colorBorde, height: 10),
           _filaTotalFormal('TOTAL', formatearMoneda(venta.totalAPagar), destacado: true),
         ],
@@ -285,27 +288,14 @@ class VentaExportService {
     );
   }
 
-  pw.Widget _piePagina(VentaModel venta, NegocioModel negocio, DateFormat formatoDia, bool esCotizacion) {
-    final estiloFiscal = pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: _colorGrisTexto);
+  // Sin leyendas fiscales (CAI, rango autorizado, "obligado tributario
+  // emisor", etc.): este negocio no factura fiscalmente de verdad, igual
+  // que en el ticket térmico (ver venta_ticket_escpos_service.dart).
+  pw.Widget _piePagina(VentaModel venta, NegocioModel negocio, bool esCotizacion) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         pw.Divider(color: _colorBorde),
-        if (!esCotizacion) ...[
-          // Datos fiscales de la factura: siempre se incluyen en documentos
-          // fiscales (Factura/Boleta/Venta Sin Facturar), nunca en cotizaciones.
-          pw.Text('CAI: ${negocio.cai.isEmpty ? 'N/D' : negocio.cai}', style: estiloFiscal),
-          pw.Text('Rango autorizado: ${negocio.rangoPrefijo}${negocio.rangoDesde} al ${negocio.rangoPrefijo}${negocio.rangoHasta}', style: estiloFiscal),
-          pw.Text('Fecha límite de emisión: ${negocio.fechaLimiteEmision != null ? formatoDia.format(negocio.fechaLimiteEmision!) : 'N/D'}', style: estiloFiscal),
-          pw.SizedBox(height: 6),
-          pw.Text('ORIGINAL: CLIENTE', style: estiloFiscal),
-          pw.Text('COPIA: OBLIGADO TRIBUTARIO EMISOR', style: estiloFiscal),
-          pw.SizedBox(height: 8),
-          pw.Center(
-            child: pw.Text('LA FACTURA ES BENEFICIO DE TODOS, ¡EXÍJALA!', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold, color: _colorMarca)),
-          ),
-          pw.SizedBox(height: 6),
-        ],
         pw.Center(
           child: pw.Text(
             esCotizacion ? 'Documento no fiscal — solo de referencia' : '¡Gracias por su compra!',
@@ -334,12 +324,16 @@ class VentaExportService {
   // 120mm de ancho) se usa ese ancho real en vez del fijo; si no, se sigue
   // usando 80mm como hasta ahora.
   Future<Uint8List> generarPdfFactura(VentaModel venta, NegocioModel negocio, {bool? forzarCopia, PdfPageFormat? formatoImpresora}) async {
-    final doc = pw.Document();
+    final tema = await obtenerTemaImpresion();
+    final doc = pw.Document(theme: tema);
     // maxDimension más alto que el default acá: el logo del ticket ahora se
     // imprime más grande (ver _construirPaginaTicket), y con la resolución
     // chica que alcanza para un logo de cabecera normal se vería borroso.
     final logo = decodificarLogoPdf(negocio.logoBnBase64, maxDimension: 400);
-    final anchoMm = _anchoValidoDesdeFormato(formatoImpresora);
+    // Preferí el ancho que reportó el driver de la impresora si parece
+    // válido; si no, el que el usuario configuró a mano en Negocio (no un
+    // 80mm fijo a ciegas: el driver de Windows no siempre lo reporta bien).
+    final anchoMm = _anchoValidoDesdeFormato(formatoImpresora) ?? negocio.anchoTicketMm;
 
     if (forzarCopia != null) {
       doc.addPage(_construirPaginaTicket(venta, negocio, logo, esCopia: forzarCopia, anchoMm: anchoMm));
@@ -430,7 +424,6 @@ class VentaExportService {
             if (negocio.rtn.isNotEmpty) pw.Center(child: pw.Text('RTN: ${negocio.rtn}', style: const pw.TextStyle(fontSize: fSmall))),
             if (negocio.telefono.isNotEmpty) pw.Center(child: pw.Text('Tel: ${negocio.telefono}', style: const pw.TextStyle(fontSize: fSmall))),
             if (negocio.correo.isNotEmpty) pw.Center(child: pw.Text('Email: ${negocio.correo}', style: const pw.TextStyle(fontSize: fSmall))),
-            if (negocio.cai.isNotEmpty) pw.Center(child: pw.Text('CAI: ${negocio.cai}', style: const pw.TextStyle(fontSize: fSmall))),
             pw.SizedBox(height: 6),
             _separador(),
             pw.Text('${venta.tipoDocumento.toUpperCase()} ${negocio.rangoPrefijo}${venta.numeroDocumento}', style: const pw.TextStyle(fontSize: fNormal)),
@@ -492,6 +485,12 @@ class VentaExportService {
               _filaTotal('Gravado 18%:', 0),
               _filaTotal('ISV 15%:', venta.impuesto),
             ],
+            // El recargo por tarjeta queda incluido en TOTAL A PAGAR pero
+            // no en ningún otro renglón de arriba (a diferencia del sistema
+            // viejo, que lo escondía adentro del precio unitario, acá se
+            // desglosa aparte) — sin esta línea, el total no cuadraba con
+            // el resto del desglose a simple vista.
+            if (_montoRecargoTarjeta(venta) > 0) _filaTotal('Recargo tarjeta (${_formatoCantidad(venta.porcentajeTarjeta)}%):', _montoRecargoTarjeta(venta)),
             _filaTotal('TOTAL A PAGAR:', venta.totalAPagar, negrita: true),
             pw.SizedBox(height: 6),
             _separador(),
@@ -506,31 +505,17 @@ class VentaExportService {
                 pw.Text('Transferencia', style: const pw.TextStyle(fontSize: fNormal)),
             ],
             _separador(),
-            if (esFacturable) ...[
-              if (negocio.rangoPrefijo.isNotEmpty || negocio.rangoDesde.isNotEmpty)
-                pw.Text('Rango Aut.: ${negocio.rangoPrefijo}${negocio.rangoDesde} al ${negocio.rangoPrefijo}${negocio.rangoHasta}', style: const pw.TextStyle(fontSize: fSmall)),
-              if (negocio.fechaLimiteEmision != null)
-                pw.Text('Fecha Límite: ${formatoDia.format(negocio.fechaLimiteEmision!)}', style: const pw.TextStyle(fontSize: fSmall)),
-              pw.SizedBox(height: 4),
-              pw.Text('ORIGINAL: CLIENTE', style: const pw.TextStyle(fontSize: fSmall)),
-              pw.Text('COPIA: OBLIGADO TRIBUTARIO EMISOR', style: const pw.TextStyle(fontSize: fSmall)),
-              pw.SizedBox(height: 8),
-              pw.Center(
-                child: pw.Text(
-                  'LA FACTURA ES BENEFICIO DE TODOS, ¡EXÍJALA!',
-                  textAlign: pw.TextAlign.center,
-                  style: const pw.TextStyle(fontSize: fSmall),
-                ),
-              ),
-              pw.SizedBox(height: 6),
-            ],
+            // Sin leyendas fiscales (CAI, rango autorizado, "obligado
+            // tributario emisor", etc.): este negocio no factura fiscalmente
+            // de verdad -el "Venta" del sistema viejo tampoco las imprimía,
+            // ver venta_ticket_escpos_service.dart-, así que la única marca
+            // que queda es la simple etiqueta ORIGINAL/COPIA de abajo.
             pw.Text('¡GRACIAS POR SU COMPRA!', style: const pw.TextStyle(fontSize: fNormal)),
             pw.SizedBox(height: 10),
-            if (esFacturable)
-              pw.Align(
-                alignment: pw.Alignment.centerRight,
-                child: pw.Text(esCopia ? 'COPIA' : 'ORIGINAL', style: const pw.TextStyle(fontSize: fNormal)),
-              ),
+            pw.Align(
+              alignment: pw.Alignment.centerRight,
+              child: pw.Text(esCopia ? 'COPIA' : 'ORIGINAL', style: const pw.TextStyle(fontSize: fNormal)),
+            ),
           ];
       },
     );
@@ -598,6 +583,15 @@ class VentaExportService {
         ],
       ),
     );
+  }
+
+  // Se recalcula desde totalAPagar - (subtotal+impuesto) en vez de
+  // porcentajeTarjeta*base: así siempre cuadra exacto con el total real
+  // guardado, sin importar el redondeo que haya usado el carrito en su
+  // momento.
+  double _montoRecargoTarjeta(VentaModel venta) {
+    if (venta.porcentajeTarjeta <= 0) return 0;
+    return redondearMoneda(venta.totalAPagar - (venta.subtotal + venta.impuesto));
   }
 
   String _formatoCantidad(double cantidad) {

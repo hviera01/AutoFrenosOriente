@@ -146,6 +146,11 @@ class NegocioRepository {
     _invalidarCache();
   }
 
+  Future<void> establecerAnchoTicketMm(double mm) async {
+    await _doc.set({'anchoTicketMm': mm}, SetOptions(merge: true));
+    _invalidarCache();
+  }
+
   Future<void> actualizarImpresoraRed(String ip, int puerto) async {
     await _doc.set({'impresoraRedIp': ip, 'impresoraRedPuerto': puerto}, SetOptions(merge: true));
     _invalidarCache();

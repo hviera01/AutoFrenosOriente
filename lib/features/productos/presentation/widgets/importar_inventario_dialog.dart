@@ -127,7 +127,7 @@ class _ImportarInventarioDialogState extends ConsumerState<ImportarInventarioDia
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'El archivo debe tener una fila de encabezado con columnas: Código, Nombre, Descripción, Categoría, Stock (o Existencia), Precio Venta, Precio Compra y Estado. El código y la categoría emparejan con lo que ya existe; si una categoría no existe, se crea sola.',
+          'El archivo debe tener una fila de encabezado con columnas: Código, Nombre, Ubicación (o Descripción), Categoría, Stock (o Existencia), Precio Venta, Precio Compra y Estado. El código y la categoría emparejan con lo que ya existe; si una categoría no existe, se crea sola.',
           style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600),
         ),
         const SizedBox(height: 16),

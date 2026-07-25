@@ -62,7 +62,7 @@ class CarritoVentaState {
   CarritoVentaState({
     this.idEnEspera,
     this.items = const [],
-    this.tipoDocumento = 'Factura',
+    this.tipoDocumento = 'Venta',
     this.condicion = 'Contado',
     this.metodoPago = 'Efectivo',
     this.documentoCliente = '',
@@ -80,7 +80,6 @@ class CarritoVentaState {
   }) : fecha = fecha ?? DateTime.now();
 
   bool get esCotizacion => tipoDocumento == 'Cotizacion';
-  bool get esVentaSinFacturar => tipoDocumento == 'VentaSinFacturar';
   bool get esCredito => condicion == 'Credito';
 
   double get _subtotalLineasSinDescuentoGlobal => items.fold<double>(0, (s, i) => s + i.subtotal);
@@ -255,8 +254,12 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
     );
   }
 
+  // Igual que el sistema viejo: elegir "Tarjeta" propone el recargo del 5%
+  // de una vez (el cajero lo puede bajar a 0 o cambiarlo para esa venta
+  // puntual); cualquier otro método de pago lo deja en 0. Se reinicia a 5
+  // cada vez que se (re)selecciona Tarjeta, no solo la primera vez.
   void establecerMetodoPago(String v) {
-    state = state.copyWith(metodoPago: v, porcentajeTarjeta: v == 'Tarjeta' ? state.porcentajeTarjeta : 0);
+    state = state.copyWith(metodoPago: v, porcentajeTarjeta: v == 'Tarjeta' ? 5 : 0);
   }
   void establecerCliente({required String documento, required String nombre}) {
     state = state.copyWith(documentoCliente: documento, nombreCliente: nombre);
@@ -320,7 +323,7 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
                 vendidoPorNombre: item.vendidoPorNombre,
               ))
           .toList(),
-      tipoDocumento: (forzarFactura && venta.tipoDocumento == 'Cotizacion') ? 'Factura' : venta.tipoDocumento,
+      tipoDocumento: (forzarFactura && venta.tipoDocumento == 'Cotizacion') ? 'Venta' : venta.tipoDocumento,
       condicion: venta.condicion,
       metodoPago: venta.condicion == 'Credito' ? '' : (venta.metodoPago.isEmpty ? 'Efectivo' : venta.metodoPago),
       documentoCliente: venta.documentoCliente,

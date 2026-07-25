@@ -10,10 +10,10 @@ import '../../../auth/providers/auth_provider.dart';
 import '../../../productos/data/producto_model.dart';
 import '../../../productos/providers/productos_provider.dart';
 import '../../../proveedores/data/proveedor_model.dart';
-import '../../../proveedores/providers/proveedores_provider.dart';
 import '../../../../core/providers/tabs_provider.dart';
 import '../../../../core/utils/formato_moneda.dart';
 import '../widgets/buscar_producto_compra_dialog.dart';
+import '../widgets/buscar_proveedor_dialog.dart';
 import 'detalle_compra_screen.dart';
 
 const _metodosPago = ['Efectivo', 'Transferencia', 'Tarjeta', 'Cheque'];
@@ -31,6 +31,7 @@ class RegistrarCompraScreen extends ConsumerStatefulWidget {
 }
 
 class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
+  final _proveedorController = TextEditingController();
   final _noFacturaController = TextEditingController();
   final _descuentoGlobalController = TextEditingController();
   final _isvController = TextEditingController(text: '15');
@@ -43,6 +44,7 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
   final Map<int, TextEditingController> _ctrlDescuento = {};
   final Map<int, TextEditingController> _ctrlMargen = {};
   final Map<int, TextEditingController> _ctrlPrecioVenta = {};
+  final Map<int, TextEditingController> _ctrlDescripcion = {};
   // _focusInline y _confirmarInline respaldan a _campoInlineNumero: ver el
   // comentario junto a esa función para la explicación completa.
   final Map<String, FocusNode> _focusInline = {};
@@ -83,6 +85,7 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
   @override
   void dispose() {
     HardwareKeyboard.instance.removeHandler(_manejarAtajoTeclado);
+    _proveedorController.dispose();
     _noFacturaController.dispose();
     _descuentoGlobalController.dispose();
     _isvController.dispose();
@@ -100,6 +103,9 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
       c.dispose();
     }
     for (final c in _ctrlPrecioVenta.values) {
+      c.dispose();
+    }
+    for (final c in _ctrlDescripcion.values) {
       c.dispose();
     }
     for (final f in _focusInline.values) {
@@ -201,6 +207,10 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
     _sincronizarMargenControlador(index);
   }
 
+  void _actualizarDescripcionCompra(int index, String nuevaDescripcion) {
+    ref.read(carritoCompraProvider.notifier).actualizarLinea(index, descripcionNueva: nuevaDescripcion);
+  }
+
   void _actualizarMargenCompra(int index, double nuevoMargen) {
     final carrito = ref.read(carritoCompraProvider);
     if (index >= carrito.items.length) return;
@@ -233,6 +243,7 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
 
   void _limpiarTodo() {
     ref.read(carritoCompraProvider.notifier).limpiar();
+    _proveedorController.clear();
     _noFacturaController.clear();
     _descuentoGlobalController.clear();
     _isvController.text = '15';
@@ -252,11 +263,15 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
     for (final c in _ctrlPrecioVenta.values) {
       c.dispose();
     }
+    for (final c in _ctrlDescripcion.values) {
+      c.dispose();
+    }
     _ctrlCantidad.clear();
     _ctrlPrecio.clear();
     _ctrlDescuento.clear();
     _ctrlMargen.clear();
     _ctrlPrecioVenta.clear();
+    _ctrlDescripcion.clear();
     _conteoItemsControladores = 0;
   }
 
@@ -422,9 +437,15 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
     );
   }
 
+  Future<void> _buscarProveedor() async {
+    final proveedor = await showDialog<ProveedorModel>(context: context, builder: (context) => const BuscarProveedorDialog());
+    if (proveedor == null || !mounted) return;
+    _proveedorController.text = proveedor.razonSocial;
+    ref.read(carritoCompraProvider.notifier).establecerProveedor(idProveedor: proveedor.id, documentoProveedor: proveedor.rtn, razonSocial: proveedor.razonSocial);
+  }
+
   Widget _tarjetaDatosCompra(CarritoCompraState carrito, bool esMovil) {
     final formatoFecha = DateFormat('dd/MM/yyyy');
-    final proveedoresAsync = ref.watch(proveedoresStreamProvider);
 
     return _tarjeta(
       child: Column(
@@ -458,23 +479,16 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
               ),
               SizedBox(
                 width: esMovil ? double.infinity : 260,
-                child: proveedoresAsync.when(
-                  data: (proveedores) {
-                    final actual = proveedores.where((p) => p.id == carrito.idProveedor).toList();
-                    return DropdownButtonFormField<ProveedorModel>(
-                      initialValue: actual.isNotEmpty ? actual.first : null,
-                      isExpanded: true,
-                      decoration: _decoracion('Proveedor'),
-                      style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF1A1A1A)),
-                      items: proveedores.map((p) => DropdownMenuItem(value: p, child: Text(p.razonSocial, overflow: TextOverflow.ellipsis))).toList(),
-                      onChanged: (v) {
-                        if (v == null) return;
-                        ref.read(carritoCompraProvider.notifier).establecerProveedor(idProveedor: v.id, documentoProveedor: v.rtn, razonSocial: v.razonSocial);
-                      },
-                    );
-                  },
-                  loading: () => const LinearProgressIndicator(),
-                  error: (e, st) => Text('Error cargando proveedores', style: GoogleFonts.poppins(color: Colors.red, fontSize: 12)),
+                child: TextField(
+                  readOnly: true,
+                  onTap: _buscarProveedor,
+                  controller: _proveedorController,
+                  style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF1A1A1A)),
+                  decoration: _decoracion('Proveedor').copyWith(
+                    hintText: 'Tocá para buscar (hay muchos)...',
+                    hintStyle: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade400),
+                    suffixIcon: const Icon(Icons.search, size: 20),
+                  ),
                 ),
               ),
               SizedBox(
@@ -662,11 +676,15 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
       for (final c in _ctrlPrecioVenta.values) {
         c.dispose();
       }
+      for (final c in _ctrlDescripcion.values) {
+        c.dispose();
+      }
       _ctrlCantidad.clear();
       _ctrlPrecio.clear();
       _ctrlDescuento.clear();
       _ctrlMargen.clear();
       _ctrlPrecioVenta.clear();
+      _ctrlDescripcion.clear();
       for (final f in _focusInline.values) {
         f.dispose();
       }
@@ -822,6 +840,53 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
     );
   }
 
+  // Igual que _campoInlineNumero (confirma al perder el foco o con Enter,
+  // no en cada tecla) pero para texto libre: se usa para poder agregarle o
+  // corregirle la descripción al producto de una vez, sin ir aparte a
+  // Inventario.
+  Widget _campoInlineTexto(String claveFoco, TextEditingController controlador, String valorActual, void Function(String) alConfirmar) {
+    void confirmar() {
+      final valor = controlador.text.trim();
+      if (valor == valorActual.trim()) return;
+      alConfirmar(valor);
+    }
+    _confirmarInline[claveFoco] = confirmar;
+
+    final focusNode = _focusInline.putIfAbsent(claveFoco, () {
+      final node = FocusNode();
+      node.addListener(() {
+        if (!node.hasFocus) _confirmarInline[claveFoco]?.call();
+      });
+      return node;
+    });
+
+    return TextField(
+      controller: controlador,
+      focusNode: focusNode,
+      style: GoogleFonts.poppins(fontSize: 13),
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: const Color(0xFFE8EAF0),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      ),
+      onSubmitted: (_) => confirmar(),
+      onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+    );
+  }
+
+  Widget _campoInlineConEtiquetaTexto(String claveFoco, String etiqueta, TextEditingController controlador, String valorActual, void Function(String) alConfirmar) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(etiqueta, style: GoogleFonts.poppins(fontSize: 10, color: Colors.grey.shade500)),
+        const SizedBox(height: 4),
+        _campoInlineTexto(claveFoco, controlador, valorActual, alConfirmar),
+      ],
+    );
+  }
+
   Widget _campoInlineConEtiqueta(String claveFoco, String etiqueta, TextEditingController controlador, double valorActual, void Function(double) alConfirmar, {String? prefijo}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -840,6 +905,7 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
     final ctrlPrecio = _ctrlPrecio.putIfAbsent(index, () => TextEditingController(text: (item.precioCompra as double).toStringAsFixed(2)));
     final ctrlDescuento = _ctrlDescuento.putIfAbsent(index, () => TextEditingController(text: _formatoCantidad(item.descuentoPorcentaje as double)));
     final (ctrlMargen, ctrlPrecioVenta) = _controladoresMargen(index, item);
+    final ctrlDescripcion = _ctrlDescripcion.putIfAbsent(index, () => TextEditingController(text: (item.descripcionNueva as String?) ?? ''));
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -869,10 +935,10 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
             padding: const EdgeInsets.only(top: 6),
             child: Row(
               children: [
-                const Spacer(flex: 6),
+                const Spacer(flex: 2),
                 Expanded(flex: 2, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: _campoInlineConEtiqueta('margen_$index', 'Margen %', ctrlMargen, _margenActual(item), (v) => _actualizarMargenCompra(index, v)))),
                 Expanded(flex: 2, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: _campoInlineConEtiqueta('precioVenta_$index', 'Precio de venta', ctrlPrecioVenta, (item.precioVentaNuevo as double?) ?? 0, (v) => _actualizarPrecioVentaCompra(index, v), prefijo: 'L.'))),
-                const Spacer(flex: 4),
+                Expanded(flex: 4, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: _campoInlineConEtiquetaTexto('descripcion_$index', 'Descripción del producto', ctrlDescripcion, (item.descripcionNueva as String?) ?? '', (v) => _actualizarDescripcionCompra(index, v)))),
                 const SizedBox(width: 40),
               ],
             ),
@@ -889,6 +955,7 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
     final ctrlPrecio = _ctrlPrecio.putIfAbsent(index, () => TextEditingController(text: (item.precioCompra as double).toStringAsFixed(2)));
     final ctrlDescuento = _ctrlDescuento.putIfAbsent(index, () => TextEditingController(text: _formatoCantidad(item.descuentoPorcentaje as double)));
     final (ctrlMargen, ctrlPrecioVenta) = _controladoresMargen(index, item);
+    final ctrlDescripcion = _ctrlDescripcion.putIfAbsent(index, () => TextEditingController(text: (item.descripcionNueva as String?) ?? ''));
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -929,6 +996,8 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
               Expanded(child: _campoInlineConEtiqueta('precioVenta_$index', 'Precio de venta', ctrlPrecioVenta, (item.precioVentaNuevo as double?) ?? 0, (v) => _actualizarPrecioVentaCompra(index, v), prefijo: 'L.')),
             ],
           ),
+          const SizedBox(height: 10),
+          _campoInlineConEtiquetaTexto('descripcion_$index', 'Descripción del producto', ctrlDescripcion, (item.descripcionNueva as String?) ?? '', (v) => _actualizarDescripcionCompra(index, v)),
           const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,

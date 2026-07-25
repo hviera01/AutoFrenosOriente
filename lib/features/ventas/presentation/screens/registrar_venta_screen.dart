@@ -385,30 +385,44 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
       _documentoClienteController.text = documento;
     });
     ref.read(carritoVentaProvider.notifier).establecerCliente(documento: documento, nombre: nombre);
+    // Igual que el sistema viejo: elegir un cliente dispara en cadena el
+    // selector de vehículo si tiene alguno registrado (en silencio si no
+    // tiene, para no interrumpir con un aviso en un flujo automático).
+    unawaited(_elegirVehiculoCliente(silencioso: true));
   }
 
   // Ofrece los vehículos ya registrados del cliente actual (ver módulo
   // Vehículos) para autocompletar el campo "Vehículo" de un tirón, en vez de
   // tener que escribirlo a mano cada vez -igual que hacía el sistema viejo,
-  // pero el texto sigue siendo editable después de elegir.
-  Future<void> _elegirVehiculoCliente() async {
+  // pero el texto sigue siendo editable después de elegir. [silencioso] se
+  // usa cuando esto se dispara solo (recién elegido un cliente): no avisa
+  // nada si ese cliente no tiene vehículos o no está en Clientes.
+  Future<void> _elegirVehiculoCliente({bool silencioso = false}) async {
     final carrito = ref.read(carritoVentaProvider);
     final documento = carrito.documentoCliente.trim();
     if (documento.isEmpty || documento == 'N/A') {
-      _mostrarMensaje('Elegí primero un cliente para ver sus vehículos');
+      if (!silencioso) _mostrarMensaje('Elegí primero un cliente para ver sus vehículos');
       return;
     }
     final clientes = ref.read(clientesStreamProvider).value ?? [];
     final coincidencias = clientes.where((c) => c.dni == documento).toList();
     final cliente = coincidencias.isEmpty ? null : coincidencias.first;
     if (cliente == null) {
-      _mostrarMensaje('Este cliente no tiene un registro guardado en Clientes');
+      if (!silencioso) _mostrarMensaje('Este cliente no tiene un registro guardado en Clientes');
       return;
     }
     final vehiculos = await ref.read(vehiculoRepositoryProvider).obtenerPorCliente(cliente.id);
     if (!mounted) return;
     if (vehiculos.isEmpty) {
-      _mostrarMensaje('${cliente.nombreCompleto} no tiene vehículos registrados');
+      if (!silencioso) _mostrarMensaje('${cliente.nombreCompleto} no tiene vehículos registrados');
+      return;
+    }
+    // Uno solo: se autocompleta directo, sin preguntar (igual de "en
+    // cadena" que el sistema viejo, que solo mostraba el modal de elegir
+    // cuando había más de un auto).
+    if (silencioso && vehiculos.length == 1) {
+      _vehiculoController.text = vehiculos.first.descripcion;
+      ref.read(carritoVentaProvider.notifier).establecerVehiculo(vehiculos.first.descripcion);
       return;
     }
     final elegido = await showDialog<VehiculoModel>(
@@ -823,10 +837,8 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
     switch (tipo) {
       case 'Cotizacion':
         return 'Crear Cotización';
-      case 'VentaSinFacturar':
-        return 'Registrar Venta';
       default:
-        return 'Crear Venta';
+        return 'Registrar Venta';
     }
   }
 
@@ -882,7 +894,11 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
     final usuario = ref.read(authProvider).usuario?.nombreCompleto ?? '';
     final categorias = ref.read(categoriasStreamProvider).value ?? [];
     final categoriasSinControlStock = categorias.where((c) => !c.controlaStock).map((c) => c.id).toSet();
-    final esFacturable = carrito.tipoDocumento == 'Factura' || carrito.tipoDocumento == 'Boleta';
+    // "Venta" (único tipo facturable acá, no hay Factura/Boleta reales en
+    // este negocio) imprime ORIGINAL+COPIA automático al confirmar, igual
+    // que el sistema viejo; "Cotización" no imprime nada, solo avisa el
+    // número generado.
+    final esFacturable = !esCotizacion;
     final negocioFinal = negocio;
     // Hay que capturar esto ANTES de _limpiarTodo(): ese método vacía el
     // controlador de texto, así que leerlo después ya daría vacío.
@@ -1461,13 +1477,18 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                     onChanged: (v) {
                       if (v == null) return;
                       ref.read(carritoVentaProvider.notifier).establecerMetodoPago(v);
+                      // establecerMetodoPago ya deja el 5% propuesto en el
+                      // provider al elegir Tarjeta (igual que el sistema
+                      // viejo); acá solo se refleja ese mismo valor en el
+                      // campo de texto, que es un controller aparte.
+                      _porcentajeTarjetaController.text = v == 'Tarjeta' ? '5' : '';
                     },
                   ),
                 ),
-              // Comisión bancaria: el cliente sigue pagando el total completo
-              // (no cambia totalAPagar), esto solo se guarda como metadata
-              // para que Caja/Reportes puedan calcular el neto real que
-              // ingresó por este pago.
+              // Recargo por tarjeta: se suma de verdad al total a pagar (a
+              // diferencia de la comisión "de metadata" de otro sistema
+              // hermano) — el cajero lo puede bajar a 0 para no cobrarlo en
+              // una venta puntual. Ver CarritoVentaState.montoRecargoTarjeta.
               if (!carrito.esCotizacion && carrito.condicion != 'Credito' && carrito.metodoPago == 'Tarjeta')
                 SizedBox(
                   width: esMovil ? double.infinity : 160,
@@ -1483,6 +1504,24 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                     },
                   ),
                 ),
+              // En el plano principal, siempre visible (no escondido en "Más
+              // datos"): igual que el sistema viejo, donde el campo Vehículo
+              // está a simple vista junto a los datos del cliente.
+              SizedBox(
+                width: esMovil ? double.infinity : 260,
+                child: TextField(
+                  controller: _vehiculoController,
+                  style: GoogleFonts.poppins(fontSize: 13),
+                  decoration: _decoracion('Vehículo').copyWith(
+                    suffixIcon: IconButton(
+                      tooltip: 'Elegir vehículo del cliente',
+                      icon: const Icon(Icons.directions_car_filled_outlined, size: 18),
+                      onPressed: _elegirVehiculoCliente,
+                    ),
+                  ),
+                  onChanged: (v) => ref.read(carritoVentaProvider.notifier).establecerVehiculo(v),
+                ),
+              ),
               InkWell(
                 onTap: () => setState(() => _datosExpandidos = !_datosExpandidos),
                 borderRadius: BorderRadius.circular(10),
@@ -1597,21 +1636,6 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                                 style: GoogleFonts.poppins(fontSize: 13),
                                 decoration: _decoracion('No. Reg. SAG'),
                                 onChanged: (v) => ref.read(carritoVentaProvider.notifier).establecerRegSag(v),
-                              ),
-                            ),
-                            SizedBox(
-                              width: esMovil ? double.infinity : 260,
-                              child: TextField(
-                                controller: _vehiculoController,
-                                style: GoogleFonts.poppins(fontSize: 13),
-                                decoration: _decoracion('Vehículo').copyWith(
-                                  suffixIcon: IconButton(
-                                    tooltip: 'Elegir vehículo del cliente',
-                                    icon: const Icon(Icons.directions_car_filled_outlined, size: 18),
-                                    onPressed: _elegirVehiculoCliente,
-                                  ),
-                                ),
-                                onChanged: (v) => ref.read(carritoVentaProvider.notifier).establecerVehiculo(v),
                               ),
                             ),
                           ],

@@ -2,9 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:printing/printing.dart';
+import '../../data/traslado_export_service.dart';
 import '../../data/traslado_model.dart';
 import '../../providers/traslados_provider.dart';
+import '../../../productos/providers/productos_provider.dart';
 import '../../../sucursales/providers/sucursales_provider.dart';
+import '../../../negocio/providers/negocio_provider.dart';
+import '../../../../core/widgets/pdf_preview_dialog.dart';
+import 'detalle_traslado_screen.dart';
 
 class ReporteTrasladosScreen extends ConsumerStatefulWidget {
   const ReporteTrasladosScreen({super.key});
@@ -22,8 +28,37 @@ class _ReporteTrasladosScreenState extends ConsumerState<ReporteTrasladosScreen>
   String? _error;
   List<TrasladoModel>? _traslados;
   final _formatoFecha = DateFormat('dd/MM/yyyy HH:mm');
+  final _servicioExport = TrasladoExportService();
 
   static const _estados = ['Pendiente', 'Enviado', 'Entregado', 'Anulado'];
+
+  void _abrirDetalle(TrasladoModel t) {
+    Navigator.of(context).push(
+      MaterialPageRoute(fullscreenDialog: true, builder: (context) => DetalleTrasladoScreen(trasladoIdInicial: t.id)),
+    );
+  }
+
+  // Reimprimir desde acá siempre sale como "COPIA" (una sola hoja), igual
+  // que ImprimirTrasladoCopia() en el sistema viejo: la única vez que sale
+  // ORIGINAL+COPIA es al registrar el traslado por primera vez.
+  Future<void> _reimprimir(TrasladoModel t) async {
+    final negocio = await ref.read(negocioRepositoryProvider).obtenerNegocioActual();
+    if (!mounted) return;
+    final productos = ref.read(productosStreamProvider).value ?? [];
+    final codigos = {for (final p in productos) p.id: p.codigo};
+    final impresora = negocio.impresoraTermicaUrl.isEmpty ? null : Printer(url: negocio.impresoraTermicaUrl, name: negocio.impresoraTermicaNombre);
+    if (!mounted) return;
+    await showDialog(
+      context: context,
+      builder: (context) => PdfPreviewDialog(
+        titulo: 'Traslado ${t.numero} (copia)',
+        nombreArchivo: 'traslado_${t.numero}_copia.pdf',
+        generarPdf: () => _servicioExport.generarPdfTraslado(t, negocio, forzarCopia: true, codigosPorProducto: codigos),
+        generarPdfConFormato: (formato) => _servicioExport.generarPdfTraslado(t, negocio, forzarCopia: true, codigosPorProducto: codigos, formatoImpresora: formato),
+        impresora: impresora,
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -175,7 +210,10 @@ class _ReporteTrasladosScreenState extends ConsumerState<ReporteTrasladosScreen>
                                 separatorBuilder: (context, index) => const SizedBox(height: 10),
                                 itemBuilder: (context, index) {
                                   final t = _traslados![index];
-                                  return Container(
+                                  return InkWell(
+                                    borderRadius: BorderRadius.circular(14),
+                                    onTap: () => _abrirDetalle(t),
+                                    child: Container(
                                     padding: const EdgeInsets.all(14),
                                     decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFFC7CBD3))),
                                     child: Row(
@@ -195,7 +233,14 @@ class _ReporteTrasladosScreenState extends ConsumerState<ReporteTrasladosScreen>
                                           decoration: BoxDecoration(color: _colorEstado(t.estado).withOpacity(0.12), borderRadius: BorderRadius.circular(8)),
                                           child: Text(t.estado, style: GoogleFonts.poppins(fontSize: 11.5, fontWeight: FontWeight.w700, color: _colorEstado(t.estado))),
                                         ),
+                                        const SizedBox(width: 8),
+                                        IconButton(
+                                          tooltip: 'Reimprimir (copia)',
+                                          icon: const Icon(Icons.print_outlined, size: 20, color: Color(0xFF0D2B4E)),
+                                          onPressed: () => _reimprimir(t),
+                                        ),
                                       ],
+                                    ),
                                     ),
                                   );
                                 },

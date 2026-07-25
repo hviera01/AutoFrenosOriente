@@ -52,6 +52,8 @@ dependencies:
   pdf: ^3.12.0
   barcode: ^2.2.9
   path_provider: ^2.1.6
+  http: ^1.2.2
+  open_file: ^3.5.10
   share_plus: ^12.0.2
   file_picker: ^11.0.2
   fl_chart: ^0.69.0

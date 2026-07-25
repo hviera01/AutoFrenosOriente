@@ -22,14 +22,34 @@ class BuscarProductoCompraDialog extends ConsumerStatefulWidget {
 class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompraDialog> {
   final _busquedaController = TextEditingController();
   final _focusNodeLista = FocusNode();
+  final _scrollController = ScrollController();
   String _busquedaAplicada = '';
   List<ProductoModel> _listaActual = [];
   String? _filaSeleccionada;
+
+  // Memoización igual que en Inventario/BuscarProductoDialog: sin esto,
+  // resaltar una fila con clic o con las flechas volvía a filtrar todo el
+  // catálogo contra la búsqueda solo para repintar el resaltado.
+  List<ProductoModel>? _cacheProductos;
+  String? _cacheBusquedaAplicada;
+  List<ProductoModel> _cacheResultado = const [];
+
+  List<ProductoModel> _listaFiltrada(List<ProductoModel> productos) {
+    if (identical(productos, _cacheProductos) && _busquedaAplicada == _cacheBusquedaAplicada) {
+      return _cacheResultado;
+    }
+    final lista = productos.where((p) => p.estado && coincideFuzzy(p.textoBusqueda, _busquedaAplicada)).toList();
+    _cacheProductos = productos;
+    _cacheBusquedaAplicada = _busquedaAplicada;
+    _cacheResultado = lista;
+    return lista;
+  }
 
   @override
   void dispose() {
     _busquedaController.dispose();
     _focusNodeLista.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -40,6 +60,31 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
     if (nuevoIndice < 0) nuevoIndice = 0;
     if (nuevoIndice >= _listaActual.length) nuevoIndice = _listaActual.length - 1;
     setState(() => _filaSeleccionada = _listaActual[nuevoIndice].id);
+    _desplazarHaciaFila(nuevoIndice);
+  }
+
+  double _alturaEstimada(ProductoModel p) => p.nombre.length > 40 ? 71 : 52;
+
+  void _desplazarHaciaFila(int indice) {
+    if (!_scrollController.hasClients || indice < 0 || indice >= _listaActual.length) return;
+    var offsetInicio = 0.0;
+    for (var i = 0; i < indice; i++) {
+      offsetInicio += _alturaEstimada(_listaActual[i]);
+    }
+    final offsetFin = offsetInicio + _alturaEstimada(_listaActual[indice]);
+    final posicion = _scrollController.position;
+    final inicioVisible = posicion.pixels;
+    final finVisible = posicion.pixels + posicion.viewportDimension;
+
+    double? destino;
+    if (offsetInicio < inicioVisible) {
+      destino = offsetInicio;
+    } else if (offsetFin > finVisible) {
+      destino = offsetFin - posicion.viewportDimension;
+    }
+    if (destino == null) return;
+    destino = destino.clamp(posicion.minScrollExtent, posicion.maxScrollExtent);
+    _scrollController.animateTo(destino, duration: const Duration(milliseconds: 90), curve: Curves.easeOut);
   }
 
   KeyEventResult _manejarTeclado(FocusNode node, KeyEvent event) {
@@ -210,7 +255,7 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
                           );
                         }
 
-                        final lista = productos.where((p) => p.estado && coincideFuzzy(p.textoBusqueda, _busquedaAplicada)).toList();
+                        final lista = _listaFiltrada(productos);
                         _listaActual = lista;
                         if (lista.isEmpty) {
                           return Center(
@@ -227,6 +272,7 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
                             ],
                             Expanded(
                               child: ListView.separated(
+                                controller: _scrollController,
                                 itemCount: lista.length,
                                 separatorBuilder: (context, i) => Divider(height: 1, color: Colors.grey.shade200),
                                 itemBuilder: (context, i) {

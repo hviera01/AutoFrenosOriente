@@ -283,7 +283,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
                       controller: _descripcionController,
                       maxLines: 2,
                       style: GoogleFonts.poppins(fontSize: 14),
-                      decoration: _decoracion('Descripción (opcional)'),
+                      decoration: _decoracion('Ubicación (opcional)'),
                     ),
                     const SizedBox(height: 14),
                     categoriasAsync.when(

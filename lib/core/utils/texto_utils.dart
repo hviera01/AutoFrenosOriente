@@ -13,17 +13,28 @@ int distanciaLevenshtein(String a, String b) {
   if (a == b) return 0;
   if (a.isEmpty) return b.length;
   if (b.isEmpty) return a.length;
-  final matriz = List.generate(a.length + 1, (i) => List.filled(b.length + 1, 0));
-  for (var i = 0; i <= a.length; i++) matriz[i][0] = i;
-  for (var j = 0; j <= b.length; j++) matriz[0][j] = j;
-  for (var i = 1; i <= a.length; i++) {
-    for (var j = 1; j <= b.length; j++) {
-      final costo = a[i - 1] == b[j - 1] ? 0 : 1;
-      final opciones = [matriz[i - 1][j] + 1, matriz[i][j - 1] + 1, matriz[i - 1][j - 1] + costo];
-      matriz[i][j] = opciones.reduce((v, e) => v < e ? v : e);
+  // DP de una sola fila (O(min(largo,corto)) de memoria) en vez de la
+  // matriz completa O(a.length*b.length): con listas grandes (Inventario
+  // con miles de productos) esta función se llama muchísimas veces por
+  // búsqueda, y alocar una matriz nueva cada vez generaba presión de GC
+  // notable. El resultado es idéntico, solo cambia cómo se calcula.
+  final corta = a.length <= b.length ? a : b;
+  final larga = a.length <= b.length ? b : a;
+  final fila = List<int>.generate(corta.length + 1, (i) => i);
+  for (var i = 1; i <= larga.length; i++) {
+    var anteriorDiagonal = fila[0];
+    fila[0] = i;
+    for (var j = 1; j <= corta.length; j++) {
+      final temp = fila[j];
+      final costo = larga[i - 1] == corta[j - 1] ? 0 : 1;
+      final borrar = fila[j] + 1;
+      final insertar = fila[j - 1] + 1;
+      final sustituir = anteriorDiagonal + costo;
+      fila[j] = borrar < insertar ? (borrar < sustituir ? borrar : sustituir) : (insertar < sustituir ? insertar : sustituir);
+      anteriorDiagonal = temp;
     }
   }
-  return matriz[a.length][b.length];
+  return fila[corta.length];
 }
 
 bool coincideFuzzy(String textoCompleto, String consulta) {
@@ -34,6 +45,10 @@ bool coincideFuzzy(String textoCompleto, String consulta) {
   final palabrasConsulta = consultaNorm.split(RegExp(r'\s+'));
   for (final palabraConsulta in palabrasConsulta) {
     if (palabraConsulta.isEmpty) continue;
+    // Tolerancia a errores de tipeo: nada para palabras muy cortas (ahí
+    // cualquier letra distinta ya es otra palabra), un poco más para
+    // palabras largas.
+    final tolerancia = palabraConsulta.length <= 4 ? 0 : (palabraConsulta.length <= 7 ? 1 : 2);
     final coincideAlguna = palabrasTexto.any((palabraTexto) {
       if (palabraTexto.isEmpty) return false;
       // Que la palabra buscada aparezca dentro de una palabra del producto
@@ -43,11 +58,12 @@ bool coincideFuzzy(String textoCompleto, String consulta) {
       // etc.- calzara adentro de algo como "rexona" y trajera resultados sin
       // ninguna relación real.
       if (palabraTexto.contains(palabraConsulta)) return true;
-      // Tolerancia a errores de tipeo: nada para palabras muy cortas (ahí
-      // cualquier letra distinta ya es otra palabra), un poco más para
-      // palabras largas.
-      final tolerancia = palabraConsulta.length <= 4 ? 0 : (palabraConsulta.length <= 7 ? 1 : 2);
       if (tolerancia == 0) return false;
+      // Si la diferencia de longitud ya supera la tolerancia, la distancia
+      // de Levenshtein no puede terminar por debajo de ella: se descarta sin
+      // calcular nada (evita miles de cálculos por búsqueda en listas
+      // grandes como el Inventario de Auto Frenos, con ~3400 productos).
+      if ((palabraTexto.length - palabraConsulta.length).abs() > tolerancia) return false;
       return distanciaLevenshtein(palabraTexto, palabraConsulta) <= tolerancia;
     });
     if (!coincideAlguna) return false;

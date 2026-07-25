@@ -33,7 +33,11 @@ class ProductoImportService {
   static const _sinonimos = <String, List<String>>{
     'codigo': ['codigo'],
     'nombre': ['nombre'],
-    'descripcion': ['descripcion'],
+    // 'ubicacion' además de 'descripcion': en este negocio ese campo se usa
+    // para anotar la ubicación física (bodega/estante) del producto, no una
+    // descripción real, así que la plantilla de Excel puede traer cualquiera
+    // de los dos nombres de columna.
+    'descripcion': ['descripcion', 'ubicacion'],
     'categoria': ['categoria'],
     'stock': ['stock', 'existencia'],
     'precioVenta': ['precioventa', 'preciodeventa'],

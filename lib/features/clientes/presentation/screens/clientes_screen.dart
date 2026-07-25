@@ -6,6 +6,7 @@ import '../../providers/clientes_provider.dart';
 import '../../../../core/utils/texto_utils.dart';
 import '../widgets/cliente_form_dialog.dart';
 import '../widgets/cliente_dashboard_dialog.dart';
+import '../widgets/cliente_vehiculos_dialog.dart';
 
 class ClientesScreen extends ConsumerStatefulWidget {
   const ClientesScreen({super.key});
@@ -63,15 +64,27 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
       case 'editar':
         _abrirFormulario(cliente);
         break;
+      case 'vehiculos':
+        _abrirVehiculos(cliente);
+        break;
       case 'eliminar':
         _eliminar(cliente);
         break;
     }
   }
 
+  // Igual que "Registrar Vehículo" en el sistema viejo: requiere el cliente
+  // ya elegido (acá, la fila sobre la que se abrió el menú) y lista solo los
+  // vehículos de ese cliente. El listado global de TODOS los vehículos sigue
+  // siendo la pantalla aparte "Vehículos" del menú principal.
+  void _abrirVehiculos(ClienteModel cliente) {
+    showDialog(context: context, builder: (context) => ClienteVehiculosDialog(cliente: cliente));
+  }
+
   List<PopupMenuEntry<String>> _opcionesMenu() {
     return [
       _opcionMenu(valor: 'editar', icono: Icons.edit_outlined, texto: 'Editar'),
+      _opcionMenu(valor: 'vehiculos', icono: Icons.directions_car_filled_outlined, texto: 'Vehículos'),
       _opcionMenu(valor: 'eliminar', icono: Icons.delete_outline, texto: 'Eliminar'),
     ];
   }
@@ -117,6 +130,26 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                         onPressed: () => ref.invalidate(clientesStreamProvider),
                         icon: const Icon(Icons.refresh, size: 18),
                         label: Text('Refrescar', style: GoogleFonts.poppins(fontSize: 13)),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF1A1A1A),
+                          side: const BorderSide(color: Color(0xFFB6BCC7)),
+                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                      // Igual que "Registrar Vehículo" en el sistema viejo:
+                      // ese botón operaba sobre el cliente ya seleccionado
+                      // en la grilla, en vez de pedirlo aparte -acá lo
+                      // mismo, usando la fila tocada como selección-.
+                      OutlinedButton.icon(
+                        onPressed: _filaSeleccionada == null
+                            ? null
+                            : () {
+                                final cliente = (clientesAsync.value ?? []).where((c) => c.id == _filaSeleccionada).toList();
+                                if (cliente.isNotEmpty) _abrirVehiculos(cliente.first);
+                              },
+                        icon: const Icon(Icons.directions_car_filled_outlined, size: 18),
+                        label: Text('Vehículos del seleccionado', style: GoogleFonts.poppins(fontSize: 13)),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: const Color(0xFF1A1A1A),
                           side: const BorderSide(color: Color(0xFFB6BCC7)),

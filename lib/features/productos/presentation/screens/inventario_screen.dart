@@ -33,6 +33,7 @@ class InventarioScreen extends ConsumerStatefulWidget {
 class _InventarioScreenState extends ConsumerState<InventarioScreen> {
   final _busquedaController = TextEditingController();
   final _focusNode = FocusNode();
+  final _scrollController = ScrollController();
   final _servicioExport = ProductoExportService();
   String? _filaSeleccionada;
   String? _columnaOrden;
@@ -43,15 +44,115 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
   // códigos largos puede "acercarse" a varios productos distintos).
   bool _busquedaPorCodigoBarras = false;
   List<ProductoModel> _listaActual = [];
+  double _anchoColumnaNombreActual = 0;
+
+  // --- Memoización del filtrado/orden -------------------------------------
+  // El bloque que arma `lista` (filtrar por vista/búsqueda + ordenar) se
+  // ejecutaba antes en CADA build de la pantalla, incluyendo los que no
+  // tienen nada que ver con los datos: seleccionar una fila, moverse con las
+  // flechas o cambiar el toggle de ISV disparan setState() y eso volvía a
+  // filtrar/ordenar hasta 3400+ productos solo para repintar el resaltado de
+  // una fila. Acá se cachea el resultado y solo se recalcula si cambió algo
+  // que realmente afecta la lista mostrada.
+  List<ProductoModel>? _cacheProductos;
+  String? _cacheVista;
+  String? _cacheBusqueda;
+  bool? _cacheBusquedaPorCodigo;
+  String? _cacheColumnaOrden;
+  bool? _cacheOrdenAscendente;
+  List<ProductoModel> _cacheResultado = const [];
+
+  List<ProductoModel> _listaFiltrada(List<ProductoModel> productos, String vista, String busqueda) {
+    if (identical(productos, _cacheProductos) &&
+        vista == _cacheVista &&
+        busqueda == _cacheBusqueda &&
+        _busquedaPorCodigoBarras == _cacheBusquedaPorCodigo &&
+        _columnaOrden == _cacheColumnaOrden &&
+        _ordenAscendente == _cacheOrdenAscendente) {
+      return _cacheResultado;
+    }
+    var lista = productos;
+    if (vista == 'bajo') {
+      lista = lista.where((p) => p.stock < 3).toList();
+    }
+    if (busqueda.isNotEmpty) {
+      lista = _busquedaPorCodigoBarras
+          ? lista.where((p) => p.codigoBarras.trim() == busqueda || p.codigo.trim() == busqueda).toList()
+          : lista.where((p) => coincideFuzzy(p.textoBusqueda, busqueda)).toList();
+    } else if (vista == 'filtrados') {
+      lista = [];
+    }
+    lista = _ordenarLista(lista);
+
+    _cacheProductos = productos;
+    _cacheVista = vista;
+    _cacheBusqueda = busqueda;
+    _cacheBusquedaPorCodigo = _busquedaPorCodigoBarras;
+    _cacheColumnaOrden = _columnaOrden;
+    _cacheOrdenAscendente = _ordenAscendente;
+    _cacheResultado = lista;
+    return lista;
+  }
+
+  // --- Alturas de fila variables (solo la que lo necesita) ----------------
+  // Casi todos los nombres entran en una línea; cuando uno no entra, en vez
+  // de recortarlo con "..." se mide con TextPainter (el mismo estilo/ancho
+  // real de la columna NOMBRE) y esa fila puntual crece lo justo para
+  // mostrarlo completo. El resultado se cachea por "nombre@ancho" porque la
+  // medición es la única parte no trivial de este cálculo y los nombres se
+  // repiten mucho entre pantallazos (scroll, reordenar, etc.).
+  static const double _altoFilaBase = 65; // 64 de contenido + 1 de borde inferior
+  static const double _altoLinea = 18;
+  final Map<String, double> _alturaFilaCache = {};
+
+  double _alturaFila(String nombre, double anchoColumnaNombre) {
+    if (anchoColumnaNombre <= 0 || nombre.isEmpty) return _altoFilaBase;
+    final clave = '$nombre@${anchoColumnaNombre.round()}';
+    final cacheado = _alturaFilaCache[clave];
+    if (cacheado != null) return cacheado;
+
+    final tp = TextPainter(
+      text: TextSpan(text: nombre, style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600)),
+      textDirection: TextDirection.ltr,
+      maxLines: 6,
+    )..layout(maxWidth: anchoColumnaNombre);
+    final lineas = tp.computeLineMetrics().length.clamp(1, 6);
+    final altura = lineas <= 2 ? _altoFilaBase : (28 + lineas * _altoLinea + 1);
+    _alturaFilaCache[clave] = altura;
+    return altura;
+  }
 
   /// Precio de venta a mostrar según la vista elegida (con o sin ISV). El
   /// precio guardado en el producto siempre incluye ISV.
   double _precioMostrado(ProductoModel p) => _precioConIsv ? p.precioVenta : redondearMoneda(p.precioVenta / 1.15);
 
+  // Igual que _listaFiltrada: sin esto, los badges de "valor compra/venta"
+  // recorrían los 3400+ productos en CADA build (por ejemplo, cada vez que
+  // se selecciona una fila) solo para mostrar el mismo número de antes.
+  List<ProductoModel>? _cacheResumenProductos;
+  bool? _cacheResumenConIsv;
+  (double, double) _cacheResumenValores = (0, 0);
+
+  (double, double) _resumenValores(List<ProductoModel> productos) {
+    if (identical(productos, _cacheResumenProductos) && _precioConIsv == _cacheResumenConIsv) {
+      return _cacheResumenValores;
+    }
+    double valorCompra = 0, valorVenta = 0;
+    for (final p in productos) {
+      valorCompra += p.stock * p.precioCompra;
+      valorVenta += p.stock * _precioMostrado(p);
+    }
+    _cacheResumenProductos = productos;
+    _cacheResumenConIsv = _precioConIsv;
+    _cacheResumenValores = (valorCompra, valorVenta);
+    return _cacheResumenValores;
+  }
+
   @override
   void dispose() {
     _busquedaController.dispose();
     _focusNode.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -220,6 +321,33 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     if (nuevoIndice < 0) nuevoIndice = 0;
     if (nuevoIndice >= _listaActual.length) nuevoIndice = _listaActual.length - 1;
     setState(() => _filaSeleccionada = _listaActual[nuevoIndice].id);
+    _desplazarHaciaFila(nuevoIndice);
+  }
+
+  /// Mueve el scroll de la tabla lo mínimo necesario para que la fila
+  /// [indice] quede visible (arriba o abajo, según hacia dónde se navegó con
+  /// las flechas) — sin esto, seleccionar con teclado podía "salirse" de la
+  /// vista sin que el scroll acompañara.
+  void _desplazarHaciaFila(int indice) {
+    if (!_scrollController.hasClients || indice < 0 || indice >= _listaActual.length) return;
+    var offsetInicio = 0.0;
+    for (var i = 0; i < indice; i++) {
+      offsetInicio += _alturaFila(_listaActual[i].nombre, _anchoColumnaNombreActual);
+    }
+    final offsetFin = offsetInicio + _alturaFila(_listaActual[indice].nombre, _anchoColumnaNombreActual);
+    final posicion = _scrollController.position;
+    final inicioVisible = posicion.pixels;
+    final finVisible = posicion.pixels + posicion.viewportDimension;
+
+    double? destino;
+    if (offsetInicio < inicioVisible) {
+      destino = offsetInicio;
+    } else if (offsetFin > finVisible) {
+      destino = offsetFin - posicion.viewportDimension;
+    }
+    if (destino == null) return;
+    destino = destino.clamp(posicion.minScrollExtent, posicion.maxScrollExtent);
+    _scrollController.animateTo(destino, duration: const Duration(milliseconds: 90), curve: Curves.easeOut);
   }
 
   KeyEventResult _manejarTeclado(FocusNode node, KeyEvent event) {
@@ -269,8 +397,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                       Text('Inventario', style: GoogleFonts.poppins(fontSize: esMovil ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
                       productosAsync.when(
                         data: (productos) {
-                          final valorCompra = productos.fold<double>(0, (s, p) => s + (p.stock * p.precioCompra));
-                          final valorVenta = productos.fold<double>(0, (s, p) => s + (p.stock * _precioMostrado(p)));
+                          final (valorCompra, valorVenta) = _resumenValores(productos);
                           return Wrap(
                             spacing: 8,
                             runSpacing: 8,
@@ -346,18 +473,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                 ),
                 child: productosAsync.when(
                       data: (productos) {
-                        var lista = productos;
-                        if (vista == 'bajo') {
-                          lista = lista.where((p) => p.stock < 3).toList();
-                        }
-                        if (busqueda.isNotEmpty) {
-                          lista = _busquedaPorCodigoBarras
-                              ? lista.where((p) => p.codigoBarras.trim() == busqueda || p.codigo.trim() == busqueda).toList()
-                              : lista.where((p) => coincideFuzzy(p.textoBusqueda, busqueda)).toList();
-                        } else if (vista == 'filtrados') {
-                          lista = [];
-                        }
-                        lista = _ordenarLista(lista);
+                        final lista = _listaFiltrada(productos, vista, busqueda);
                         _listaActual = lista;
 
                         if (lista.isEmpty) {
@@ -409,6 +525,15 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
         final mostrarDescripcion = ancho >= 1050;
         final mostrarCategoria = ancho >= 850;
 
+        // Ancho real (en píxeles) de la columna NOMBRE con este layout, para
+        // saber cuántas líneas necesita cada nombre (ver _alturaFila). 76 es
+        // el ancho fijo de la columna de acciones; 24 es el padding
+        // horizontal de la celda (12 a cada lado).
+        final totalFlex = 12 + 24 + (mostrarDescripcion ? 20 : 0) + (mostrarCategoria ? 17 : 0) + 12 + 14 + 14 + 11;
+        final anchoContenido = (ancho - 76).clamp(0, double.infinity);
+        final anchoColumnaNombre = (anchoContenido * (24 / totalFlex) - 24).clamp(0, double.infinity).toDouble();
+        _anchoColumnaNombreActual = anchoColumnaNombre;
+
         return Column(
           children: [
             Container(
@@ -418,7 +543,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                 children: [
                   _celdaHeader(texto: 'CÓDIGO', flex: 12, columnaOrdenKey: 'codigo'),
                   _celdaHeader(texto: 'NOMBRE', flex: 24, columnaOrdenKey: 'nombre'),
-                  if (mostrarDescripcion) _celdaHeader(texto: 'DESCRIPCIÓN', flex: 20),
+                  if (mostrarDescripcion) _celdaHeader(texto: 'UBICACIÓN', flex: 20),
                   if (mostrarCategoria) _celdaHeader(texto: 'CATEGORÍA', flex: 17),
                   _celdaHeader(texto: 'EXISTENCIA', flex: 12, columnaOrdenKey: 'existencia'),
                   _celdaHeader(texto: _precioConIsv ? 'P. VENTA (C/ISV)' : 'P. VENTA (S/ISV)', flex: 14, columnaOrdenKey: 'precioVenta'),
@@ -429,13 +554,24 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
               ),
             ),
             Expanded(
-              child: ListView.separated(
+              child: ListView.builder(
+                controller: _scrollController,
+                // itemExtentBuilder (en vez de un itemExtent fijo o de
+                // ListView.separated) le da a Flutter el alto exacto de cada
+                // fila SIN tener que medir/pintar las filas anteriores para
+                // saber a qué offset corresponde cada posición de scroll —
+                // eso es lo que hace fluido el scroll incluso con miles de
+                // productos ("Mostrar todos") o al arrastrar la scrollbar.
+                // Casi todas las filas miden lo mismo (_altoFilaBase); solo
+                // las que tienen un nombre largo son más altas, y solo esa
+                // fila puntual — no se agranda la tabla entera por eso.
+                itemExtentBuilder: (index, dimensions) => _alturaFila(lista[index].nombre, anchoColumnaNombre),
                 itemCount: lista.length,
-                separatorBuilder: (context, index) => Divider(height: 1, thickness: 1, color: Colors.grey.shade200),
                 itemBuilder: (context, index) {
                   final producto = lista[index];
                   final bajoStock = producto.stock < 3;
                   final seleccionada = _filaSeleccionada == producto.id;
+                  final altoFila = _alturaFila(producto.nombre, anchoColumnaNombre) - 1;
 
                   return InkWell(
                     onTap: () {
@@ -443,17 +579,27 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                       setState(() => _filaSeleccionada = seleccionada ? null : producto.id);
                     },
                     child: Container(
-                      color: seleccionada ? const Color(0xFFE6E9F2) : Colors.white,
-                      // Alto fijo en vez de IntrinsicHeight: con alto fijo, Flutter
-                      // no necesita un segundo pase de layout por fila para saber
-                      // cuánto "estirar" cada celda (lo que exigía IntrinsicHeight),
-                      // así que desplazarse por listas largas queda mucho más fluido.
-                      height: 64,
+                      // Alto fijo (calculado en _alturaFila) en vez de
+                      // IntrinsicHeight: con alto fijo, Flutter no necesita un
+                      // segundo pase de layout por fila para saber cuánto
+                      // "estirar" cada celda, así que desplazarse por listas
+                      // largas queda mucho más fluido.
+                      height: altoFila,
+                      decoration: BoxDecoration(
+                        color: seleccionada ? const Color(0xFFE6E9F2) : Colors.white,
+                        border: Border(bottom: BorderSide(color: Colors.grey.shade200, width: 1)),
+                      ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          _celdaTabla(flex: 12, child: Text(producto.codigo, maxLines: 2, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 12.5, color: const Color(0xFF3F434A)))),
-                          _celdaTabla(flex: 24, child: Text(producto.nombre, maxLines: 2, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A)))),
+                          _celdaTabla(flex: 12, child: Text(producto.codigo, maxLines: 6, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 12.5, color: const Color(0xFF3F434A)))),
+                          // El nombre prácticamente nunca se recorta: la altura
+                          // de la fila ya se calculó (_alturaFila) midiendo
+                          // cuántas líneas necesita (mismo tope de 6 líneas acá
+                          // como red de seguridad si el ancho cambiara justo
+                          // entre la medición y el pintado, ej. al redimensionar
+                          // la ventana).
+                          _celdaTabla(flex: 24, child: Text(producto.nombre, maxLines: 6, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A)))),
                           if (mostrarDescripcion)
                             _celdaTabla(flex: 20, child: Text(producto.descripcion.isEmpty ? '-' : producto.descripcion, maxLines: 2, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600))),
                           if (mostrarCategoria)

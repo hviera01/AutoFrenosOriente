@@ -16,8 +16,11 @@ class VentaTicketEscPosService {
     final formatoFecha = DateFormat('dd/MM/yyyy HH:mm');
     final formatoDia = DateFormat('dd/MM/yyyy');
 
-    // El ISV siempre se cobra en este negocio (excepto en cotizaciones); las
-    // leyendas fiscales (CAI, etc.) se muestran para cualquier venta real.
+    // El ISV siempre se cobra en este negocio (excepto en cotizaciones). No
+    // hay leyendas fiscales (CAI, rango autorizado, etc.): este negocio no
+    // factura fiscalmente de verdad -el "CAI" en NEGOCIO es un valor de
+    // relleno ("0") heredado del sistema viejo, que tampoco las imprimía en
+    // su ticket de "Venta"- así que no se muestran acá tampoco.
     final esFacturable = venta.tipoDocumento != 'Cotizacion';
     final conIsv = esFacturable && negocio.facturaPreciosConIsv;
     double precioMostrado(dynamic item) => conIsv ? redondearMoneda((item.precioVenta as double) * 1.15) : item.precioVenta as double;
@@ -37,7 +40,6 @@ class VentaTicketEscPosService {
     if (negocio.direccion.isNotEmpty) bytes += generador.text('Dirección: ${negocio.direccion}', styles: const PosStyles(align: PosAlign.center));
     if (negocio.rtn.isNotEmpty) bytes += generador.text('RTN: ${negocio.rtn}', styles: const PosStyles(align: PosAlign.center));
     if (negocio.telefono.isNotEmpty) bytes += generador.text('Tel: ${negocio.telefono}', styles: const PosStyles(align: PosAlign.center));
-    if (negocio.cai.isNotEmpty) bytes += generador.text('CAI: ${negocio.cai}', styles: const PosStyles(align: PosAlign.center));
     bytes += generador.hr();
 
     bytes += generador.text('${venta.tipoDocumento.toUpperCase()} ${negocio.rangoPrefijo}${venta.numeroDocumento}', styles: const PosStyles(bold: true));
@@ -74,6 +76,8 @@ class VentaTicketEscPosService {
       bytes += _filaTotal(generador, 'Gravado 15%:', venta.subtotal);
       bytes += _filaTotal(generador, 'ISV 15%:', venta.impuesto);
     }
+    final montoRecargo = venta.porcentajeTarjeta > 0 ? redondearMoneda(venta.totalAPagar - (venta.subtotal + venta.impuesto)) : 0.0;
+    if (montoRecargo > 0) bytes += _filaTotal(generador, 'Recargo tarjeta (${_formatoCantidad(venta.porcentajeTarjeta)}%):', montoRecargo);
     bytes += _filaTotal(generador, 'TOTAL A PAGAR:', venta.totalAPagar, negrita: true);
     bytes += generador.hr();
 
@@ -90,17 +94,6 @@ class VentaTicketEscPosService {
     }
     bytes += generador.hr();
 
-    if (esFacturable) {
-      if (negocio.rangoPrefijo.isNotEmpty || negocio.rangoDesde.isNotEmpty) {
-        bytes += generador.text('Rango Aut.: ${negocio.rangoPrefijo}${negocio.rangoDesde} al ${negocio.rangoPrefijo}${negocio.rangoHasta}');
-      }
-      if (negocio.fechaLimiteEmision != null) {
-        bytes += generador.text('Fecha Límite: ${formatoDia.format(negocio.fechaLimiteEmision!)}');
-      }
-      bytes += generador.text('ORIGINAL: CLIENTE');
-      bytes += generador.text('COPIA: OBLIGADO TRIBUTARIO EMISOR');
-      bytes += generador.text('LA FACTURA ES BENEFICIO DE TODOS, ¡EXÍJALA!', styles: const PosStyles(align: PosAlign.center, bold: true));
-    }
     bytes += generador.text('¡GRACIAS POR SU COMPRA!', styles: const PosStyles(align: PosAlign.center, bold: true));
     bytes += generador.cut();
 

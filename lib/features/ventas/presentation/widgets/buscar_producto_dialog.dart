@@ -32,6 +32,7 @@ class BuscarProductoDialog extends ConsumerStatefulWidget {
 class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
   final _busquedaController = TextEditingController();
   final _focusNodeLista = FocusNode();
+  final _scrollController = ScrollController();
   String _busquedaAplicada = '';
   // Cuando la búsqueda viene de escanear un código de barras se filtra por
   // coincidencia exacta de código, no con el buscador difuso (que con
@@ -46,6 +47,38 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
   String? _columnaOrden;
   bool _ordenAscendente = true;
 
+  // Memoización igual que en Inventario: sin esto, resaltar una fila con
+  // clic o con las flechas disparaba un setState que volvía a filtrar TODO
+  // el catálogo (miles de productos) contra la búsqueda solo para repintar
+  // el resaltado — se sentía pesado cada vez que se tocaba una fila.
+  List<ProductoModel>? _cacheProductos;
+  String? _cacheBusquedaAplicada;
+  bool? _cacheBusquedaExacta;
+  String? _cacheColumnaOrden;
+  bool? _cacheOrdenAscendente;
+  List<ProductoModel> _cacheResultado = const [];
+
+  List<ProductoModel> _listaFiltrada(List<ProductoModel> productos) {
+    if (identical(productos, _cacheProductos) &&
+        _busquedaAplicada == _cacheBusquedaAplicada &&
+        _busquedaExacta == _cacheBusquedaExacta &&
+        _columnaOrden == _cacheColumnaOrden &&
+        _ordenAscendente == _cacheOrdenAscendente) {
+      return _cacheResultado;
+    }
+    final lista = productos.where((p) => p.estado && _coincide(p, _busquedaAplicada)).toList();
+    if (_columnaOrden == 'existencia') {
+      lista.sort((a, b) => _ordenAscendente ? a.stock.compareTo(b.stock) : b.stock.compareTo(a.stock));
+    }
+    _cacheProductos = productos;
+    _cacheBusquedaAplicada = _busquedaAplicada;
+    _cacheBusquedaExacta = _busquedaExacta;
+    _cacheColumnaOrden = _columnaOrden;
+    _cacheOrdenAscendente = _ordenAscendente;
+    _cacheResultado = lista;
+    return lista;
+  }
+
   // defaultTargetPlatform (a diferencia de un ancho de pantalla angosto,
   // que también puede pasar en un navegador de escritorio con la ventana
   // chica) detecta el sistema operativo real del equipo.
@@ -55,6 +88,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
   void dispose() {
     _busquedaController.dispose();
     _focusNodeLista.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -65,6 +99,35 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
     if (nuevoIndice < 0) nuevoIndice = 0;
     if (nuevoIndice >= _listaActual.length) nuevoIndice = _listaActual.length - 1;
     setState(() => _filaSeleccionada = _listaActual[nuevoIndice].id);
+    _desplazarHaciaFila(nuevoIndice);
+  }
+
+  /// Estimación del alto de fila (una o dos líneas según el nombre) para
+  /// mantener la fila seleccionada visible al navegar con flechas — no hace
+  /// falta precisión perfecta acá porque la lista de resultados de una
+  /// búsqueda es corta, alcanza con acercarse.
+  double _alturaEstimada(ProductoModel p) => p.nombre.length > 40 ? 71 : 52;
+
+  void _desplazarHaciaFila(int indice) {
+    if (!_scrollController.hasClients || indice < 0 || indice >= _listaActual.length) return;
+    var offsetInicio = 0.0;
+    for (var i = 0; i < indice; i++) {
+      offsetInicio += _alturaEstimada(_listaActual[i]);
+    }
+    final offsetFin = offsetInicio + _alturaEstimada(_listaActual[indice]);
+    final posicion = _scrollController.position;
+    final inicioVisible = posicion.pixels;
+    final finVisible = posicion.pixels + posicion.viewportDimension;
+
+    double? destino;
+    if (offsetInicio < inicioVisible) {
+      destino = offsetInicio;
+    } else if (offsetFin > finVisible) {
+      destino = offsetFin - posicion.viewportDimension;
+    }
+    if (destino == null) return;
+    destino = destino.clamp(posicion.minScrollExtent, posicion.maxScrollExtent);
+    _scrollController.animateTo(destino, duration: const Duration(milliseconds: 90), curve: Curves.easeOut);
   }
 
   KeyEventResult _manejarTeclado(FocusNode node, KeyEvent event) {
@@ -326,10 +389,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                         );
                       }
 
-                      final lista = productos.where((p) => p.estado && _coincide(p, _busquedaAplicada)).toList();
-                      if (_columnaOrden == 'existencia') {
-                        lista.sort((a, b) => _ordenAscendente ? a.stock.compareTo(b.stock) : b.stock.compareTo(a.stock));
-                      }
+                      final lista = _listaFiltrada(productos);
                       _listaActual = lista;
                       if (lista.isEmpty) {
                         return Center(
@@ -346,6 +406,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                           ],
                           Expanded(
                             child: ListView.separated(
+                              controller: _scrollController,
                               itemCount: lista.length,
                               separatorBuilder: (context, i) => Divider(height: 1, color: Colors.grey.shade200),
                               itemBuilder: (context, i) {
