@@ -415,8 +415,16 @@ class VentaExportService {
             // logo que suba el negocio: antes salía muy chico porque solo se
             // limitaba el alto a 50pt.
             if (logo != null) pw.Center(child: pw.Image(logo, width: 140)),
+            // FittedBox en vez de un Text suelto: si el nombre del negocio
+            // no entra en una sola línea dentro del ancho del ticket, se
+            // achica en vez de pasar a una segunda línea.
             if (negocio.nombre.isNotEmpty)
-              pw.Center(child: pw.Text(negocio.nombre.toUpperCase(), style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold))),
+              pw.Center(
+                child: pw.FittedBox(
+                  fit: pw.BoxFit.scaleDown,
+                  child: pw.Text(negocio.nombre.toUpperCase(), maxLines: 1, style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
+                ),
+              ),
             if (negocio.eslogan.isNotEmpty)
               pw.Center(child: pw.Text(negocio.eslogan, style: const pw.TextStyle(fontSize: 9))),
             if (negocio.direccion.isNotEmpty)

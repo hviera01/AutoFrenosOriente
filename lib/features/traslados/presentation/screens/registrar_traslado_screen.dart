@@ -43,6 +43,12 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
   // real del sistema viejo (chkEntregado.Checked = true en su Load), pensado
   // para cuando el traslado físico ya se hizo y se está registrando después.
   String _estadoDeseado = 'Entregado';
+  // Igual que el sistema viejo (cboSucursalOrigen.SelectedIndex = 0,
+  // cboSucursalDestino.SelectedIndex = 1): al abrir la pantalla ya vienen
+  // elegidas la primera sucursal como origen y la segunda como destino, sin
+  // tener que tocar nada si es el traslado más común (Principal -> Sucursal
+  // 2). Se aplica una sola vez, no pisa lo que el usuario haya cambiado.
+  bool _defaultsSucursalAplicados = false;
 
   @override
   void dispose() {
@@ -68,7 +74,13 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
       return;
     }
     setState(() {
-      _items = [..._items, ItemTrasladoModel(idProducto: producto.id, nombreProducto: producto.nombre, cantidad: 1)];
+      // La ubicación se autocompleta con la descripción que ya tiene el
+      // producto (campo relabeleado a "Ubicación" en Inventario) — igual
+      // que el sistema viejo, que llenaba el textbox de descripción del
+      // traslado con Producto.Descripcion al elegir el producto. Sigue
+      // siendo editable después por si hace falta corregirla para este
+      // traslado puntual.
+      _items = [..._items, ItemTrasladoModel(idProducto: producto.id, nombreProducto: producto.nombre, cantidad: 1, ubicacion: producto.descripcion)];
       _error = null;
     });
   }
@@ -180,6 +192,7 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
       _guardando = false;
       _error = null;
       _estadoDeseado = 'Entregado';
+      _defaultsSucursalAplicados = false;
     });
     _observacionesController.clear();
     for (final c in _ctrlCantidad.values) {
@@ -315,6 +328,17 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
         data: (sucursales) {
           if (sucursales.length < 2) {
             return Text('Necesitás al menos 2 sucursales activas registradas para hacer un traslado.', style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade600));
+          }
+          if (!_defaultsSucursalAplicados) {
+            _defaultsSucursalAplicados = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted && _origen == null && _destino == null) {
+                setState(() {
+                  _origen = sucursales[0];
+                  _destino = sucursales[1];
+                });
+              }
+            });
           }
           return Wrap(
             spacing: 14,
