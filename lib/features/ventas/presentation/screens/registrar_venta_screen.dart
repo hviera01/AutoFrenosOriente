@@ -35,6 +35,8 @@ import '../../../clientes/providers/clientes_provider.dart';
 import '../../../vehiculos/providers/vehiculos_provider.dart';
 import '../../../vehiculos/data/vehiculo_model.dart';
 import '../widgets/cobrar_dialog.dart';
+import '../widgets/pago_mixto_dialog.dart';
+import '../../data/pago_detalle_model.dart';
 import '../widgets/ventas_en_espera_dialog.dart';
 import '../widgets/ventas_pendientes_impresion_dialog.dart';
 import '../widgets/teclado_numerico_dialog.dart';
@@ -42,7 +44,7 @@ import '../widgets/escanear_remoto_dialog.dart';
 import '../../data/tipos_documento.dart';
 import 'detalle_venta_screen.dart';
 
-const _metodosPago = ['Efectivo', 'Tarjeta', 'Transferencia'];
+const _metodosPago = ['Efectivo', 'Tarjeta', 'Transferencia', 'Mixto'];
 
 class RegistrarVentaScreen extends ConsumerStatefulWidget {
   // Id de la pestaña donde vive esta pantalla (ver pantalla_builder.dart):
@@ -851,6 +853,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
 
     var montoPago = 0.0;
     var montoCambio = 0.0;
+    var pagosMixtos = const <PagoDetalle>[];
     final esCotizacion = carrito.esCotizacion;
     NegocioModel? negocio;
     // Se captura el repositorio ahora (con `ref` todavía válido) en vez de
@@ -875,6 +878,12 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
           if (resultado == null) return;
           montoPago = resultado.pagoCon;
           montoCambio = resultado.cambio;
+        } else if (carrito.metodoPago == 'Mixto') {
+          final resultado = await showDialog<List<PagoDetalle>>(context: context, builder: (context) => PagoMixtoDialog(total: carrito.totalAPagar));
+          if (resultado == null) return;
+          pagosMixtos = resultado;
+          montoPago = resultado.fold<double>(0, (s, p) => s + p.monto);
+          montoCambio = 0;
         }
 
         negocio = await ref.read(negocioRepositoryProvider).obtenerNegocioActual();
@@ -921,6 +930,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
       nombreCliente: nombreCliente,
       montoPago: montoPago,
       montoCambio: montoCambio,
+      pagosMixtos: pagosMixtos,
       usuario: usuario,
       categoriasSinControlStock: categoriasSinControlStock,
       negocio: negocioFinal,
@@ -935,6 +945,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
     required String nombreCliente,
     required double montoPago,
     required double montoCambio,
+    List<PagoDetalle> pagosMixtos = const [],
     required String usuario,
     required Set<String> categoriasSinControlStock,
     required NegocioModel? negocio,
@@ -955,6 +966,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
             items: carrito.items,
             montoPago: montoPago,
             montoCambio: montoCambio,
+            pagosMixtos: esCotizacion ? const [] : pagosMixtos,
             subtotal: carrito.subtotal,
             impuesto: carrito.impuesto,
             totalAPagar: carrito.totalAPagar,
@@ -1000,6 +1012,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
               nombreCliente: nombreCliente,
               montoPago: montoPago,
               montoCambio: montoCambio,
+              pagosMixtos: pagosMixtos,
               usuario: usuario,
               categoriasSinControlStock: categoriasSinControlStock,
               negocio: negocio,

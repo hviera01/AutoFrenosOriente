@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/item_venta_model.dart';
+import '../data/pago_detalle_model.dart';
 import '../data/venta_en_espera_model.dart';
 import '../data/venta_model.dart';
 import '../../productos/data/producto_model.dart';
@@ -58,6 +59,9 @@ class CarritoVentaState {
   // (0 = no se cobra recargo), no algo forzado desde la configuración del
   // negocio.
   final double porcentajeTarjeta;
+  // Desglose cuando metodoPago == 'Mixto' (ver PagoMixtoDialog). Vacío en
+  // cualquier otro método.
+  final List<PagoDetalle> pagosMixtos;
 
   CarritoVentaState({
     this.idEnEspera,
@@ -77,10 +81,12 @@ class CarritoVentaState {
     this.cambio = 0,
     this.descuentoGlobalPorcentaje = 0,
     this.porcentajeTarjeta = 0,
+    this.pagosMixtos = const [],
   }) : fecha = fecha ?? DateTime.now();
 
   bool get esCotizacion => tipoDocumento == 'Cotizacion';
   bool get esCredito => condicion == 'Credito';
+  bool get esPagoMixto => metodoPago == 'Mixto';
 
   double get _subtotalLineasSinDescuentoGlobal => items.fold<double>(0, (s, i) => s + i.subtotal);
 
@@ -137,6 +143,7 @@ class CarritoVentaState {
     double? cambio,
     double? descuentoGlobalPorcentaje,
     double? porcentajeTarjeta,
+    List<PagoDetalle>? pagosMixtos,
   }) {
     return CarritoVentaState(
       idEnEspera: idEnEspera == _sinCambio ? this.idEnEspera : idEnEspera as String?,
@@ -156,6 +163,7 @@ class CarritoVentaState {
       cambio: cambio ?? this.cambio,
       descuentoGlobalPorcentaje: descuentoGlobalPorcentaje ?? this.descuentoGlobalPorcentaje,
       porcentajeTarjeta: porcentajeTarjeta ?? this.porcentajeTarjeta,
+      pagosMixtos: pagosMixtos ?? this.pagosMixtos,
     );
   }
 }
@@ -251,16 +259,26 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
       condicion: v,
       metodoPago: v == 'Credito' ? '' : 'Efectivo',
       fechaVencimiento: v == 'Credito' ? (state.fechaVencimiento ?? DateTime.now().add(const Duration(days: 30))) : null,
+      pagosMixtos: const [],
     );
   }
 
   // Igual que el sistema viejo: elegir "Tarjeta" propone el recargo del 5%
   // de una vez (el cajero lo puede bajar a 0 o cambiarlo para esa venta
   // puntual); cualquier otro método de pago lo deja en 0. Se reinicia a 5
-  // cada vez que se (re)selecciona Tarjeta, no solo la primera vez.
+  // cada vez que se (re)selecciona Tarjeta, no solo la primera vez. "Mixto"
+  // también deja el recargo en 0: ese % es para el total de la venta entero,
+  // y en un pago repartido no hay un único monto sobre el que aplicarlo (ver
+  // PagoMixtoDialog, donde el cajero suma a mano el recargo directo en el
+  // renglón de Tarjeta si corresponde).
   void establecerMetodoPago(String v) {
-    state = state.copyWith(metodoPago: v, porcentajeTarjeta: v == 'Tarjeta' ? 5 : 0);
+    state = state.copyWith(metodoPago: v, porcentajeTarjeta: v == 'Tarjeta' ? 5 : 0, pagosMixtos: v == 'Mixto' ? state.pagosMixtos : const []);
   }
+
+  /// Guarda el desglose confirmado en PagoMixtoDialog. No cambia metodoPago:
+  /// eso ya se hizo al elegir "Mixto" en el dropdown.
+  void establecerPagosMixtos(List<PagoDetalle> pagos) => state = state.copyWith(pagosMixtos: pagos);
+
   void establecerCliente({required String documento, required String nombre}) {
     state = state.copyWith(documentoCliente: documento, nombreCliente: nombre);
   }
