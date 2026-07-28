@@ -362,7 +362,10 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
                 label: Text('Confirmar Recepción', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
                 style: FilledButton.styleFrom(backgroundColor: const Color(0xFF16A34A), padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
               ),
-            if (t.estado == 'Pendiente' || t.estado == 'Enviado')
+            // Se puede anular en cualquier estado (incluido Entregado): el
+            // stock se resta desde el registro, así que anular siempre
+            // tiene sentido salvo que ya esté Anulado.
+            if (t.estado != 'Anulado')
               OutlinedButton.icon(
                 onPressed: _actuando ? null : _anular,
                 icon: const Icon(Icons.block_outlined, size: 18),

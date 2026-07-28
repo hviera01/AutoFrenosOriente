@@ -217,13 +217,18 @@ class TrasladoRepository {
   }
 
   /// Anula un traslado y repone al stock las cantidades que se le habían
-  /// restado al registrarlo (igual que anularVenta en VentaRepository).
+  /// restado al registrarlo (igual que anularVenta en VentaRepository). Se
+  /// puede anular en cualquier estado -incluido Entregado-: a diferencia de
+  /// antes (cuando el traslado era solo una bitácora y Entregado marcaba un
+  /// punto sin retorno del lado del flujo de trabajo), ahora que el stock se
+  /// resta desde el registro, la única anulación que de verdad no tiene
+  /// sentido es la de un traslado ya Anulado.
   Future<void> anular(String id, {required String usuario}) async {
     final doc = await _col.doc(id).get();
     final data = doc.data();
     final estado = data?['estado'];
-    if (estado == 'Entregado' || estado == 'Anulado') {
-      throw Exception('Un traslado $estado no se puede anular');
+    if (estado == 'Anulado') {
+      throw Exception('Este traslado ya está anulado');
     }
     final numero = data?['numero'] as String? ?? '';
     final detalleSnap = await _col.doc(id).collection('detalle').get();
