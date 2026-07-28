@@ -197,12 +197,23 @@ class CompraRepository {
     return CompraModel.fromMap(id, snap.data()!, items);
   }
 
+  /// Busca tanto por número de documento interno (el correlativo que genera
+  /// el sistema) como por número de factura del proveedor (campo aparte,
+  /// ver CompraModel.noFactura): el usuario no necesariamente sabe cuál de
+  /// los dos tiene a mano, y antes solo se podía buscar por el primero -si
+  /// alguien buscaba por el número de factura que tenía impreso en la
+  /// factura física del proveedor, salía "no se encontró" aunque la compra
+  /// sí estuviera registrada-.
   Future<CompraModel?> obtenerCompraPorNumeroDocumento(String numeroDocumento) async {
     final texto = numeroDocumento.trim();
     if (texto.isEmpty) return null;
-    final query = await _colCompras.where('numeroDocumento', isEqualTo: texto).limit(1).get();
-    if (query.docs.isEmpty) return null;
-    final doc = query.docs.first;
+    final snaps = await Future.wait([
+      _colCompras.where('numeroDocumento', isEqualTo: texto).limit(1).get(),
+      _colCompras.where('noFactura', isEqualTo: texto).limit(1).get(),
+    ]);
+    final docs = snaps.expand((s) => s.docs).toList();
+    if (docs.isEmpty) return null;
+    final doc = docs.first;
     final detalleSnap = await doc.reference.collection('detalle').get();
     final items = detalleSnap.docs.map((d) => ItemCompraModel.fromMap(d.data())).toList();
     return CompraModel.fromMap(doc.id, doc.data(), items);

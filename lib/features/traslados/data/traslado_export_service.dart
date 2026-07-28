@@ -136,6 +136,7 @@ class TrasladoExportService {
             pw.Row(
               children: [
                 pw.SizedBox(width: 46, child: pw.Text('CÓDIGO', style: pw.TextStyle(fontSize: fChica, fontWeight: pw.FontWeight.bold))),
+                pw.SizedBox(width: 6),
                 pw.Expanded(child: pw.Text('DESCRIPCIÓN', style: pw.TextStyle(fontSize: fChica, fontWeight: pw.FontWeight.bold))),
                 pw.Text('CANT', style: pw.TextStyle(fontSize: fChica, fontWeight: pw.FontWeight.bold)),
               ],
@@ -156,6 +157,7 @@ class TrasladoExportService {
                             width: 46,
                             child: pw.Text(codigosPorProducto[item.idProducto] ?? '', style: pw.TextStyle(fontSize: fNormal)),
                           ),
+                          pw.SizedBox(width: 6),
                           // Nombre sin límite de líneas tampoco: se envuelve,
                           // nunca se recorta ni se superpone con CANT.
                           pw.Expanded(
@@ -173,7 +175,7 @@ class TrasladoExportService {
                       // verdad, los dithera y salen borrosos/desvanecidos en
                       // papel real (aunque en pantalla se vean bien).
                       pw.Padding(
-                        padding: const pw.EdgeInsets.only(left: 46, top: 1),
+                        padding: const pw.EdgeInsets.only(left: 52, top: 1),
                         child: pw.Text(
                           'Ubicación: ${item.ubicacion.trim().isEmpty ? '-' : item.ubicacion}',
                           style: pw.TextStyle(fontSize: fChica, fontWeight: pw.FontWeight.bold),
@@ -222,14 +224,19 @@ class TrasladoExportService {
         + 49.0 // 7 líneas de datos
         + 8.0 // encabezado de tabla CÓDIGO/DESCRIPCIÓN/CANT
         + 70.0 // las dos firmas (SizedBox + línea + texto) + separador final
-        + 10.0; // pie de página + colchón de seguridad
+        + 20.0; // pie de página + colchón de seguridad
     if (tieneLogo) alto += 24.0;
     if (t.observaciones.isNotEmpty) alto += 16.0 + (t.observaciones.length / 35).ceil() * 6.0;
     // Cada producto: código + nombre (puede partirse en varias líneas, la
     // columna de nombre es más angosta ahora que el código tiene su propia
-    // columna) + la línea de Ubicación si la trae.
+    // columna) + la línea de Ubicación si la trae. Nombres en MAYÚSCULA
+    // (como salen casi todos los productos migrados) pesan más por
+    // carácter que el promedio, así que se estima con menos caracteres por
+    // línea de los que en teoría entrarían -mejor sobrestimar líneas que
+    // quedarse corto y que el ticket salga cortado, que es justo el
+    // problema que este cálculo existe para evitar.
     for (final item in t.detalle) {
-      alto += 12.0 + (item.nombreProducto.length / 20).ceil() * 6.0;
+      alto += 13.0 + (item.nombreProducto.length / 15).ceil() * 6.5;
       if (item.ubicacion.trim().isNotEmpty) alto += 6.0;
     }
     return alto;

@@ -86,7 +86,7 @@ class _DetalleCompraScreenState extends ConsumerState<DetalleCompraScreen> {
       final compra = await ref.read(compraRepositoryProvider).obtenerCompraPorNumeroDocumento(texto);
       if (!mounted) return;
       if (compra == null) {
-        setState(() => _error = 'No se encontró ninguna compra con ese número de documento');
+        setState(() => _error = 'No se encontró ninguna compra con ese número de documento o de factura');
       } else {
         setState(() => _compra = compra);
       }
@@ -203,7 +203,7 @@ class _DetalleCompraScreenState extends ConsumerState<DetalleCompraScreen> {
                     autofocus: widget.compraIdInicial == null,
                     style: GoogleFonts.poppins(fontSize: 14),
                     decoration: InputDecoration(
-                      hintText: 'Número de documento...',
+                      hintText: 'Número de documento o de factura...',
                       hintStyle: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade400),
                       border: InputBorder.none,
                       isDense: true,

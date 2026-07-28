@@ -66,6 +66,30 @@ class TrasladoRepository {
     return TrasladoModel.fromMap(doc.id, doc.data()!, detalle);
   }
 
+  // Best-effort: si el traslado ya no existe (raro, pero por ejemplo se
+  // borró desde otro dispositivo) no debe reventar con un error feo en
+  // pantalla — mismo criterio que VentaRepository.marcarSolicitudImpresionEnVivo.
+  // [esCopia] viaja junto con la solicitud para que la PC sepa si esta
+  // reimpresión en particular debe salir como "COPIA" o normal (ORIGINAL+
+  // COPIA); null es el caso de un traslado recién registrado.
+  Future<void> marcarSolicitudImpresionEnVivo(String id, bool valor, {bool? esCopia}) async {
+    try {
+      await _col.doc(id).update({'solicitudImpresionEnVivo': valor, 'solicitudImpresionEsCopia': esCopia});
+    } on FirebaseException catch (e) {
+      if (e.code != 'not-found' && e.code != 'invalid-argument') rethrow;
+    }
+  }
+
+  /// Traslados que le están pidiendo a la PC principal que los imprima sola
+  /// apenas los detecte (ver AppShell) — mismo mecanismo que
+  /// VentaRepository.obtenerVentasConSolicitudImpresionEnVivo. Sin
+  /// `orderBy` para no depender de un índice compuesto.
+  Stream<List<TrasladoModel>> obtenerTrasladosConSolicitudImpresionEnVivo() {
+    return _col.where('solicitudImpresionEnVivo', isEqualTo: true).snapshots().map((snap) {
+      return snap.docs.map((d) => TrasladoModel.fromMap(d.id, d.data(), const [])).toList();
+    });
+  }
+
   /// Busca sin que el usuario tenga que escribir "TRAS-" ni los ceros de
   /// relleno (por ejemplo "123" en vez de "TRAS-000123"): arma las variantes
   /// posibles del número y las busca todas en paralelo (mismo patrón que

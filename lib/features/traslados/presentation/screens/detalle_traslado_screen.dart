@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -9,6 +11,7 @@ import '../../providers/traslados_provider.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../negocio/providers/negocio_provider.dart';
 import '../../../productos/providers/productos_provider.dart';
+import '../../../ventas/providers/ventas_provider.dart' show presenciaImpresionRepositoryProvider;
 import '../../../../core/widgets/pdf_preview_dialog.dart';
 
 /// Pantalla de consulta de un traslado ya registrado: buscá por número (o
@@ -178,15 +181,38 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
     }
   }
 
+  void _mostrarMensaje(String mensaje) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(mensaje), showCloseIcon: true));
+  }
+
   // Reimprimir desde acá siempre sale como "COPIA" (una sola hoja), igual
-  // que ImprimirTrasladoCopia() en el sistema viejo.
+  // que ImprimirTrasladoCopia() en el sistema viejo. Desde el celular (APK)
+  // o el navegador de un celular no hay impresora a mano para elegir: en vez
+  // de abrir una vista previa que no sirve de mucho ahí, se manda directo la
+  // solicitud de impresión en vivo a la PC principal (si está conectada) —
+  // mismo criterio que Ventas (ver DetalleVentaScreen._reimprimir).
   Future<void> _reimprimir() async {
     final t = _traslado;
     if (t == null) return;
+
+    final esMovil = defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS;
+    final esCelularOWebMovil = (!kIsWeb && Platform.isAndroid) || (kIsWeb && esMovil);
+    if (esCelularOWebMovil) {
+      final pcConectada = await ref.read(presenciaImpresionRepositoryProvider).estaConectada();
+      if (!mounted) return;
+      if (pcConectada) {
+        await ref.read(trasladoRepositoryProvider).marcarSolicitudImpresionEnVivo(t.id, true, esCopia: true);
+        _mostrarMensaje('Se envió la orden de reimpresión a la caja principal');
+      } else {
+        _mostrarMensaje('No se puede reimprimir directo desde acá: no se detectó la caja principal conectada');
+      }
+      return;
+    }
+
     final negocio = await ref.read(negocioRepositoryProvider).obtenerNegocioActual();
     if (!mounted) return;
-    final productos = ref.read(productosStreamProvider).value ?? [];
-    final codigos = {for (final p in productos) p.id: p.codigo};
+    final codigos = _codigosPorProducto();
     final impresora = negocio.impresoraTermicaUrl.isEmpty ? null : Printer(url: negocio.impresoraTermicaUrl, name: negocio.impresoraTermicaNombre);
     if (!mounted) return;
     await showDialog(
@@ -290,7 +316,7 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
                               ],
                             ),
                           )
-                        : SingleChildScrollView(child: _detalle(_traslado!, esMovil)),
+                        : SingleChildScrollView(child: _detalle(_traslado!, esMovil, _codigosPorProducto())),
           ),
         ],
       ),
@@ -305,7 +331,12 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
     return Container(color: const Color(0xFFF2F3F7), child: contenido);
   }
 
-  Widget _detalle(TrasladoModel t, bool esMovil) {
+  Map<String, String> _codigosPorProducto() {
+    final productos = ref.read(productosStreamProvider).value ?? [];
+    return {for (final p in productos) p.id: p.codigo};
+  }
+
+  Widget _detalle(TrasladoModel t, bool esMovil, Map<String, String> codigos) {
     final formatoFecha = DateFormat('dd/MM/yyyy HH:mm');
 
     return Column(
@@ -336,7 +367,7 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
         const SizedBox(height: 16),
         Text('Productos', style: GoogleFonts.poppins(fontSize: 14.5, fontWeight: FontWeight.w700)),
         const SizedBox(height: 10),
-        _tarjeta(child: esMovil ? _tarjetasItems(t) : _tablaItems(t)),
+        _tarjeta(child: esMovil ? _tarjetasItems(t, codigos) : _tablaItems(t, codigos)),
         const SizedBox(height: 20),
         Wrap(
           spacing: 10,
@@ -407,14 +438,15 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
     );
   }
 
-  Widget _tablaItems(TrasladoModel t) {
+  Widget _tablaItems(TrasladoModel t, Map<String, String> codigos) {
     final estiloEncabezado = GoogleFonts.poppins(fontSize: 11.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Expanded(flex: 6, child: Text('Producto', style: estiloEncabezado)),
+            Expanded(flex: 2, child: Text('Código', style: estiloEncabezado)),
+            Expanded(flex: 5, child: Text('Producto', style: estiloEncabezado)),
             Expanded(flex: 2, child: Text('Cant.', textAlign: TextAlign.right, style: estiloEncabezado)),
           ],
         ),
@@ -425,8 +457,9 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Expanded(flex: 2, child: Text(codigos[item.idProducto] ?? '-', style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600))),
                 Expanded(
-                  flex: 6,
+                  flex: 5,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
@@ -447,7 +480,7 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
     );
   }
 
-  Widget _tarjetasItems(TrasladoModel t) {
+  Widget _tarjetasItems(TrasladoModel t, Map<String, String> codigos) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -461,8 +494,10 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(item.nombreProducto, style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600)),
-                      if (item.ubicacion.trim().isNotEmpty)
-                        Text('Ubicación: ${item.ubicacion}', style: GoogleFonts.poppins(fontSize: 11.5, color: Colors.grey.shade500)),
+                      Text(
+                        [if ((codigos[item.idProducto] ?? '').isNotEmpty) codigos[item.idProducto]!, if (item.ubicacion.trim().isNotEmpty) 'Ubicación: ${item.ubicacion}'].join(' · '),
+                        style: GoogleFonts.poppins(fontSize: 11.5, color: Colors.grey.shade500),
+                      ),
                     ],
                   ),
                 ),

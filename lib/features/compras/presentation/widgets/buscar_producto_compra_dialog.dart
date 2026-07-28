@@ -300,9 +300,10 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(flex: 2, child: Text('Código', style: estilo)),
-        Expanded(flex: 6, child: Text('Descripción', style: estilo)),
-        Expanded(flex: 3, child: Text('Categoría', style: estilo)),
-        Expanded(flex: 3, child: Text('Costo', textAlign: TextAlign.right, style: estilo)),
+        Expanded(flex: 5, child: Text('Descripción', style: estilo)),
+        Expanded(flex: 2, child: Text('Categoría', style: estilo)),
+        Expanded(flex: 2, child: Text('Costo', textAlign: TextAlign.right, style: estilo)),
+        Expanded(flex: 2, child: Text('Precio Venta', textAlign: TextAlign.right, style: estilo)),
         Expanded(flex: 2, child: Text('Existencia', textAlign: TextAlign.center, style: estilo)),
       ],
     );
@@ -331,22 +332,26 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
             children: [
               Expanded(flex: 2, child: Text(p.codigo, style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade600))),
               Expanded(
-                flex: 6,
+                flex: 5,
                 child: Padding(
                   padding: const EdgeInsets.only(right: 10),
                   child: Text(p.nombre, softWrap: true, style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600)),
                 ),
               ),
               Expanded(
-                flex: 3,
+                flex: 2,
                 child: Padding(
                   padding: const EdgeInsets.only(right: 10),
                   child: Text(mapaCategorias[p.idCategoria] ?? '-', softWrap: true, style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600)),
                 ),
               ),
               Expanded(
-                flex: 3,
+                flex: 2,
                 child: Text(formatearMoneda(p.precioCompra), textAlign: TextAlign.right, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF2B6CB0))),
+              ),
+              Expanded(
+                flex: 2,
+                child: Text(formatearMoneda(p.precioVenta), textAlign: TextAlign.right, style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A))),
               ),
               Expanded(
                 flex: 2,
@@ -413,7 +418,13 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
                 ],
               ),
               const SizedBox(height: 10),
-              Text(formatearMoneda(p.precioCompra), style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF2B6CB0))),
+              Row(
+                children: [
+                  Text('Costo: ${formatearMoneda(p.precioCompra)}', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF2B6CB0))),
+                  const SizedBox(width: 14),
+                  Text('Venta: ${formatearMoneda(p.precioVenta)}', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A))),
+                ],
+              ),
             ],
           ),
         ),

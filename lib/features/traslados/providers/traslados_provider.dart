@@ -7,3 +7,7 @@ final trasladoRepositoryProvider = Provider((ref) => TrasladoRepository());
 final trasladosStreamProvider = StreamProvider<List<TrasladoModel>>((ref) {
   return ref.watch(trasladoRepositoryProvider).obtenerTraslados();
 });
+
+final trasladosConSolicitudImpresionEnVivoStreamProvider = StreamProvider<List<TrasladoModel>>((ref) {
+  return ref.watch(trasladoRepositoryProvider).obtenerTrasladosConSolicitudImpresionEnVivo();
+});

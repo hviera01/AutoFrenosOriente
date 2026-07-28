@@ -89,14 +89,26 @@ class CarritoCompraNotifier extends Notifier<CarritoCompraState> {
 
   /// Agrega un producto directamente a la tabla, con cantidad 1 y el costo
   /// unitario que ya tiene registrado el producto (editable en la fila).
+  ///
+  /// El "Precio Compra" guardado en el catálogo incluye el ISV (así llega el
+  /// costo en la factura del proveedor). Como el ISV de la compra se aplica
+  /// una sola vez sobre el total (ver [CarritoCompraState.impuesto]), si acá
+  /// se cargara ese mismo precio y la compra usa ISV el impuesto quedaría
+  /// contado dos veces. Por eso, si la compra tiene ISV (>0), se le quita ese
+  /// porcentaje antes de cargarlo a la línea; si la compra está en ISV 0
+  /// (proveedor exento, por ejemplo), se carga el precio del catálogo tal
+  /// cual. Igual que en Super Color (sistema_ventas).
   void agregarProductoDirecto(ProductoModel producto) {
+    final precioCompra = state.isvPorcentaje > 0
+        ? redondearMoneda(producto.precioCompra / (1 + state.isvPorcentaje / 100))
+        : producto.precioCompra;
     final item = ItemCompraModel(
       idProducto: producto.id,
       idCategoria: producto.idCategoria,
       nombreProducto: producto.nombre,
-      precioCompra: producto.precioCompra,
+      precioCompra: precioCompra,
       cantidad: 1,
-      subtotal: _subtotalLinea(producto.precioCompra, 1, 0),
+      subtotal: _subtotalLinea(precioCompra, 1, 0),
       precioVentaNuevo: producto.precioVenta,
       descripcionNueva: producto.descripcion,
     );
@@ -144,12 +156,29 @@ class CarritoCompraNotifier extends Notifier<CarritoCompraState> {
     state = state.copyWith(
       condicion: v,
       metodoPago: v == 'Credito' ? '' : 'Efectivo',
-      fechaVencimiento: v == 'Credito' ? (state.fechaVencimiento ?? DateTime.now().add(const Duration(days: 30))) : null,
+      // A partir de la fecha de REGISTRO elegida (no de "ahora"): si el
+      // usuario ya adelantó/atrasó la fecha de la compra antes de marcarla a
+      // crédito, el vencimiento por defecto tiene que salir de esa fecha, no
+      // de la fecha real del día.
+      fechaVencimiento: v == 'Credito' ? (state.fechaVencimiento ?? state.fecha.add(const Duration(days: 30))) : null,
     );
   }
 
   void establecerMetodoPago(String v) => state = state.copyWith(metodoPago: v);
-  void establecerFecha(DateTime v) => state = state.copyWith(fecha: v);
+
+  // Si la compra es a crédito, cambiar la fecha de registro recalcula el
+  // vencimiento a 30 días de esa fecha -a pedido explícito, para no tener
+  // que ajustarlo a mano cada vez que se atrasa/adelanta una compra-. Pisa
+  // cualquier vencimiento elegido a mano antes: si hace falta uno distinto a
+  // los 30 días por defecto, se puede volver a ajustar después con
+  // establecerFechaVencimiento.
+  void establecerFecha(DateTime v) {
+    state = state.copyWith(
+      fecha: v,
+      fechaVencimiento: state.condicion == 'Credito' ? v.add(const Duration(days: 30)) : state.fechaVencimiento,
+    );
+  }
+
   void establecerFechaVencimiento(DateTime v) => state = state.copyWith(fechaVencimiento: v);
   void establecerDescuentoGlobal(double v) => state = state.copyWith(descuentoGlobalPorcentaje: v);
   void establecerIsv(double v) => state = state.copyWith(isvPorcentaje: v);

@@ -18,6 +18,12 @@ class TrasladoModel {
   final String usuarioRecibe;
   final DateTime? fechaRecepcion;
   final List<ItemTrasladoModel> detalle;
+  // Pedido de impresión remota desde un celular/navegador móvil sin
+  // impresora a mano: la PC principal (ver AppShell) lo detecta e imprime
+  // sola, sin que nadie tenga que confirmar nada ahí. Mismo mecanismo que
+  // VentaModel.solicitudImpresionEnVivo/solicitudImpresionEsCopia.
+  final bool solicitudImpresionEnVivo;
+  final bool? solicitudImpresionEsCopia;
 
   TrasladoModel({
     required this.id,
@@ -33,6 +39,8 @@ class TrasladoModel {
     this.usuarioRecibe = '',
     this.fechaRecepcion,
     this.detalle = const [],
+    this.solicitudImpresionEnVivo = false,
+    this.solicitudImpresionEsCopia,
   });
 
   double get totalItems => detalle.fold<double>(0, (s, i) => s + i.cantidad);
@@ -52,6 +60,8 @@ class TrasladoModel {
       usuarioRecibe: data['usuarioRecibe'] ?? '',
       fechaRecepcion: (data['fechaRecepcion'] as Timestamp?)?.toDate(),
       detalle: detalle,
+      solicitudImpresionEnVivo: data['solicitudImpresionEnVivo'] ?? false,
+      solicitudImpresionEsCopia: data['solicitudImpresionEsCopia'] as bool?,
     );
   }
 }

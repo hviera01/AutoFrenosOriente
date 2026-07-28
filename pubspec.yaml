@@ -121,13 +121,15 @@ flutter:
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
 
-# Ícono de la app: cuadrado en Android (el logo tal cual, el propio launcher
-# de Android se encarga de la forma final según el equipo), redondo con
-# fondo transparente en Windows (assets/images/logo_redondo.png, generado
-# con tool/generar_logo_redondo.dart).
+# Ícono de la app: cuadrado en Android (assets/images/logo_icono.png -solo
+# el disco+pinza, sin el texto del lockup completo, que se vuelve ilegible a
+# tamaño de ícono-, el propio launcher de Android se encarga de la forma
+# final según el equipo), redondo con fondo transparente en Windows
+# (assets/images/logo_redondo.png). Ambos generados con
+# tool/generar_logo_icono.dart y tool/generar_logo_redondo.dart, en ese orden.
 flutter_launcher_icons:
   android: "launcher_icon"
-  image_path: "assets/images/logo.jpg"
+  image_path: "assets/images/logo_icono.png"
   windows:
     generate: true
     image_path: "assets/images/logo_redondo.png"

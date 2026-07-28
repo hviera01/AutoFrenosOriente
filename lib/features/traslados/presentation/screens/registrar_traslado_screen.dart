@@ -1,4 +1,5 @@
-import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -15,6 +16,7 @@ import '../../../auth/providers/auth_provider.dart';
 import '../../../negocio/providers/negocio_provider.dart';
 import '../../../compras/presentation/widgets/buscar_producto_compra_dialog.dart';
 import '../../../ventas/presentation/widgets/teclado_numerico_dialog.dart';
+import '../../../ventas/providers/ventas_provider.dart' show presenciaImpresionRepositoryProvider;
 import '../../../../core/widgets/pdf_preview_dialog.dart';
 
 /// Registrar Traslado: antes era un diálogo chico centrado; ahora es una
@@ -66,6 +68,11 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
 
   void _mostrarError(String mensaje) => setState(() => _error = mensaje);
 
+  void _mostrarMensaje(String mensaje) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(mensaje), showCloseIcon: true));
+  }
+
   Future<void> _agregarProducto() async {
     final producto = await Navigator.of(context).push<ProductoModel>(
       MaterialPageRoute(fullscreenDialog: true, builder: (context) => const BuscarProductoCompraDialog()),
@@ -73,6 +80,10 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
     if (producto == null || !mounted) return;
     if (_items.any((i) => i.idProducto == producto.id)) {
       _mostrarError('Ese producto ya está en el traslado');
+      return;
+    }
+    if (producto.stock <= 0) {
+      _mostrarError('No se puede trasladar "${producto.nombre}": no tiene existencia disponible');
       return;
     }
     setState(() {
@@ -146,12 +157,24 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
       );
       if (!mounted) return;
 
-      final numero = traslado.numero;
-      final deseaImprimir = await _confirmarDialogo(
-        'Traslado $numero creado',
-        'Traslado $numero creado en estado ${traslado.estado.toUpperCase()}.\n\n¿Desea imprimir el ticket (ORIGINAL y COPIA)?',
-      );
-      if (deseaImprimir && mounted) await _imprimir(traslado);
+      // Desde el celular (APK) o el navegador de un celular no hay
+      // impresora térmica a mano para elegir: en vez de preguntar y abrir
+      // una vista previa que no sirve de mucho ahí, se manda directo la
+      // solicitud de impresión en vivo a la PC principal (si está
+      // conectada) — mismo criterio que Ventas (ver RegistrarVentaScreen.
+      // _manejarImpresion, rama kIsWeb && esMovil).
+      final esMovil = defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS;
+      final esCelularOWebMovil = (!kIsWeb && Platform.isAndroid) || (kIsWeb && esMovil);
+      if (esCelularOWebMovil) {
+        await _pedirImpresionEnVivo(traslado.id);
+      } else {
+        final numero = traslado.numero;
+        final deseaImprimir = await _confirmarDialogo(
+          'Traslado $numero creado',
+          'Traslado $numero creado en estado ${traslado.estado.toUpperCase()}.\n\n¿Desea imprimir el ticket (ORIGINAL y COPIA)?',
+        );
+        if (deseaImprimir && mounted) await _imprimir(traslado);
+      }
       if (!mounted) return;
       _limpiar();
     } catch (e) {
@@ -159,6 +182,17 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
         _error = e.toString().replaceAll('Exception: ', '');
         _guardando = false;
       });
+    }
+  }
+
+  Future<void> _pedirImpresionEnVivo(String trasladoId) async {
+    final pcConectada = await ref.read(presenciaImpresionRepositoryProvider).estaConectada();
+    if (!mounted) return;
+    if (pcConectada) {
+      await ref.read(trasladoRepositoryProvider).marcarSolicitudImpresionEnVivo(trasladoId, true);
+      _mostrarMensaje('Se envió la orden de impresión a la caja principal');
+    } else {
+      _mostrarMensaje('No se puede imprimir directo desde acá: no se detectó la caja principal conectada');
     }
   }
 
@@ -203,9 +237,22 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
     _ctrlUbicacion.clear();
   }
 
+  // Memoizado: _construirListaItems lo llama en cada rebuild de la lista de
+  // ítems (cada tecla escrita en cantidad/ubicación de CUALQUIER fila, por
+  // el setState de alReconstruir), y recorrer ~3900 productos entero en cada
+  // una de esas teclas -en un traslado con muchos productos, muchas
+  // rebuilds- era exactamente lo que se sentía "pegado"/lento al cargar un
+  // traslado grande. Se recalcula solo si la lista de productos del stream
+  // cambió de referencia (nuevo snapshot de Firestore), no en cada build.
+  List<ProductoModel>? _cacheProductosCodigos;
+  Map<String, String> _cacheCodigos = const {};
+
   Map<String, String> _codigosPorProducto() {
     final productos = ref.read(productosStreamProvider).value ?? [];
-    return {for (final p in productos) p.id: p.codigo};
+    if (identical(productos, _cacheProductosCodigos)) return _cacheCodigos;
+    _cacheProductosCodigos = productos;
+    _cacheCodigos = {for (final p in productos) p.id: p.codigo};
+    return _cacheCodigos;
   }
 
   Future<void> _imprimir(TrasladoModel traslado) async {
@@ -467,16 +514,23 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
     );
   }
 
-  Widget _construirListaItems({required bool grande, required bool alturaAcotada, required VoidCallback alReconstruir}) {
-    final columna = Column(
-      children: [
-        for (var index = 0; index < _items.length; index++) ...[
-          if (index > 0) Divider(height: 1, color: Colors.grey.shade200),
-          Builder(builder: (context) {
-            final item = _items[index];
-            final ctrl = _ctrlCantidad.putIfAbsent(index, () => TextEditingController(text: item.cantidad.toStringAsFixed(item.cantidad == item.cantidad.roundToDouble() ? 0 : 2)));
-            final ctrlUbicacion = _ctrlUbicacion.putIfAbsent(index, () => TextEditingController(text: item.ubicacion));
-            return Padding(
+  // Antes esto se armaba siempre como una Column con TODAS las filas ya
+  // construidas de una (sin importar si estaban visibles en pantalla o no):
+  // en un traslado con muchos productos, cada tecla escrita en CUALQUIER
+  // campo reconstruía las N filas enteras, lo que se sentía "pegado"/lento.
+  // Ahora, cuando el alto está acotado (escritorio, o la vista "más
+  // grande"), se arma con ListView.builder: Flutter solo construye las
+  // filas que están (o van a estar pronto) visibles. En celular, embebido
+  // en el scroll general de la pantalla con alto no acotado, sigue como
+  // Column (ListView.builder ahí necesitaría shrinkWrap, que igual
+  // construye todo de una — no gana nada, y los traslados hechos desde el
+  // celular no suelen ser tan grandes).
+  Widget _filaItem(int index, {required bool grande, required Map<String, String> codigos, required VoidCallback alReconstruir}) {
+    final item = _items[index];
+    final ctrl = _ctrlCantidad.putIfAbsent(index, () => TextEditingController(text: item.cantidad.toStringAsFixed(item.cantidad == item.cantidad.roundToDouble() ? 0 : 2)));
+    final ctrlUbicacion = _ctrlUbicacion.putIfAbsent(index, () => TextEditingController(text: item.ubicacion));
+    final codigo = codigos[item.idProducto] ?? '';
+    return Padding(
               padding: const EdgeInsets.symmetric(vertical: 10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -488,7 +542,14 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
                       // el nombre del producto, nunca se recorta con "...",
                       // solo se envuelve.
                       Expanded(
-                        child: Text(item.nombreProducto, style: GoogleFonts.poppins(fontSize: grande ? 16 : 14, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A))),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (codigo.isNotEmpty) Text(codigo, style: GoogleFonts.poppins(fontSize: grande ? 12 : 11, color: Colors.grey.shade500)),
+                            Text(item.nombreProducto, style: GoogleFonts.poppins(fontSize: grande ? 16 : 14, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A))),
+                          ],
+                        ),
                       ),
                       SizedBox(
                         width: grande ? 110 : 80,
@@ -559,13 +620,31 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
                 ],
               ),
             );
-          }),
+  }
+
+  Widget _construirListaItems({required bool grande, required bool alturaAcotada, required VoidCallback alReconstruir}) {
+    // Se calcula una sola vez para toda la lista (no por cada fila), para no
+    // repetir el armado del mapa código->producto por cada ítem del traslado.
+    final codigos = _codigosPorProducto();
+
+    if (alturaAcotada) {
+      return Expanded(
+        child: ListView.separated(
+          itemCount: _items.length,
+          separatorBuilder: (context, index) => Divider(height: 1, color: Colors.grey.shade200),
+          itemBuilder: (context, index) => _filaItem(index, grande: grande, codigos: codigos, alReconstruir: alReconstruir),
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        for (var index = 0; index < _items.length; index++) ...[
+          if (index > 0) Divider(height: 1, color: Colors.grey.shade200),
+          _filaItem(index, grande: grande, codigos: codigos, alReconstruir: alReconstruir),
         ],
       ],
     );
-
-    if (!alturaAcotada) return columna;
-    return Expanded(child: SingleChildScrollView(child: columna));
   }
 
   Widget _tarjetaFooter() {

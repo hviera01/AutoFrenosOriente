@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +11,7 @@ import '../../../auth/providers/auth_provider.dart';
 import '../../../productos/data/producto_model.dart';
 import '../../../productos/providers/productos_provider.dart';
 import '../../../proveedores/data/proveedor_model.dart';
+import '../../../ventas/presentation/widgets/teclado_numerico_dialog.dart';
 import '../../../../core/providers/tabs_provider.dart';
 import '../../../../core/utils/formato_moneda.dart';
 import '../widgets/buscar_producto_compra_dialog.dart';
@@ -342,6 +344,8 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
   @override
   Widget build(BuildContext context) {
     final carrito = ref.watch(carritoCompraProvider);
+    final productos = ref.watch(productosStreamProvider).value ?? [];
+    final mapaProductos = {for (final p in productos) p.id: p};
 
     return Container(
       color: const Color(0xFFF2F3F7),
@@ -359,14 +363,47 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
                 _tarjetaDatosCompra(carrito, esMovil),
                 const SizedBox(height: 14),
                 esMovil
-                    ? _tarjetaCarritoGrande(carrito, esMovil)
-                    : SizedBox(height: altoTabla, child: _tarjetaCarritoGrande(carrito, esMovil)),
+                    ? _tarjetaCarritoGrande(carrito, esMovil, mapaProductos)
+                    : SizedBox(height: altoTabla, child: _tarjetaCarritoGrande(carrito, esMovil, mapaProductos)),
                 const SizedBox(height: 14),
                 _tarjetaTotales(carrito, esMovil),
               ],
             ),
           );
         },
+      ),
+    );
+  }
+
+  // Vista de la tabla a pantalla completa (mismo patrón que Registrar
+  // Traslado/Venta): útil con compras de muchos productos, donde el panel
+  // recortado se queda chico. mapaProductos se pasa ya resuelto (no se
+  // vuelve a pedir ref.watch(productosStreamProvider) adentro de la ruta
+  // empujada -eso, llamado fuera del build() de este widget, no se
+  // actualizaría bien-; solo el carrito en sí se re-observa en vivo, con su
+  // propio Consumer, porque ahí sí hace falta ver los cambios mientras se
+  // edita adentro de esta vista.
+  Future<void> _verMasGrande(Map<String, ProductoModel> mapaProductos) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (context) => Scaffold(
+          backgroundColor: const Color(0xFFF2F3F7),
+          appBar: AppBar(
+            backgroundColor: const Color(0xFF0D2B4E),
+            title: Text('Productos de la compra', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w700)),
+            iconTheme: const IconThemeData(color: Colors.white),
+          ),
+          body: Consumer(
+            builder: (context, ref, _) {
+              final carrito = ref.watch(carritoCompraProvider);
+              return Padding(
+                padding: const EdgeInsets.all(20),
+                child: _tarjetaCarritoGrande(carrito, false, mapaProductos),
+              );
+            },
+          ),
+        ),
       ),
     );
   }
@@ -656,10 +693,7 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
     );
   }
 
-  Widget _tarjetaCarritoGrande(CarritoCompraState carrito, bool esMovil) {
-    final productos = ref.watch(productosStreamProvider).value ?? [];
-    final mapaProductos = {for (final p in productos) p.id: p};
-
+  Widget _tarjetaCarritoGrande(CarritoCompraState carrito, bool esMovil, Map<String, ProductoModel> mapaProductos) {
     if (carrito.items.length != _conteoItemsControladores) {
       for (final c in _ctrlCantidad.values) {
         c.dispose();
@@ -726,6 +760,13 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
                   children: [
                     Text('Productos en la compra', style: GoogleFonts.poppins(fontSize: 14.5, fontWeight: FontWeight.w700)),
                     const Spacer(),
+                    OutlinedButton.icon(
+                      onPressed: () => _verMasGrande(mapaProductos),
+                      icon: const Icon(Icons.open_in_full, size: 16),
+                      label: Text('Ver más grande', style: GoogleFonts.poppins(fontSize: 12.5)),
+                      style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7))),
+                    ),
+                    const SizedBox(width: 8),
                     FilledButton.icon(
                       onPressed: _agregarProductoDesdeBusqueda,
                       icon: const Icon(Icons.add, size: 18),
@@ -803,11 +844,16 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
   // así siempre usa el [valorActual]/[alConfirmar] vigentes en vez de quedar
   // atado a los del primer build (que sería el bug si el listener capturara
   // esos parámetros directamente).
-  Widget _campoInlineNumero(String claveFoco, TextEditingController controlador, double valorActual, void Function(double) alConfirmar, {String? sufijo, String? prefijo}) {
+  Widget _campoInlineNumero(String claveFoco, TextEditingController controlador, double valorActual, void Function(double) alConfirmar, {String? sufijo, String? prefijo, bool tecladoNumerico = false, bool dosDecimales = false}) {
     void confirmar() {
       final valor = double.tryParse(controlador.text.replaceAll(',', '').trim());
-      if (valor == null || (valor - valorActual).abs() < 0.005) return;
-      alConfirmar(valor);
+      if (valor == null) return;
+      if ((valor - valorActual).abs() >= 0.005) alConfirmar(valor);
+      // Precio: siempre se deja con dos decimales al confirmar (es un
+      // monto), igual que en Ventas/Super Color: "35" pasa a verse "35.00".
+      // Fuera del if de arriba a propósito: reformatea aunque el valor no
+      // haya cambiado (ej. tocar el campo y salir sin editar nada).
+      if (dosDecimales) controlador.text = valor.toStringAsFixed(2);
     }
     _confirmarInline[claveFoco] = confirmar;
 
@@ -818,6 +864,11 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
       });
       return node;
     });
+
+    // Solo la cantidad usa teclado numérico en pantalla (a pedido
+    // explícito), y solo en escritorio: en celular ya está el teclado del
+    // sistema.
+    final esMovil = defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS;
 
     return TextField(
       controller: controlador,
@@ -835,6 +886,18 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
         isDense: true,
         contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       ),
+      onTap: (tecladoNumerico && !esMovil)
+          ? () async {
+              focusNode.unfocus();
+              final texto = await showDialog<String>(
+                context: context,
+                builder: (context) => TecladoNumericoDialog(titulo: 'Cantidad', valorInicial: controlador.text),
+              );
+              if (texto == null || !mounted) return;
+              controlador.text = texto;
+              confirmar();
+            }
+          : null,
       onSubmitted: (_) => confirmar(),
       onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
     );
@@ -887,13 +950,13 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
     );
   }
 
-  Widget _campoInlineConEtiqueta(String claveFoco, String etiqueta, TextEditingController controlador, double valorActual, void Function(double) alConfirmar, {String? prefijo}) {
+  Widget _campoInlineConEtiqueta(String claveFoco, String etiqueta, TextEditingController controlador, double valorActual, void Function(double) alConfirmar, {String? prefijo, bool tecladoNumerico = false, bool dosDecimales = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(etiqueta, style: GoogleFonts.poppins(fontSize: 10, color: Colors.grey.shade500)),
         const SizedBox(height: 4),
-        _campoInlineNumero(claveFoco, controlador, valorActual, alConfirmar, prefijo: prefijo),
+        _campoInlineNumero(claveFoco, controlador, valorActual, alConfirmar, prefijo: prefijo, tecladoNumerico: tecladoNumerico, dosDecimales: dosDecimales),
       ],
     );
   }
@@ -922,8 +985,8 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
                 // envuelve a una segunda línea en vez de recortarse.
                 child: Text(item.nombreProducto as String, softWrap: true, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
               ),
-              Expanded(flex: 2, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: _campoInlineNumero('cantidad_$index', ctrlCantidad, item.cantidad as double, (v) => _actualizarCantidad(index, v)))),
-              Expanded(flex: 2, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: _campoInlineNumero('precio_$index', ctrlPrecio, item.precioCompra as double, (v) => _actualizarPrecio(index, v), prefijo: 'L.'))),
+              Expanded(flex: 2, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: _campoInlineNumero('cantidad_$index', ctrlCantidad, item.cantidad as double, (v) => _actualizarCantidad(index, v), tecladoNumerico: true))),
+              Expanded(flex: 2, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: _campoInlineNumero('precio_$index', ctrlPrecio, item.precioCompra as double, (v) => _actualizarPrecio(index, v), prefijo: 'L.', dosDecimales: true))),
               Expanded(flex: 2, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: _campoInlineNumero('descuento_$index', ctrlDescuento, item.descuentoPorcentaje as double, (v) => _actualizarDescuentoLinea(index, v), sufijo: '%'))),
               Expanded(flex: 2, child: Text(formatearMoneda(_descuentoLineaMonto(item)), textAlign: TextAlign.right, style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600))),
               Expanded(flex: 2, child: Text(formatearMoneda(item.subtotal as double), textAlign: TextAlign.right, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700))),
@@ -939,7 +1002,7 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
               children: [
                 const Spacer(flex: 2),
                 Expanded(flex: 2, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: _campoInlineConEtiqueta('margen_$index', 'Margen %', ctrlMargen, _margenActual(item), (v) => _actualizarMargenCompra(index, v)))),
-                Expanded(flex: 2, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: _campoInlineConEtiqueta('precioVenta_$index', 'Precio de venta', ctrlPrecioVenta, (item.precioVentaNuevo as double?) ?? 0, (v) => _actualizarPrecioVentaCompra(index, v), prefijo: 'L.'))),
+                Expanded(flex: 2, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: _campoInlineConEtiqueta('precioVenta_$index', 'Precio de venta', ctrlPrecioVenta, (item.precioVentaNuevo as double?) ?? 0, (v) => _actualizarPrecioVentaCompra(index, v), prefijo: 'L.', dosDecimales: true))),
                 Expanded(flex: 4, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: _campoInlineConEtiquetaTexto('descripcion_$index', 'Ubicación física (opcional)', ctrlDescripcion, (item.descripcionNueva as String?) ?? '', (v) => _actualizarDescripcionCompra(index, v)))),
                 const SizedBox(width: 40),
               ],
@@ -983,9 +1046,9 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
           const SizedBox(height: 10),
           Row(
             children: [
-              Expanded(child: _campoInlineConEtiqueta('cantidad_$index', 'Cantidad', ctrlCantidad, item.cantidad as double, (v) => _actualizarCantidad(index, v))),
+              Expanded(child: _campoInlineConEtiqueta('cantidad_$index', 'Cantidad', ctrlCantidad, item.cantidad as double, (v) => _actualizarCantidad(index, v), tecladoNumerico: true)),
               const SizedBox(width: 8),
-              Expanded(child: _campoInlineConEtiqueta('precio_$index', 'Costo unitario', ctrlPrecio, item.precioCompra as double, (v) => _actualizarPrecio(index, v), prefijo: 'L.')),
+              Expanded(child: _campoInlineConEtiqueta('precio_$index', 'Costo unitario', ctrlPrecio, item.precioCompra as double, (v) => _actualizarPrecio(index, v), prefijo: 'L.', dosDecimales: true)),
               const SizedBox(width: 8),
               Expanded(child: _campoInlineConEtiqueta('descuento_$index', 'Desc. %', ctrlDescuento, item.descuentoPorcentaje as double, (v) => _actualizarDescuentoLinea(index, v))),
             ],
@@ -995,7 +1058,7 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
             children: [
               Expanded(child: _campoInlineConEtiqueta('margen_$index', 'Margen %', ctrlMargen, _margenActual(item), (v) => _actualizarMargenCompra(index, v))),
               const SizedBox(width: 8),
-              Expanded(child: _campoInlineConEtiqueta('precioVenta_$index', 'Precio de venta', ctrlPrecioVenta, (item.precioVentaNuevo as double?) ?? 0, (v) => _actualizarPrecioVentaCompra(index, v), prefijo: 'L.')),
+              Expanded(child: _campoInlineConEtiqueta('precioVenta_$index', 'Precio de venta', ctrlPrecioVenta, (item.precioVentaNuevo as double?) ?? 0, (v) => _actualizarPrecioVentaCompra(index, v), prefijo: 'L.', dosDecimales: true)),
             ],
           ),
           const SizedBox(height: 10),
