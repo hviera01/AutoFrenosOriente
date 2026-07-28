@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -13,6 +14,7 @@ import '../../../productos/providers/productos_provider.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../negocio/providers/negocio_provider.dart';
 import '../../../compras/presentation/widgets/buscar_producto_compra_dialog.dart';
+import '../../../ventas/presentation/widgets/teclado_numerico_dialog.dart';
 import '../../../../core/widgets/pdf_preview_dialog.dart';
 
 /// Registrar Traslado: antes era un diálogo chico centrado; ahora es una
@@ -125,7 +127,13 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
     try {
       final repo = ref.read(trasladoRepositoryProvider);
       final usuario = ref.read(authProvider).usuario?.nombreCompleto ?? '';
-      var traslado = await repo.registrar(
+      // El estado final elegido (Pendiente/Enviado/Entregado, igual que el
+      // sistema viejo) se manda de una vez a registrar(): antes esto se
+      // encadenaba con enviar()/recepcionar()/obtenerPorId() aparte, hasta 4
+      // idas y vueltas seguidas a Firestore para el caso más común
+      // (Entregado, que viene preseleccionado). Mismo usuario que crea
+      // también como quien recibe, sin pedir un segundo usuario aparte.
+      final traslado = await repo.registrar(
         idSucursalOrigen: _origen!.id,
         nombreSucursalOrigen: _origen!.nombre,
         idSucursalDestino: _destino!.id,
@@ -133,19 +141,9 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
         observaciones: _observacionesController.text.trim(),
         usuarioCrea: usuario,
         detalle: _items,
+        estadoInicial: _estadoDeseado,
+        usuarioRecibe: usuario,
       );
-
-      // Encadenado igual que el sistema viejo: "Entregado" dispara Enviar Y
-      // Recepcionar uno detrás del otro (mismo usuario que crea, sin pedir
-      // cantidades ni un segundo usuario de recepción aparte).
-      final quiereEnviado = _estadoDeseado == 'Enviado' || _estadoDeseado == 'Entregado';
-      final quiereEntregado = _estadoDeseado == 'Entregado';
-      if (quiereEnviado) await repo.enviar(traslado.id);
-      if (quiereEntregado) await repo.recepcionar(traslado.id, usuarioRecibe: usuario);
-      if ((quiereEnviado || quiereEntregado)) {
-        final actualizado = await repo.obtenerPorId(traslado.id);
-        if (actualizado != null) traslado = actualizado;
-      }
       if (!mounted) return;
 
       final numero = traslado.numero;
@@ -506,6 +504,21 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
                             fillColor: const Color(0xFFE8EAF0),
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
                           ),
+                          // En escritorio, un clic en el campo abre el teclado
+                          // numérico en pantalla (igual que en Ventas/Compras);
+                          // en celular no, ahí ya está el teclado del sistema.
+                          onTap: defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS
+                              ? null
+                              : () async {
+                                  final texto = await showDialog<String>(
+                                    context: context,
+                                    builder: (context) => TecladoNumericoDialog(titulo: 'Cantidad', valorInicial: ctrl.text),
+                                  );
+                                  if (texto == null || !context.mounted) return;
+                                  ctrl.text = texto;
+                                  _actualizarCantidad(index, texto);
+                                  alReconstruir();
+                                },
                           onChanged: (v) {
                             _actualizarCantidad(index, v);
                             alReconstruir();

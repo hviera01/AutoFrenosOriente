@@ -32,19 +32,30 @@ class TrasladoRepository {
     });
   }
 
+  /// El filtro de estado/sucursal se aplica ANTES de pedir el detalle (no
+  /// después), y el detalle de los que quedan se pide todo junto con
+  /// Future.wait (no uno por uno en un for): mismo motivo que en
+  /// obtenerTraslados — con cientos de traslados en el rango, hacer un
+  /// round-trip a Firestore detrás de otro para cada uno hacía sentir el
+  /// Reporte de Traslados eterno para cargar.
   Future<List<TrasladoModel>> obtenerPorRango(DateTime inicio, DateTime finInclusive, {String? estado, String? idSucursal}) async {
     Query<Map<String, dynamic>> query = _col.where('fecha', isGreaterThanOrEqualTo: Timestamp.fromDate(inicio)).where('fecha', isLessThanOrEqualTo: Timestamp.fromDate(finInclusive));
     final snap = await query.orderBy('fecha', descending: true).get();
-    final lista = <TrasladoModel>[];
-    for (final doc in snap.docs) {
+    final docsFiltrados = snap.docs.where((doc) {
       final data = doc.data();
-      if (estado != null && estado.isNotEmpty && data['estado'] != estado) continue;
-      if (idSucursal != null && idSucursal.isNotEmpty && data['idSucursalOrigen'] != idSucursal && data['idSucursalDestino'] != idSucursal) continue;
-      final detalleSnap = await doc.reference.collection('detalle').get();
-      final detalle = detalleSnap.docs.map((d) => ItemTrasladoModel.fromMap(d.data())).toList();
-      lista.add(TrasladoModel.fromMap(doc.id, data, detalle));
-    }
-    return lista;
+      if (estado != null && estado.isNotEmpty && data['estado'] != estado) return false;
+      if (idSucursal != null && idSucursal.isNotEmpty && data['idSucursalOrigen'] != idSucursal && data['idSucursalDestino'] != idSucursal) return false;
+      return true;
+    }).toList();
+    final detalles = await Future.wait(docsFiltrados.map((doc) => doc.reference.collection('detalle').get()));
+    return [
+      for (var i = 0; i < docsFiltrados.length; i++)
+        TrasladoModel.fromMap(
+          docsFiltrados[i].id,
+          docsFiltrados[i].data(),
+          detalles[i].docs.map((d) => ItemTrasladoModel.fromMap(d.data())).toList(),
+        ),
+    ];
   }
 
   Future<TrasladoModel?> obtenerPorId(String id) async {
@@ -55,15 +66,38 @@ class TrasladoRepository {
     return TrasladoModel.fromMap(doc.id, doc.data()!, detalle);
   }
 
+  /// Busca sin que el usuario tenga que escribir "TRAS-" ni los ceros de
+  /// relleno (por ejemplo "123" en vez de "TRAS-000123"): arma las variantes
+  /// posibles del número y las busca todas en paralelo (mismo patrón que
+  /// buscarVentasPorNumeroDocumento en VentaRepository).
+  Set<String> _candidatosNumero(String texto) {
+    final limpio = texto.trim();
+    final candidatos = <String>{limpio};
+    final sinPrefijo = limpio.replaceFirst(RegExp(r'^tras-?', caseSensitive: false), '');
+    if (RegExp(r'^\d+$').hasMatch(sinPrefijo)) {
+      candidatos.add('TRAS-${sinPrefijo.padLeft(6, '0')}');
+    }
+    return candidatos;
+  }
+
   Future<TrasladoModel?> obtenerPorNumero(String numero) async {
-    final snap = await _col.where('numero', isEqualTo: numero.trim()).limit(1).get();
-    if (snap.docs.isEmpty) return null;
-    final doc = snap.docs.first;
+    final candidatos = _candidatosNumero(numero);
+    final snaps = await Future.wait(candidatos.map((c) => _col.where('numero', isEqualTo: c).limit(1).get()));
+    final docs = snaps.expand((s) => s.docs).toList();
+    if (docs.isEmpty) return null;
+    final doc = docs.first;
     final detalleSnap = await doc.reference.collection('detalle').get();
     final detalle = detalleSnap.docs.map((d) => ItemTrasladoModel.fromMap(d.data())).toList();
     return TrasladoModel.fromMap(doc.id, doc.data(), detalle);
   }
 
+  /// [estadoInicial] deja el traslado creado directo en Pendiente/Enviado/
+  /// Entregado (usado por RegistrarTrasladoScreen, que deja elegir el estado
+  /// final de una vez): antes la pantalla encadenaba registrar() + enviar()
+  /// + recepcionar() + un obtenerPorId() final, hasta 4 round-trips
+  /// secuenciales a Firestore para el caso más común (Entregado, que viene
+  /// preseleccionado por defecto). Ahora es un solo round-trip. [usuarioRecibe]
+  /// solo aplica (y hace falta) cuando estadoInicial es 'Entregado'.
   Future<TrasladoModel> registrar({
     required String idSucursalOrigen,
     required String nombreSucursalOrigen,
@@ -72,6 +106,8 @@ class TrasladoRepository {
     required String observaciones,
     required String usuarioCrea,
     required List<ItemTrasladoModel> detalle,
+    String estadoInicial = 'Pendiente',
+    String usuarioRecibe = '',
   }) async {
     if (idSucursalOrigen == idSucursalDestino) {
       throw Exception('La sucursal origen y destino no pueden ser la misma');
@@ -81,6 +117,7 @@ class TrasladoRepository {
     }
     final contadorRef = _colContadores.doc('traslado');
     final trasladoRef = _col.doc();
+    final ahora = DateTime.now();
     late String numero;
 
     // Si el detalle repite el mismo producto en más de una línea, la resta
@@ -114,10 +151,11 @@ class TrasladoRepository {
         'idSucursalDestino': idSucursalDestino,
         'nombreSucursalDestino': nombreSucursalDestino,
         'fecha': FieldValue.serverTimestamp(),
-        'estado': 'Pendiente',
+        'estado': estadoInicial,
         'observaciones': observaciones,
         'usuarioCrea': usuarioCrea,
-        'usuarioRecibe': '',
+        'usuarioRecibe': estadoInicial == 'Entregado' ? usuarioRecibe : '',
+        if (estadoInicial == 'Entregado') 'fechaRecepcion': FieldValue.serverTimestamp(),
       });
       for (final item in detalle) {
         transaction.set(trasladoRef.collection('detalle').doc(), item.toMap());
@@ -148,10 +186,12 @@ class TrasladoRepository {
       nombreSucursalOrigen: nombreSucursalOrigen,
       idSucursalDestino: idSucursalDestino,
       nombreSucursalDestino: nombreSucursalDestino,
-      fecha: DateTime.now(),
-      estado: 'Pendiente',
+      fecha: ahora,
+      estado: estadoInicial,
       observaciones: observaciones,
       usuarioCrea: usuarioCrea,
+      usuarioRecibe: estadoInicial == 'Entregado' ? usuarioRecibe : '',
+      fechaRecepcion: estadoInicial == 'Entregado' ? ahora : null,
       detalle: detalle,
     );
   }

@@ -938,7 +938,7 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
                 const Spacer(flex: 2),
                 Expanded(flex: 2, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: _campoInlineConEtiqueta('margen_$index', 'Margen %', ctrlMargen, _margenActual(item), (v) => _actualizarMargenCompra(index, v)))),
                 Expanded(flex: 2, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: _campoInlineConEtiqueta('precioVenta_$index', 'Precio de venta', ctrlPrecioVenta, (item.precioVentaNuevo as double?) ?? 0, (v) => _actualizarPrecioVentaCompra(index, v), prefijo: 'L.'))),
-                Expanded(flex: 4, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: _campoInlineConEtiquetaTexto('descripcion_$index', 'Descripción del producto', ctrlDescripcion, (item.descripcionNueva as String?) ?? '', (v) => _actualizarDescripcionCompra(index, v)))),
+                Expanded(flex: 4, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: _campoInlineConEtiquetaTexto('descripcion_$index', 'Ubicación física (opcional)', ctrlDescripcion, (item.descripcionNueva as String?) ?? '', (v) => _actualizarDescripcionCompra(index, v)))),
                 const SizedBox(width: 40),
               ],
             ),
@@ -997,7 +997,7 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
             ],
           ),
           const SizedBox(height: 10),
-          _campoInlineConEtiquetaTexto('descripcion_$index', 'Descripción del producto', ctrlDescripcion, (item.descripcionNueva as String?) ?? '', (v) => _actualizarDescripcionCompra(index, v)),
+          _campoInlineConEtiquetaTexto('descripcion_$index', 'Ubicación física (opcional)', ctrlDescripcion, (item.descripcionNueva as String?) ?? '', (v) => _actualizarDescripcionCompra(index, v)),
           const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
