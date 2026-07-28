@@ -2,12 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'traslado_model.dart';
 import 'item_traslado_model.dart';
 
-/// Traslados entre sucursales: a diferencia de Ventas/Compras, acá no se
-/// toca el stock de Producto. El stock de este sistema es uno solo, global
-/// (igual que en el sistema viejo, donde el stock por sucursal existía en la
-/// base de datos pero nunca se llegó a usar de verdad en la aplicación) —
-/// así que un traslado es una bitácora real de qué se movió, cuándo y entre
-/// qué sucursales, no un movimiento de inventario.
+/// Traslados entre sucursales: el stock de este sistema es uno solo, global
+/// (no hay inventario separado por sucursal — la otra sucursal todavía no
+/// tiene su propio sistema). Por eso un traslado se trata como una salida de
+/// ese stock único, igual que una venta: al registrarlo se resta, con su
+/// entrada en el historial de stock del producto; si se anula, se repone,
+/// también con su historial (igual que anularVenta en VentaRepository).
 class TrasladoRepository {
   final _db = FirebaseFirestore.instance;
   final _col = FirebaseFirestore.instance.collection('traslados');
@@ -83,11 +83,29 @@ class TrasladoRepository {
     final trasladoRef = _col.doc();
     late String numero;
 
+    // Si el detalle repite el mismo producto en más de una línea, la resta
+    // de stock debe sumar esas cantidades (no pisar una resta con la otra).
+    final idsProductoUnicos = detalle.map((i) => i.idProducto).toSet().toList();
+
     await _db.runTransaction((transaction) async {
-      final contadorSnap = await transaction.get(contadorRef);
+      // El contador y el stock de cada producto no dependen uno del otro,
+      // así que se leen juntos en vez de esperar uno antes del otro.
+      final futureResultados = Future.wait([
+        transaction.get(contadorRef),
+        ...idsProductoUnicos.map((id) => transaction.get(_db.collection('productos').doc(id))),
+      ]);
+      final resultados = await futureResultados;
+      final contadorSnap = resultados[0];
+      final snapsStock = resultados.sublist(1);
+
       final actual = ((contadorSnap.data()?['ultimo'] ?? 0) as num).toInt();
       final nuevo = actual + 1;
       numero = 'TRAS-${nuevo.toString().padLeft(6, '0')}';
+
+      final stocksActuales = <String, double>{
+        for (var i = 0; i < idsProductoUnicos.length; i++) idsProductoUnicos[i]: ((snapsStock[i].data()?['stock'] ?? 0) as num).toDouble(),
+      };
+
       transaction.set(contadorRef, {'ultimo': nuevo}, SetOptions(merge: true));
       transaction.set(trasladoRef, {
         'numero': numero,
@@ -103,6 +121,23 @@ class TrasladoRepository {
       });
       for (final item in detalle) {
         transaction.set(trasladoRef.collection('detalle').doc(), item.toMap());
+      }
+
+      for (final item in detalle) {
+        final ref = _db.collection('productos').doc(item.idProducto);
+        final stockActual = stocksActuales[item.idProducto] ?? 0;
+        // Nunca queda en negativo, igual que en Ventas.
+        final stockNuevo = (stockActual - item.cantidad) < 0 ? 0.0 : stockActual - item.cantidad;
+        stocksActuales[item.idProducto] = stockNuevo;
+        transaction.update(ref, {'stock': stockNuevo});
+        final historialRef = ref.collection('historial').doc();
+        transaction.set(historialRef, {
+          'stockAnterior': stockActual,
+          'stockNuevo': stockNuevo,
+          'usuario': usuarioCrea,
+          'motivo': 'Traslado $numero a $nombreSucursalDestino',
+          'fecha': FieldValue.serverTimestamp(),
+        });
       }
     });
 
@@ -141,12 +176,43 @@ class TrasladoRepository {
     });
   }
 
-  Future<void> anular(String id) async {
+  /// Anula un traslado y repone al stock las cantidades que se le habían
+  /// restado al registrarlo (igual que anularVenta en VentaRepository).
+  Future<void> anular(String id, {required String usuario}) async {
     final doc = await _col.doc(id).get();
-    final estado = doc.data()?['estado'];
+    final data = doc.data();
+    final estado = data?['estado'];
     if (estado == 'Entregado' || estado == 'Anulado') {
       throw Exception('Un traslado $estado no se puede anular');
     }
-    await _col.doc(id).update({'estado': 'Anulado'});
+    final numero = data?['numero'] as String? ?? '';
+    final detalleSnap = await _col.doc(id).collection('detalle').get();
+    final items = detalleSnap.docs.map((d) => ItemTrasladoModel.fromMap(d.data())).toList();
+    final idsProductoUnicos = items.map((i) => i.idProducto).toSet().toList();
+
+    await _db.runTransaction((transaction) async {
+      final snapsStock = await Future.wait(idsProductoUnicos.map((pid) => transaction.get(_db.collection('productos').doc(pid))));
+      final stocksActuales = <String, double>{
+        for (var i = 0; i < idsProductoUnicos.length; i++) idsProductoUnicos[i]: ((snapsStock[i].data()?['stock'] ?? 0) as num).toDouble(),
+      };
+
+      transaction.update(_col.doc(id), {'estado': 'Anulado'});
+
+      for (final item in items) {
+        final ref = _db.collection('productos').doc(item.idProducto);
+        final stockActual = stocksActuales[item.idProducto] ?? 0;
+        final stockNuevo = stockActual + item.cantidad;
+        stocksActuales[item.idProducto] = stockNuevo;
+        transaction.update(ref, {'stock': stockNuevo});
+        final historialRef = ref.collection('historial').doc();
+        transaction.set(historialRef, {
+          'stockAnterior': stockActual,
+          'stockNuevo': stockNuevo,
+          'usuario': usuario,
+          'motivo': 'Anulación de traslado $numero',
+          'fecha': FieldValue.serverTimestamp(),
+        });
+      }
+    });
   }
 }

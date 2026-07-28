@@ -168,7 +168,8 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
     if (!await _confirmar('Anular traslado', '¿Seguro que querés anular el traslado ${t.numero}? Esta acción no se puede deshacer.')) return;
     setState(() => _actuando = true);
     try {
-      await ref.read(trasladoRepositoryProvider).anular(t.id);
+      final usuario = ref.read(authProvider).usuario?.nombreCompleto ?? '';
+      await ref.read(trasladoRepositoryProvider).anular(t.id, usuario: usuario);
       if (mounted) await _buscarPorId(t.id);
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))));

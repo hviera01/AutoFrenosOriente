@@ -120,21 +120,18 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
   }
 
   /// La búsqueda no filtra en vivo: solo se aplica al presionar Enter o
-  /// tocar el botón de buscar. Si el texto tiene una sola coincidencia (por
-  /// ejemplo, un código exacto leído con lector de código de barras) se
-  /// agrega directo, sin necesidad de un segundo Enter para confirmar.
+  /// tocar el botón de buscar. A diferencia del buscador de Ventas (que
+  /// agrega directo con un código exacto leído por lector de código de
+  /// barras), acá toda búsqueda es texto libre, así que aunque deje una sola
+  /// coincidencia no se agrega sola: el usuario siempre confirma con doble
+  /// clic o Enter sobre la fila resaltada, para no agregar el producto
+  /// equivocado mientras todavía está escribiendo.
   void _buscar() {
     final texto = _busquedaController.text.trim();
     setState(() {
       _busquedaAplicada = texto;
       _filaSeleccionada = null;
     });
-    if (texto.isEmpty) return;
-    final productos = ref.read(productosStreamProvider).value ?? [];
-    final coincidencias = productos.where((p) => p.estado && coincideFuzzy(p.textoBusqueda, texto)).toList();
-    if (coincidencias.length == 1) {
-      _confirmarSeleccion(coincidencias.first);
-    }
   }
 
   Future<void> _crearProductoNuevo() async {
