@@ -352,7 +352,7 @@ Widget _filaRanking(RankingProducto item, double maximo, {required bool esCantid
       children: [
         Row(
           children: [
-            Expanded(child: Text(item.nombreProducto, style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis)),
+            Expanded(child: Text(item.nombreProducto, softWrap: true, style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600))),
             Text(esCantidad ? formatoCantidadFinanciero(valor) : formatearMoneda(valor), style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
           ],
         ),
@@ -388,7 +388,7 @@ Widget seccionProductosSinVenta(ReporteFinancieroData data, bool esMovil) {
                       padding: const EdgeInsets.symmetric(vertical: 5),
                       child: Row(
                         children: [
-                          Expanded(child: Text(p.nombreProducto, style: GoogleFonts.poppins(fontSize: 12.5), overflow: TextOverflow.ellipsis)),
+                          Expanded(child: Text(p.nombreProducto, softWrap: true, style: GoogleFonts.poppins(fontSize: 12.5))),
                           SizedBox(width: 90, child: Text('Stock: ${formatoCantidadFinanciero(p.stock)}', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600))),
                           SizedBox(width: 110, child: Text(formatearMoneda(p.valorInventario), textAlign: TextAlign.right, style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600))),
                         ],

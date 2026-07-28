@@ -2187,6 +2187,14 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
         TextField(
           controller: ctrl,
           focusNode: focusNode,
+          // Sin límite de líneas (a diferencia de antes, que era de 1 sola):
+          // un nombre de producto largo tiene que envolver a una segunda
+          // línea, nunca recortarse. textInputAction explícito en 'done'
+          // para que Enter siga confirmando el cambio (como antes) en vez
+          // de insertar un salto de línea, que es lo que haría por defecto
+          // un TextField de varias líneas.
+          maxLines: null,
+          textInputAction: TextInputAction.done,
           style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600),
           decoration: const InputDecoration(isDense: true, border: InputBorder.none, contentPadding: EdgeInsets.zero),
           onSubmitted: (_) => confirmar(),

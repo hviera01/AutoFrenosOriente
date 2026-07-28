@@ -334,7 +334,7 @@ class _HacerPedidoScreenState extends ConsumerState<HacerPedidoScreen> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(flex: 2, child: Text(item.codigo.isEmpty ? '-' : item.codigo, style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600))),
-          Expanded(flex: 5, child: Text(item.nombreProducto, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis)),
+          Expanded(flex: 5, child: Text(item.nombreProducto, softWrap: true, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600))),
           Expanded(flex: 2, child: Text(_formatoCantidad(item.stockActual), textAlign: TextAlign.center, style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600))),
           Expanded(flex: 2, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: _campoCantidad(index, item))),
           SizedBox(
