@@ -101,7 +101,15 @@ class ActualizacionService {
     }
 
     if (Platform.isAndroid) {
-      await OpenFile.open(archivoDestino.path);
+      final resultado = await OpenFile.open(archivoDestino.path);
+      // done = el instalador de Android se abrió bien (de ahí en más es el
+      // usuario quien decide si instala). Cualquier otro resultado -por
+      // ejemplo permissionDenied, si falta el permiso REQUEST_INSTALL_
+      // PACKAGES- antes se ignoraba en silencio: la barra de descarga
+      // llegaba al 100% y ahí se quedaba, sin ningún error visible.
+      if (resultado.type != ResultType.done) {
+        throw Exception(resultado.message);
+      }
       return;
     }
 

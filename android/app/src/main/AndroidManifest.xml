@@ -2,6 +2,12 @@
     <!-- Necesario para mandar el ticket de venta por socket TCP a una
          impresora térmica en la red WiFi local (ver ImpresoraRedService). -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Necesario para poder abrir el instalador del APK descargado por la
+         auto-actualización (ver ActualizacionService.descargarEInstalar).
+         Sin este permiso, en Android 8+ (API 26+) el sistema bloquea el
+         intent de instalación en silencio -la barra de descarga termina y no
+         pasa nada, sin ningún error visible-. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
     <application
         android:label="Auto Frenos Oriente"
         android:name="${applicationName}"

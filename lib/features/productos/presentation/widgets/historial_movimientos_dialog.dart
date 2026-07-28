@@ -7,14 +7,16 @@ import '../../providers/productos_provider.dart';
 import '../../../../core/utils/formato_moneda.dart';
 import '../../../ventas/presentation/screens/detalle_venta_screen.dart';
 import '../../../compras/presentation/screens/detalle_compra_screen.dart';
+import '../../../traslados/presentation/screens/detalle_traslado_screen.dart';
 
-/// Fila normalizada para mostrar en la tabla, sea de venta o de compra.
+/// Fila normalizada para mostrar en la tabla, sea de venta, compra o
+/// traslado. [precio] queda null para traslados (no tienen precio).
 class _FilaHistorial {
   final DateTime? fecha;
   final String documento;
   final String contraparte;
   final double cantidad;
-  final double precio;
+  final double? precio;
   final String idDetalle;
 
   _FilaHistorial({
@@ -42,6 +44,7 @@ class _HistorialMovimientosDialogState extends ConsumerState<HistorialMovimiento
   DateTime? _fechaFin;
 
   bool get _esVentas => widget.tipo == 'ventas';
+  bool get _esCompras => widget.tipo == 'compras';
 
   Future<void> _seleccionarFecha(bool esInicio) async {
     final fecha = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime(2020), lastDate: DateTime(2100));
@@ -76,17 +79,20 @@ class _HistorialMovimientosDialogState extends ConsumerState<HistorialMovimiento
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Este registro no tiene un detalle disponible')));
       return;
     }
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        fullscreenDialog: true,
-        builder: (context) => _esVentas ? DetalleVentaScreen(ventaIdInicial: fila.idDetalle) : DetalleCompraScreen(compraIdInicial: fila.idDetalle),
-      ),
-    );
+    Widget pantalla;
+    if (_esVentas) {
+      pantalla = DetalleVentaScreen(ventaIdInicial: fila.idDetalle);
+    } else if (_esCompras) {
+      pantalla = DetalleCompraScreen(compraIdInicial: fila.idDetalle);
+    } else {
+      pantalla = DetalleTrasladoScreen(trasladoIdInicial: fila.idDetalle);
+    }
+    Navigator.of(context).push(MaterialPageRoute(fullscreenDialog: true, builder: (context) => pantalla));
   }
 
   @override
   Widget build(BuildContext context) {
-    final titulo = _esVentas ? 'Historial de Ventas' : 'Historial de Compras';
+    final titulo = _esVentas ? 'Historial de Ventas' : (_esCompras ? 'Historial de Compras' : 'Historial de Traslados');
     final formatoFecha = DateFormat('dd/MM/yyyy HH:mm');
     final formatoDia = DateFormat('dd/MM/yyyy');
     final tamano = MediaQuery.of(context).size;
@@ -125,7 +131,13 @@ class _HistorialMovimientosDialogState extends ConsumerState<HistorialMovimiento
               ],
             ),
             const SizedBox(height: 14),
-            Expanded(child: _esVentas ? _contenidoVentas(formatoFecha) : _contenidoCompras(formatoFecha)),
+            Expanded(
+              child: _esVentas
+                  ? _contenidoVentas(formatoFecha)
+                  : _esCompras
+                      ? _contenidoCompras(formatoFecha)
+                      : _contenidoTraslados(formatoFecha),
+            ),
           ],
         ),
       ),
@@ -174,12 +186,33 @@ class _HistorialMovimientosDialogState extends ConsumerState<HistorialMovimiento
     );
   }
 
+  Widget _contenidoTraslados(DateFormat formatoFecha) {
+    final async = ref.watch(historialTrasladosProductoProvider(widget.producto.id));
+    return async.when(
+      loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF0D2B4E))),
+      error: (e, st) => Center(child: Text('Error: $e', style: GoogleFonts.poppins(color: Colors.red))),
+      data: (data) {
+        final filas = _filtrar(data
+            .map((r) => _FilaHistorial(
+                  fecha: r.fecha,
+                  documento: r.numero,
+                  contraparte: '${r.sucursalOrigen} → ${r.sucursalDestino}',
+                  cantidad: r.cantidad,
+                  precio: null,
+                  idDetalle: r.idTraslado,
+                ))
+            .toList());
+        return _tabla(filas, formatoFecha, etiquetaContraparte: 'SUCURSALES', etiquetaDocumento: 'TRASLADO', etiquetaPrecio: null, vacio: 'Sin traslados registrados en el rango seleccionado');
+      },
+    );
+  }
+
   Widget _tabla(
     List<_FilaHistorial> filas,
     DateFormat formatoFecha, {
     required String etiquetaContraparte,
     required String etiquetaDocumento,
-    required String etiquetaPrecio,
+    required String? etiquetaPrecio,
     required String vacio,
   }) {
     if (filas.isEmpty) {
@@ -204,7 +237,7 @@ class _HistorialMovimientosDialogState extends ConsumerState<HistorialMovimiento
                     SizedBox(width: 130, child: Text(etiquetaDocumento, style: estiloHeader)),
                     Expanded(child: Text(etiquetaContraparte, style: estiloHeader)),
                     SizedBox(width: 70, child: Text('CANT.', textAlign: TextAlign.right, style: estiloHeader)),
-                    SizedBox(width: 100, child: Text(etiquetaPrecio, textAlign: TextAlign.right, style: estiloHeader)),
+                    if (etiquetaPrecio != null) SizedBox(width: 100, child: Text(etiquetaPrecio, textAlign: TextAlign.right, style: estiloHeader)),
                     const SizedBox(width: 48),
                   ],
                 ),
@@ -225,7 +258,7 @@ class _HistorialMovimientosDialogState extends ConsumerState<HistorialMovimiento
                             SizedBox(width: 130, child: Text(r.documento, style: GoogleFonts.poppins(fontSize: 12), overflow: TextOverflow.ellipsis)),
                             Expanded(child: Text(r.contraparte, style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600), overflow: TextOverflow.ellipsis)),
                             SizedBox(width: 70, child: Text(_formatoCantidad(r.cantidad), textAlign: TextAlign.right, style: GoogleFonts.poppins(fontSize: 12))),
-                            SizedBox(width: 100, child: Text(formatearMoneda(r.precio), textAlign: TextAlign.right, style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700))),
+                            if (r.precio != null) SizedBox(width: 100, child: Text(formatearMoneda(r.precio!), textAlign: TextAlign.right, style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700))),
                             SizedBox(
                               width: 48,
                               child: IconButton(

@@ -10,6 +10,13 @@
 // si el logo cambia en el futuro, hay que volver a medirlas (escanear
 // filas/columnas de píxeles "brillantes" para encontrar los bordes del
 // ícono y el hueco antes del texto, como se hizo la primera vez).
+//
+// OJO: la primera versión de este recorte (x:315,y:90,650x650) dejaba el
+// disco+pinza tocando casi los 4 bordes del cuadrado -se veía "cortado" en
+// Windows/APK/web-. Este recorte deja margen de sobra (fondo navy, que ya
+// es el color de fondo del logo, así que el margen extra no se nota como
+// una "caja" pegada) en los cuatro lados, con más cuidado abajo porque el
+// texto del lockup empieza enseguida después del disco.
 // Se corre a mano: `dart run tool/generar_logo_icono.dart`.
 import 'dart:io';
 import 'package:image/image.dart' as img;
@@ -21,7 +28,7 @@ void main() {
     stderr.writeln('No se pudo leer assets/images/logo.jpg');
     exit(1);
   }
-  final icono = img.copyCrop(original, x: 315, y: 90, width: 650, height: 650);
+  final icono = img.copyCrop(original, x: 310, y: 54, width: 700, height: 700);
   final grande = img.copyResize(icono, width: 1024, height: 1024, interpolation: img.Interpolation.average);
   File('assets/images/logo_icono.png').writeAsBytesSync(img.encodePng(grande));
   // ignore: avoid_print

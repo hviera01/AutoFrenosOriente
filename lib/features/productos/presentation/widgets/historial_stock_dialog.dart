@@ -25,12 +25,24 @@ class _OrigenHistorial {
 _OrigenHistorial? _origenDeMotivo(String motivo) {
   final texto = motivo.trim();
   final patrones = <RegExp, String>{
+    // Motivos que arma la app (ver Venta/Compra/TrasladoRepository).
     RegExp(r'^Venta\s+(\S+)$', caseSensitive: false): 'venta',
     RegExp(r'^Anulaci[oó]n de venta\s+(\S+)$', caseSensitive: false): 'venta',
     RegExp(r'^Compra\s+(\S+)$', caseSensitive: false): 'compra',
     RegExp(r'^Anulaci[oó]n de compra\s+(\S+)$', caseSensitive: false): 'compra',
-    RegExp(r'^Traslado\s+(\S+)\s+a\s+.+$', caseSensitive: false): 'traslado',
+    // El traslado a destino es opcional en el patrón: la app siempre lo
+    // incluye ("Traslado TRAS-000123 a Sucursal 2"), pero el motivo no
+    // siempre lo trae -ver abajo, el HistorialStock migrado del sistema
+    // viejo no lo tenía-.
+    RegExp(r'^Traslado\s+(\S+)(\s+a\s+.+)?$', caseSensitive: false): 'traslado',
     RegExp(r'^Anulaci[oó]n de traslado\s+(\S+)$', caseSensitive: false): 'traslado',
+    // Motivos tal cual quedaron migrados del HistorialStock del sistema
+    // viejo (TipoMovimiento+NumeroDocumento, ej. "VENTA 0027",
+    // "ANULACION_COMPRA 00122" -con guion bajo y sin acento, no "Anulación
+    // de compra"-): sin este segundo juego de patrones, ningún movimiento
+    // migrado antes de esta actualización quedaba clicable.
+    RegExp(r'^Anulaci[oó]n_Venta\s+(\S+)$', caseSensitive: false): 'venta',
+    RegExp(r'^Anulaci[oó]n_Compra\s+(\S+)$', caseSensitive: false): 'compra',
   };
   for (final entrada in patrones.entries) {
     final match = entrada.key.firstMatch(texto);

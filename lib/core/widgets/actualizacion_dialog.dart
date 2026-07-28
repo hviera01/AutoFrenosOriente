@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/actualizacion_service.dart';
@@ -45,8 +47,15 @@ class _ActualizacionDialogState extends State<_ActualizacionDialog> {
           if (mounted) setState(() => _progreso = p);
         },
       );
-      // Si el await termina y seguimos acá, algo falló: descargarEInstalar
-      // cierra la app (exit) apenas el instalador queda lanzado.
+      // En Windows, si el await termina y seguimos acá, algo falló:
+      // descargarEInstalar cierra la app (exit) apenas el instalador queda
+      // lanzado. En Android, en cambio, terminar acá es el camino normal
+      // -la app sigue corriendo, con la pantalla del instalador de Android
+      // encima-: hay que cerrar este diálogo a mano, si no se quedaba
+      // pegado mostrando "Descargando..." al 100% para siempre.
+      if (!kIsWeb && Platform.isAndroid && mounted) {
+        Navigator.pop(context);
+      }
     } catch (_) {
       if (!mounted) return;
       setState(() {

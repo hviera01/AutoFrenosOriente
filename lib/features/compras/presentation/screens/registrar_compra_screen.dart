@@ -844,7 +844,7 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
   // así siempre usa el [valorActual]/[alConfirmar] vigentes en vez de quedar
   // atado a los del primer build (que sería el bug si el listener capturara
   // esos parámetros directamente).
-  Widget _campoInlineNumero(String claveFoco, TextEditingController controlador, double valorActual, void Function(double) alConfirmar, {String? sufijo, String? prefijo, bool tecladoNumerico = false, bool dosDecimales = false}) {
+  Widget _campoInlineNumero(String claveFoco, TextEditingController controlador, double valorActual, void Function(double) alConfirmar, {String? sufijo, String? prefijo, bool dosDecimales = false, String tituloTeclado = 'Valor'}) {
     void confirmar() {
       final valor = double.tryParse(controlador.text.replaceAll(',', '').trim());
       if (valor == null) return;
@@ -865,14 +865,17 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
       return node;
     });
 
-    // Solo la cantidad usa teclado numérico en pantalla (a pedido
-    // explícito), y solo en escritorio: en celular ya está el teclado del
-    // sistema.
+    // Todo campo numérico de Compras pasa por el teclado numérico en
+    // pantalla en escritorio -a pedido explícito, nada de tipear con el
+    // cursor-: por eso además de abrirlo al tocar, el campo queda readOnly
+    // (bloquea el cursor/teclado físico del todo). En celular sigue editable
+    // directo: ahí no hay diálogo de teclado numérico, es el teclado nativo.
     final esMovil = defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS;
 
     return TextField(
       controller: controlador,
       focusNode: focusNode,
+      readOnly: !esMovil,
       textAlign: TextAlign.center,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       style: GoogleFonts.poppins(fontSize: 13),
@@ -886,18 +889,18 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
         isDense: true,
         contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       ),
-      onTap: (tecladoNumerico && !esMovil)
-          ? () async {
+      onTap: esMovil
+          ? null
+          : () async {
               focusNode.unfocus();
               final texto = await showDialog<String>(
                 context: context,
-                builder: (context) => TecladoNumericoDialog(titulo: 'Cantidad', valorInicial: controlador.text),
+                builder: (context) => TecladoNumericoDialog(titulo: tituloTeclado, valorInicial: controlador.text),
               );
               if (texto == null || !mounted) return;
               controlador.text = texto;
               confirmar();
-            }
-          : null,
+            },
       onSubmitted: (_) => confirmar(),
       onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
     );
@@ -950,13 +953,13 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
     );
   }
 
-  Widget _campoInlineConEtiqueta(String claveFoco, String etiqueta, TextEditingController controlador, double valorActual, void Function(double) alConfirmar, {String? prefijo, bool tecladoNumerico = false, bool dosDecimales = false}) {
+  Widget _campoInlineConEtiqueta(String claveFoco, String etiqueta, TextEditingController controlador, double valorActual, void Function(double) alConfirmar, {String? prefijo, bool dosDecimales = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(etiqueta, style: GoogleFonts.poppins(fontSize: 10, color: Colors.grey.shade500)),
         const SizedBox(height: 4),
-        _campoInlineNumero(claveFoco, controlador, valorActual, alConfirmar, prefijo: prefijo, tecladoNumerico: tecladoNumerico, dosDecimales: dosDecimales),
+        _campoInlineNumero(claveFoco, controlador, valorActual, alConfirmar, prefijo: prefijo, dosDecimales: dosDecimales, tituloTeclado: etiqueta),
       ],
     );
   }
@@ -985,9 +988,9 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
                 // envuelve a una segunda línea en vez de recortarse.
                 child: Text(item.nombreProducto as String, softWrap: true, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
               ),
-              Expanded(flex: 2, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: _campoInlineNumero('cantidad_$index', ctrlCantidad, item.cantidad as double, (v) => _actualizarCantidad(index, v), tecladoNumerico: true))),
-              Expanded(flex: 2, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: _campoInlineNumero('precio_$index', ctrlPrecio, item.precioCompra as double, (v) => _actualizarPrecio(index, v), prefijo: 'L.', dosDecimales: true))),
-              Expanded(flex: 2, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: _campoInlineNumero('descuento_$index', ctrlDescuento, item.descuentoPorcentaje as double, (v) => _actualizarDescuentoLinea(index, v), sufijo: '%'))),
+              Expanded(flex: 2, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: _campoInlineNumero('cantidad_$index', ctrlCantidad, item.cantidad as double, (v) => _actualizarCantidad(index, v), tituloTeclado: 'Cantidad'))),
+              Expanded(flex: 2, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: _campoInlineNumero('precio_$index', ctrlPrecio, item.precioCompra as double, (v) => _actualizarPrecio(index, v), prefijo: 'L.', dosDecimales: true, tituloTeclado: 'Costo unitario'))),
+              Expanded(flex: 2, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: _campoInlineNumero('descuento_$index', ctrlDescuento, item.descuentoPorcentaje as double, (v) => _actualizarDescuentoLinea(index, v), sufijo: '%', tituloTeclado: 'Descuento (%)'))),
               Expanded(flex: 2, child: Text(formatearMoneda(_descuentoLineaMonto(item)), textAlign: TextAlign.right, style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600))),
               Expanded(flex: 2, child: Text(formatearMoneda(item.subtotal as double), textAlign: TextAlign.right, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700))),
               SizedBox(
@@ -1046,7 +1049,7 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
           const SizedBox(height: 10),
           Row(
             children: [
-              Expanded(child: _campoInlineConEtiqueta('cantidad_$index', 'Cantidad', ctrlCantidad, item.cantidad as double, (v) => _actualizarCantidad(index, v), tecladoNumerico: true)),
+              Expanded(child: _campoInlineConEtiqueta('cantidad_$index', 'Cantidad', ctrlCantidad, item.cantidad as double, (v) => _actualizarCantidad(index, v))),
               const SizedBox(width: 8),
               Expanded(child: _campoInlineConEtiqueta('precio_$index', 'Costo unitario', ctrlPrecio, item.precioCompra as double, (v) => _actualizarPrecio(index, v), prefijo: 'L.', dosDecimales: true)),
               const SizedBox(width: 8),

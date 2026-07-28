@@ -810,6 +810,9 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
       case 'historial_compras':
         _abrirHistorialMovimientos(producto, 'compras');
         break;
+      case 'historial_traslados':
+        _abrirHistorialMovimientos(producto, 'traslados');
+        break;
       case 'codigo_barras':
         _abrirCodigoBarras(producto);
         break;
@@ -824,6 +827,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
       _opcionMenu(valor: 'historial_stock', icono: Icons.history, texto: 'Historial de existencia'),
       _opcionMenu(valor: 'historial_ventas', icono: Icons.point_of_sale_outlined, texto: 'Historial de ventas'),
       _opcionMenu(valor: 'historial_compras', icono: Icons.shopping_cart_outlined, texto: 'Historial de compras'),
+      _opcionMenu(valor: 'historial_traslados', icono: Icons.sync_alt, texto: 'Historial de traslados'),
       const PopupMenuDivider(),
       _opcionMenu(valor: 'codigo_barras', icono: Icons.qr_code_2_outlined, texto: 'Código de barras'),
     ];

@@ -208,38 +208,43 @@ class TrasladoExportService {
   // blanco larguísimo al final ni tan corto que MultiPage tenga que partir
   // el ticket en más de una página. El número base ya incluye margen de
   // sobra generoso.
-  // OJO: este número se quedó corto una vez ya (el traslado se partía en 2
-  // páginas con un solo producto) porque la letra acá es más grande que la
-  // del ticket de venta y no se había recalculado la base para eso. Bloque
-  // fijo real que SIEMPRE se imprime, con su alto aproximado a fNormal
-  // (10.5pt): encabezado + "TRASLADO" (2 líneas ~8mm c/u), 4 separadores de
-  // sección (~11mm c/u), 7 líneas de datos (Nº/Fecha/Estado/origen/destino/
-  // usuario crea/usuario recibe, ~7mm c/u), encabezado de tabla (~8mm), las
-  // dos firmas con su espaciado (~35mm c/u entre el SizedBox y el texto) y
-  // el pie de página (~8mm). Mejor que sobre papel en blanco de más a que
-  // el ticket quede cortado a la mitad.
+  // OJO: esto ya se quedó corto dos veces (primero con un solo producto,
+  // después incluso con el colchón agregado la vez pasada) — el traslado se
+  // sigue partiendo en 2 páginas y en la impresora térmica eso sale como
+  // "cortado" (algunos drivers/impresoras cortan el papel entre página y
+  // página del trabajo, en vez de seguir en el mismo rollo). La impresora
+  // real usada tiene el tamaño de papel configurado hasta 3276mm (un rollo
+  // esencialmente "continuo" para cualquier ticket), así que no hace falta
+  // ser precisos calculando cuánto ocupa cada línea: mejor reservar de más
+  // por cada producto (suficiente para 2-3 líneas envueltas) que seguir
+  // afinando el cálculo por caracter y volver a quedarse cortos. En vez de
+  // "líneas estimadas por caracteres", cada producto reserva un bloque fijo
+  // grande, con líneas extra solo para nombres realmente largos.
   double _estimarAlturaMm(TrasladoModel t, NegocioModel negocio, {required bool tieneLogo}) {
     double alto = 16.0 // encabezado + "TRASLADO"
         + 44.0 // 4 separadores de sección fijos
         + 49.0 // 7 líneas de datos
         + 8.0 // encabezado de tabla CÓDIGO/DESCRIPCIÓN/CANT
         + 70.0 // las dos firmas (SizedBox + línea + texto) + separador final
-        + 20.0; // pie de página + colchón de seguridad
+        + 30.0; // pie de página + colchón de seguridad
     if (tieneLogo) alto += 24.0;
-    if (t.observaciones.isNotEmpty) alto += 16.0 + (t.observaciones.length / 35).ceil() * 6.0;
-    // Cada producto: código + nombre (puede partirse en varias líneas, la
-    // columna de nombre es más angosta ahora que el código tiene su propia
-    // columna) + la línea de Ubicación si la trae. Nombres en MAYÚSCULA
-    // (como salen casi todos los productos migrados) pesan más por
-    // carácter que el promedio, así que se estima con menos caracteres por
-    // línea de los que en teoría entrarían -mejor sobrestimar líneas que
-    // quedarse corto y que el ticket salga cortado, que es justo el
-    // problema que este cálculo existe para evitar.
+    if (t.observaciones.isNotEmpty) alto += 16.0 + (t.observaciones.length / 30).ceil() * 7.0;
     for (final item in t.detalle) {
-      alto += 13.0 + (item.nombreProducto.length / 15).ceil() * 6.5;
-      if (item.ubicacion.trim().isNotEmpty) alto += 6.0;
+      // Bloque fijo por producto: cubre código+nombre en hasta 2 líneas
+      // completas más la línea de Ubicación, con margen de sobra.
+      alto += 26.0;
+      // Nombres largos (más de ~24 caracteres, que ya no entran cómodos en
+      // 2 líneas dentro de la columna angosta) suman líneas extra encima
+      // del bloque fijo.
+      if (item.nombreProducto.length > 24) {
+        alto += ((item.nombreProducto.length - 24) / 13).ceil() * 6.5;
+      }
     }
-    return alto;
+    // Techo generoso muy por debajo de lo que soporta la impresora (rollo
+    // configurado hasta 3276mm): un traslado normal nunca se acerca a esto,
+    // es solo para no mandar una página más larga de lo razonable si algún
+    // traslado tuviera una cantidad de productos fuera de lo común.
+    return alto.clamp(0, 2500);
   }
 
   pw.Widget _fila(String etiqueta, String valor, double tamano) {

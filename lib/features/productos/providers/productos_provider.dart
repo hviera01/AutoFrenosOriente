@@ -4,6 +4,7 @@ import '../data/producto_model.dart';
 import '../data/historial_stock_model.dart';
 import '../data/historial_precio_compra_model.dart';
 import '../data/historial_venta_producto_model.dart';
+import '../data/historial_traslado_producto_model.dart';
 
 final productoRepositoryProvider = Provider((ref) => ProductoRepository());
 
@@ -21,6 +22,10 @@ final historialPreciosCompraProvider = StreamProvider.family<List<HistorialPreci
 
 final historialVentasProductoProvider = StreamProvider.family<List<HistorialVentaProductoModel>, String>((ref, idProducto) {
   return ref.watch(productoRepositoryProvider).obtenerHistorialVentas(idProducto);
+});
+
+final historialTrasladosProductoProvider = StreamProvider.family<List<HistorialTrasladoProductoModel>, String>((ref, idProducto) {
+  return ref.watch(productoRepositoryProvider).obtenerHistorialTraslados(idProducto);
 });
 
 class InventarioBusquedaNotifier extends Notifier<String> {

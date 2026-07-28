@@ -200,6 +200,16 @@ class TrasladoRepository {
           'motivo': 'Traslado $numero a $nombreSucursalDestino',
           'fecha': FieldValue.serverTimestamp(),
         });
+        final historialTrasladoRef = ref.collection('historialTraslados').doc();
+        transaction.set(historialTrasladoRef, {
+          'idTraslado': trasladoRef.id,
+          'numero': numero,
+          'cantidad': item.cantidad,
+          'sucursalOrigen': nombreSucursalOrigen,
+          'sucursalDestino': nombreSucursalDestino,
+          'usuario': usuarioCrea,
+          'fecha': FieldValue.serverTimestamp(),
+        });
       }
     });
 

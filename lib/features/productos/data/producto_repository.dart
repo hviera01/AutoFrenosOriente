@@ -4,6 +4,7 @@ import 'producto_import_service.dart';
 import 'historial_stock_model.dart';
 import 'historial_precio_compra_model.dart';
 import 'historial_venta_producto_model.dart';
+import 'historial_traslado_producto_model.dart';
 import 'lote_costo_repository.dart';
 
 class ResumenImportacionProductos {
@@ -324,6 +325,14 @@ class ProductoRepository {
   Stream<List<HistorialVentaProductoModel>> obtenerHistorialVentas(String idProducto) {
     return _col.doc(idProducto).collection('historialVentas').orderBy('fecha').snapshots().map((snap) {
       return snap.docs.map((d) => HistorialVentaProductoModel.fromMap(d.id, d.data())).toList();
+    });
+  }
+
+  /// Historial de traslados del producto, en el orden en que se fueron
+  /// registrando (más antiguo primero).
+  Stream<List<HistorialTrasladoProductoModel>> obtenerHistorialTraslados(String idProducto) {
+    return _col.doc(idProducto).collection('historialTraslados').orderBy('fecha').snapshots().map((snap) {
+      return snap.docs.map((d) => HistorialTrasladoProductoModel.fromMap(d.id, d.data())).toList();
     });
   }
 }
