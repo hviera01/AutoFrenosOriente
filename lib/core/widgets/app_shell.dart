@@ -139,6 +139,14 @@ class _AppShellState extends ConsumerState<AppShell> {
       unawaited(trasladoRepo.marcarSolicitudImpresionEnVivo(traslado.id, false));
       final futureCompleto = trasladoRepo.obtenerPorId(traslado.id);
       final futureNegocio = ref.read(negocioRepositoryProvider).obtenerNegocioActual();
+      // Por si el stream de productos todavía no trajo el primer valor (la
+      // PC principal recién abierta, por ejemplo): esperar antes de armar el
+      // mapa de códigos, mismo criterio que en las pantallas de traslado.
+      if (ref.read(productosStreamProvider).value == null) {
+        try {
+          await ref.read(productosStreamProvider.future);
+        } catch (_) {}
+      }
       final productos = ref.read(productosStreamProvider).value ?? [];
       final codigos = {for (final p in productos) p.id: p.codigo};
       final trasladoCompleto = await futureCompleto;

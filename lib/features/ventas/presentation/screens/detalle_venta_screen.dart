@@ -15,6 +15,7 @@ import '../../providers/ventas_provider.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../negocio/data/negocio_model.dart';
 import '../../../negocio/providers/negocio_provider.dart';
+import '../../../productos/providers/productos_provider.dart';
 import '../../../../core/models/tab_item.dart';
 import '../../../../core/providers/tabs_provider.dart';
 import '../../../../core/services/impresora_red_service.dart';
@@ -550,6 +551,11 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
     final formatoDia = DateFormat('dd/MM/yyyy');
     final esCotizacion = venta.tipoDocumento == 'Cotizacion';
     final esCredito = venta.condicion == 'Credito';
+    // watch (no read): si se entra derecho a esta pantalla antes de que el
+    // stream de productos trajera su primer snapshot, se reconstruye sola
+    // apenas llegue, en vez de quedarse mostrando el detalle sin códigos.
+    final productos = ref.watch(productosStreamProvider).value ?? [];
+    final codigos = {for (final p in productos) p.id: p.codigo};
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -588,7 +594,7 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
           ],
         ),
         const SizedBox(height: 10),
-        _tarjeta(child: esMovil ? _tarjetasItems(venta) : _tablaItems(venta)),
+        _tarjeta(child: esMovil ? _tarjetasItems(venta, codigos) : _tablaItems(venta, codigos)),
         const SizedBox(height: 16),
         _tarjetaTotales(venta),
         const SizedBox(height: 20),
@@ -739,13 +745,14 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
     return redondearMoneda(precio * (item.cantidad as double) * (1 - (item.descuentoPorcentaje as double) / 100));
   }
 
-  Widget _tablaItems(VentaModel venta) {
+  Widget _tablaItems(VentaModel venta, Map<String, String> codigos) {
     final estiloEncabezado = GoogleFonts.poppins(fontSize: 11.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
+            Expanded(flex: 2, child: Text('Código', style: estiloEncabezado)),
             Expanded(flex: 2, child: Text('Cant.', textAlign: TextAlign.center, style: estiloEncabezado)),
             Expanded(flex: 5, child: Text('Producto', style: estiloEncabezado)),
             Expanded(flex: 2, child: Text('Precio', textAlign: TextAlign.right, style: estiloEncabezado)),
@@ -759,6 +766,7 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                Expanded(flex: 2, child: Text(codigos[item.idProducto] ?? '-', style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600))),
                 Expanded(flex: 2, child: Text(_formatoCantidad(item.cantidad), textAlign: TextAlign.center, style: GoogleFonts.poppins(fontSize: 13))),
                 Expanded(
                   flex: 5,
@@ -783,7 +791,7 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
     );
   }
 
-  Widget _tarjetasItems(VentaModel venta) {
+  Widget _tarjetasItems(VentaModel venta, Map<String, String> codigos) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -794,11 +802,14 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(item.nombreProducto, style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600)),
-                if (item.reembasado || item.descuentoPorcentaje > 0)
-                  Text(
-                    [if (item.reembasado) 'Reembasado', if (item.descuentoPorcentaje > 0) 'Descuento ${_formatoCantidad(item.descuentoPorcentaje)}%'].join(' · '),
-                    style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500),
-                  ),
+                Text(
+                  [
+                    if ((codigos[item.idProducto] ?? '').isNotEmpty) codigos[item.idProducto]!,
+                    if (item.reembasado) 'Reembasado',
+                    if (item.descuentoPorcentaje > 0) 'Descuento ${_formatoCantidad(item.descuentoPorcentaje)}%',
+                  ].join(' · '),
+                  style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500),
+                ),
                 const SizedBox(height: 4),
                 Text(
                   '${_formatoCantidad(item.cantidad)} x ${formatearMoneda(_precioMostrado(item))} = ${formatearMoneda(_importeMostrado(item))}',

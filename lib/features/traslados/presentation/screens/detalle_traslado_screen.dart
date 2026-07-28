@@ -210,6 +210,18 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
       return;
     }
 
+    // Por si el stream de productos todavía no trajo el primer valor (poco
+    // común, pero pasa si se entra derecho a esta pantalla y se reimprime
+    // enseguida, antes de que carguen los ~3900 productos): esperar a que
+    // haya datos antes de armar el mapa de códigos, para no imprimir el
+    // ticket sin ningún código (ver mismo criterio en
+    // RegistrarVentaScreen._escanear).
+    if (ref.read(productosStreamProvider).value == null) {
+      try {
+        await ref.read(productosStreamProvider.future);
+      } catch (_) {}
+      if (!mounted) return;
+    }
     final negocio = await ref.read(negocioRepositoryProvider).obtenerNegocioActual();
     if (!mounted) return;
     final codigos = _codigosPorProducto();
@@ -244,6 +256,14 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
   Widget build(BuildContext context) {
     final tamano = MediaQuery.of(context).size;
     final esMovil = tamano.width < 760;
+    // Con watch (no read) esta pantalla se reconstruye sola apenas llega el
+    // primer snapshot de productos: si se entra derecho a "Detalle de
+    // Traslado" (sin haber abierto antes Inventario u otra pantalla que ya
+    // dejara el stream cargado), _codigosPorProducto() podía pedir el mapa
+    // de códigos ANTES de que el stream trajera nada, devolviendo vacío
+    // para siempre -eso hacía que ni la tabla en pantalla ni el ticket
+    // impreso mostraran ningún código-.
+    ref.watch(productosStreamProvider);
 
     final contenido = Padding(
       padding: EdgeInsets.all(esMovil ? 14 : 24),

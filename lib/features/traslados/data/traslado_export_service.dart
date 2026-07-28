@@ -90,6 +90,32 @@ class TrasladoExportService {
 
     return pw.MultiPage(
       pageFormat: PdfPageFormat(anchoPaginaMm * PdfPageFormat.mm, alturaMm * PdfPageFormat.mm, marginAll: margenMm * PdfPageFormat.mm),
+      // Si el traslado no entra en una sola página, MultiPage sigue solo en
+      // la próxima (nunca corta contenido a la mitad, ver comentario de
+      // _estimarAlturaMm) — pero sin esto, esa página 2+ salía sin ninguna
+      // marca de que es continuación del mismo traslado. "Página X de Y"
+      // solo se imprime cuando de verdad hay más de una página (pagesCount
+      // se sabe recién en un segundo pase de MultiPage, así que en el caso
+      // normal de una sola página no aparece nada de más).
+      footer: (context) {
+        if (context.pagesCount <= 1) return pw.SizedBox();
+        return pw.Padding(
+          padding: const pw.EdgeInsets.only(top: 4),
+          child: pw.Center(
+            child: pw.Text('Página ${context.pageNumber} de ${context.pagesCount}', style: pw.TextStyle(fontSize: fChica, fontWeight: pw.FontWeight.bold)),
+          ),
+        );
+      },
+      // En la página 2+ (el encabezado completo con nombre/datos del negocio
+      // solo se imprime una vez, al principio del contenido) esto deja claro
+      // que la hoja es la continuación del mismo traslado.
+      header: (context) {
+        if (context.pageNumber <= 1) return pw.SizedBox();
+        return pw.Padding(
+          padding: const pw.EdgeInsets.only(bottom: 6),
+          child: pw.Text('TRASLADO ${t.numero} (continuación)', style: pw.TextStyle(fontSize: fNormal, fontWeight: pw.FontWeight.bold)),
+        );
+      },
       build: (context) {
         return [
           pw.Column(
@@ -205,21 +231,21 @@ class TrasladoExportService {
 
   // Igual que en el ticket de venta: se estima cuánto va a ocupar el
   // contenido real para que el rollo térmico no salga con un espacio en
-  // blanco larguísimo al final ni tan corto que MultiPage tenga que partir
-  // el ticket en más de una página. El número base ya incluye margen de
-  // sobra generoso.
-  // OJO: esto ya se quedó corto dos veces (primero con un solo producto,
-  // después incluso con el colchón agregado la vez pasada) — el traslado se
-  // sigue partiendo en 2 páginas y en la impresora térmica eso sale como
-  // "cortado" (algunos drivers/impresoras cortan el papel entre página y
-  // página del trabajo, en vez de seguir en el mismo rollo). La impresora
-  // real usada tiene el tamaño de papel configurado hasta 3276mm (un rollo
-  // esencialmente "continuo" para cualquier ticket), así que no hace falta
-  // ser precisos calculando cuánto ocupa cada línea: mejor reservar de más
-  // por cada producto (suficiente para 2-3 líneas envueltas) que seguir
-  // afinando el cálculo por caracter y volver a quedarse cortos. En vez de
-  // "líneas estimadas por caracteres", cada producto reserva un bloque fijo
-  // grande, con líneas extra solo para nombres realmente largos.
+  // blanco larguísimo al final. El número base ya incluye margen de sobra
+  // generoso.
+  //
+  // OJO -cambio de enfoque, probado en la impresora real-: antes esto
+  // intentaba armar UNA sola página gigante (hasta 2500mm) para que
+  // MultiPage nunca tuviera que partir el ticket. Resultado real: igual
+  // salía incompleto, y encima peor que antes -lo que apunta a que el
+  // driver/la impresora trunca páginas muy altas al rasterizarlas, no a
+  // que "faltara papel"-. Ahora es al revés: el techo de altura por página
+  // es MODESTO (una sola página de tamaño normal, como cualquier ticket),
+  // y si el traslado tiene tantos productos que no entra, MultiPage lo
+  // sigue en una página 2 (o 3, las que hagan falta) de ese mismo tamaño
+  // normal en vez de una sola página fuera de lo común. Página 2+ significa
+  // un segundo tramo de ticket, no contenido perdido -eso es justo lo que
+  // se evita con este cambio-.
   double _estimarAlturaMm(TrasladoModel t, NegocioModel negocio, {required bool tieneLogo}) {
     double alto = 16.0 // encabezado + "TRASLADO"
         + 44.0 // 4 separadores de sección fijos
@@ -240,11 +266,16 @@ class TrasladoExportService {
         alto += ((item.nombreProducto.length - 24) / 13).ceil() * 6.5;
       }
     }
-    // Techo generoso muy por debajo de lo que soporta la impresora (rollo
-    // configurado hasta 3276mm): un traslado normal nunca se acerca a esto,
-    // es solo para no mandar una página más larga de lo razonable si algún
-    // traslado tuviera una cantidad de productos fuera de lo común.
-    return alto.clamp(0, 2500);
+    // Techo MODESTO a propósito (ver comentario de arriba): del tamaño de
+    // un ticket normal (mismo orden de magnitud que el ticket de venta,
+    // que sí imprime bien), no del máximo que declara la impresora. Ya se
+    // probó con un techo mucho más alto (2500mm y 500mm) y en la impresora
+    // real igual salía incompleto -lo que apunta a que la impresora/el
+    // driver tiene problemas con páginas fuera de lo común, no a que
+    // faltara altura-. Un traslado con muchos productos sigue en una
+    // página 2+ del mismo tamaño (con su propio "Página X de Y", ver
+    // arriba) en vez de una sola página larga.
+    return alto.clamp(0, 350);
   }
 
   pw.Widget _fila(String etiqueta, String valor, double tamano) {

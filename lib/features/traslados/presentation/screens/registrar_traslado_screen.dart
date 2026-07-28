@@ -256,6 +256,15 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
   }
 
   Future<void> _imprimir(TrasladoModel traslado) async {
+    // Por si el stream de productos todavía no trajo el primer valor (ver
+    // mismo criterio en DetalleTrasladoScreen._reimprimir): esperar antes de
+    // armar el mapa de códigos, para no imprimir el ticket sin ninguno.
+    if (ref.read(productosStreamProvider).value == null) {
+      try {
+        await ref.read(productosStreamProvider.future);
+      } catch (_) {}
+      if (!mounted) return;
+    }
     final negocio = await ref.read(negocioRepositoryProvider).obtenerNegocioActual();
     if (!mounted) return;
     final codigos = _codigosPorProducto();
@@ -338,6 +347,12 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
 
   @override
   Widget build(BuildContext context) {
+    // Con watch (no read): si se entra a esta pantalla antes de que el
+    // stream de productos trajera su primer snapshot, la pantalla se
+    // reconstruye sola apenas llega -sin esto, _codigosPorProducto() podía
+    // quedar cacheado en vacío para siempre, ver mismo criterio en
+    // DetalleTrasladoScreen-.
+    ref.watch(productosStreamProvider);
     return Container(
       color: const Color(0xFFF2F3F7),
       child: LayoutBuilder(

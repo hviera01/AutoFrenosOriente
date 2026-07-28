@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../data/compra_model.dart';
 import '../../providers/compras_provider.dart';
 import '../../../auth/providers/auth_provider.dart';
+import '../../../productos/providers/productos_provider.dart';
 import '../../../../core/utils/formato_moneda.dart';
 
 /// Pantalla de consulta de una compra ya registrada: buscá por número de
@@ -261,6 +262,11 @@ class _DetalleCompraScreenState extends ConsumerState<DetalleCompraScreen> {
   Widget _detalle(CompraModel compra, bool esMovil) {
     final formatoDia = DateFormat('dd/MM/yyyy');
     final esCredito = compra.condicion == 'Credito';
+    // watch (no read): si se entra derecho a esta pantalla antes de que el
+    // stream de productos trajera su primer snapshot, se reconstruye sola
+    // apenas llegue, en vez de quedarse mostrando el detalle sin códigos.
+    final productos = ref.watch(productosStreamProvider).value ?? [];
+    final codigos = {for (final p in productos) p.id: p.codigo};
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,7 +296,7 @@ class _DetalleCompraScreenState extends ConsumerState<DetalleCompraScreen> {
         const SizedBox(height: 16),
         Text('Productos', style: GoogleFonts.poppins(fontSize: 14.5, fontWeight: FontWeight.w700)),
         const SizedBox(height: 10),
-        _tarjeta(child: esMovil ? _tarjetasItems(compra) : _tablaItems(compra)),
+        _tarjeta(child: esMovil ? _tarjetasItems(compra, codigos) : _tablaItems(compra, codigos)),
         const SizedBox(height: 16),
         _tarjetaTotales(compra),
         const SizedBox(height: 20),
@@ -371,13 +377,14 @@ class _DetalleCompraScreenState extends ConsumerState<DetalleCompraScreen> {
     return sinDescuento - (item.subtotal as double);
   }
 
-  Widget _tablaItems(CompraModel compra) {
+  Widget _tablaItems(CompraModel compra, Map<String, String> codigos) {
     final estiloEncabezado = GoogleFonts.poppins(fontSize: 11.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
+            Expanded(flex: 2, child: Text('Código', style: estiloEncabezado)),
             Expanded(flex: 2, child: Text('Cant.', textAlign: TextAlign.center, style: estiloEncabezado)),
             Expanded(flex: 5, child: Text('Producto', style: estiloEncabezado)),
             Expanded(flex: 2, child: Text('Costo unitario', textAlign: TextAlign.right, style: estiloEncabezado)),
@@ -392,6 +399,7 @@ class _DetalleCompraScreenState extends ConsumerState<DetalleCompraScreen> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                Expanded(flex: 2, child: Text(codigos[item.idProducto] ?? '-', style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600))),
                 Expanded(flex: 2, child: Text(_formatoCantidad(item.cantidad), textAlign: TextAlign.center, style: GoogleFonts.poppins(fontSize: 13))),
                 Expanded(
                   flex: 5,
@@ -416,7 +424,7 @@ class _DetalleCompraScreenState extends ConsumerState<DetalleCompraScreen> {
     );
   }
 
-  Widget _tarjetasItems(CompraModel compra) {
+  Widget _tarjetasItems(CompraModel compra, Map<String, String> codigos) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -427,8 +435,13 @@ class _DetalleCompraScreenState extends ConsumerState<DetalleCompraScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(item.nombreProducto, style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600)),
-                if (item.descuentoPorcentaje > 0)
-                  Text('Descuento ${_formatoCantidad(item.descuentoPorcentaje)}%', style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500)),
+                Text(
+                  [
+                    if ((codigos[item.idProducto] ?? '').isNotEmpty) codigos[item.idProducto]!,
+                    if (item.descuentoPorcentaje > 0) 'Descuento ${_formatoCantidad(item.descuentoPorcentaje)}%',
+                  ].join(' · '),
+                  style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500),
+                ),
                 const SizedBox(height: 4),
                 Text(
                   '${_formatoCantidad(item.cantidad)} x ${formatearMoneda(item.precioCompra)} = ${formatearMoneda(item.subtotal)}',

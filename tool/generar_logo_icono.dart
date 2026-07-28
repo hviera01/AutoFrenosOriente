@@ -11,12 +11,19 @@
 // filas/columnas de píxeles "brillantes" para encontrar los bordes del
 // ícono y el hueco antes del texto, como se hizo la primera vez).
 //
-// OJO: la primera versión de este recorte (x:315,y:90,650x650) dejaba el
-// disco+pinza tocando casi los 4 bordes del cuadrado -se veía "cortado" en
-// Windows/APK/web-. Este recorte deja margen de sobra (fondo navy, que ya
-// es el color de fondo del logo, así que el margen extra no se nota como
-// una "caja" pegada) en los cuatro lados, con más cuidado abajo porque el
-// texto del lockup empieza enseguida después del disco.
+// OJO -dos vueltas de ajuste ya-: la v1 (x:315,y:90,650x650) dejaba el
+// disco+pinza tocando casi los 4 bordes. La v2 le agregó margen AL RECORTE,
+// pero el disco es ancho de lado a lado: aunque las ESQUINAS del cuadrado
+// tuvieran margen de sobra, el círculo inscripto (logo_redondo.png, usado en
+// Windows/login/menú) toca el CENTRO de cada lado del cuadrado sin ningún
+// margen ahí -y el borde izquierdo/derecho del disco cae justo en esa franja
+// central-, así que seguía viéndose cortado en redondo aunque en el
+// cuadrado ya se viera bien. Esta v3 no confía en el margen del recorte:
+// primero recorta ajustado (como v1) y DESPUÉS achica ese contenido al 68%
+// centrado sobre un lienzo del color de fondo del logo (mismo lienzo que
+// usan tanto el ícono cuadrado como, a partir de él, el redondo) — así el
+// margen es uniforme en los 4 lados Y en el medio de cada lado, sin
+// depender de dónde caigan justo los bordes del disco.
 // Se corre a mano: `dart run tool/generar_logo_icono.dart`.
 import 'dart:io';
 import 'package:image/image.dart' as img;
@@ -28,9 +35,26 @@ void main() {
     stderr.writeln('No se pudo leer assets/images/logo.jpg');
     exit(1);
   }
+
   final icono = img.copyCrop(original, x: 310, y: 54, width: 700, height: 700);
-  final grande = img.copyResize(icono, width: 1024, height: 1024, interpolation: img.Interpolation.average);
-  File('assets/images/logo_icono.png').writeAsBytesSync(img.encodePng(grande));
+
+  const tamano = 1024;
+  const escala = 0.68; // 68% del lienzo: ~16% de margen uniforme en cada lado.
+  final contenido = (tamano * escala).round();
+  final chico = img.copyResize(icono, width: contenido, height: contenido, interpolation: img.Interpolation.average);
+
+  // Color de fondo real del logo (esquina superior izquierda del recorte,
+  // que siempre cae en el fondo navy oscuro, nunca en el disco): así el
+  // margen agregado se funde con el resto de la imagen en vez de notarse
+  // como un color distinto.
+  final fondo = icono.getPixel(0, 0);
+
+  final lienzo = img.Image(width: tamano, height: tamano, numChannels: 3);
+  img.fill(lienzo, color: img.ColorRgb8(fondo.r.toInt(), fondo.g.toInt(), fondo.b.toInt()));
+  final offset = ((tamano - contenido) / 2).round();
+  img.compositeImage(lienzo, chico, dstX: offset, dstY: offset);
+
+  File('assets/images/logo_icono.png').writeAsBytesSync(img.encodePng(lienzo));
   // ignore: avoid_print
   print('Listo: assets/images/logo_icono.png');
 }
