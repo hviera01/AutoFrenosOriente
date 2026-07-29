@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
+import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import '../version_app.dart';
 
@@ -64,25 +65,33 @@ class ActualizacionService {
     }
   }
 
-  /// Descarga el instalador a una carpeta temporal y lo corre. Solo Windows:
-  /// en Android la instalación quedó a cargo del navegador (ver
-  /// ActualizacionDialog), no de este método -después de fallar varias veces
-  /// con el instalador nativo de Android (OpenFile: permisos, timeouts,
-  /// particularidades de cada equipo/ROM que se rompían de formas distintas
-  /// cada vez), se optó por delegar por completo en Chrome/el gestor de
-  /// descargas del teléfono, que ya sabe instalar un APK de forma confiable
-  /// sin que la app tenga que manejar ningún permiso especial-.
+  /// Descarga el instalador/APK a una carpeta temporal y lo instala. Mismo
+  /// código -sin vueltas- que Daniel's Barber Shop (ver memoria del
+  /// proyecto), que sí instala bien en Android: los intentos anteriores de
+  /// "mejorar" esto acá (chequear ResultType, timeout, delegar en el
+  /// navegador) no lo arreglaron y puede que hayan sido parte del problema.
   ///
-  /// El instalador de Inno Setup (mismo AppId que la instalación actual)
-  /// reemplaza los archivos solo -por eso acá se cierra esta instancia
-  /// (exit) apenas queda lanzado, para no competir por los archivos que está
-  /// por sobrescribir-.
+  /// El nombre del archivo de descarga incluye la versión (a pedido del
+  /// dueño) para que cada actualización baje a un archivo nuevo en vez de
+  /// pisar/reusar uno con el mismo nombre de un intento anterior.
+  ///
+  /// En Windows, el instalador de Inno Setup (mismo AppId que la instalación
+  /// actual) reemplaza los archivos solo -por eso acá se cierra esta
+  /// instancia (exit) apenas queda lanzado, para no competir por los
+  /// archivos que está por sobrescribir-.
+  ///
+  /// En Android no hay forma de instalar sin que el usuario confirme (una
+  /// restricción del sistema operativo, no hay vuelta): esto abre la
+  /// pantalla del instalador de Android con el APK descargado, y ahí el
+  /// usuario decide si instala. La app sigue corriendo mientras tanto.
   static Future<void> descargarEInstalar(
     ActualizacionDisponible actualizacion,
     void Function(double progreso) onProgreso,
   ) async {
     final carpetaTemp = await getTemporaryDirectory();
-    final archivoDestino = File('${carpetaTemp.path}${Platform.pathSeparator}AutoFrenosActualizacion.exe');
+    final extension = Platform.isAndroid ? 'apk' : 'exe';
+    final nombreArchivo = 'AutoFrenosActualizacion_v${actualizacion.version}.$extension';
+    final archivoDestino = File('${carpetaTemp.path}${Platform.pathSeparator}$nombreArchivo');
 
     final cliente = http.Client();
     try {
@@ -98,6 +107,11 @@ class ActualizacionService {
       await sink.close();
     } finally {
       cliente.close();
+    }
+
+    if (Platform.isAndroid) {
+      await OpenFile.open(archivoDestino.path);
+      return;
     }
 
     await Process.start(archivoDestino.path, [], mode: ProcessStartMode.detached);
