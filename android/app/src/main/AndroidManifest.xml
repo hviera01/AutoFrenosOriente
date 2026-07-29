@@ -50,5 +50,15 @@
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
+        <!-- Necesario para que url_launcher pueda abrir el navegador en
+             Android 11+ (API 30+, package visibility): sin esto,
+             launchUrl() para un link https puede fallar en silencio
+             aunque el celular sí tenga un navegador instalado. Usado por
+             el botón "Descargar manualmente" de ActualizacionDialog, de
+             respaldo si la instalación automática falla. -->
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="https"/>
+        </intent>
     </queries>
 </manifest>

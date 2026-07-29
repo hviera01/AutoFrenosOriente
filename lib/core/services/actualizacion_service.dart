@@ -101,12 +101,21 @@ class ActualizacionService {
     }
 
     if (Platform.isAndroid) {
-      final resultado = await OpenFile.open(archivoDestino.path);
       // done = el instalador de Android se abrió bien (de ahí en más es el
       // usuario quien decide si instala). Cualquier otro resultado -por
       // ejemplo permissionDenied, si falta el permiso REQUEST_INSTALL_
       // PACKAGES- antes se ignoraba en silencio: la barra de descarga
       // llegaba al 100% y ahí se quedaba, sin ningún error visible.
+      //
+      // El timeout es una segunda red de seguridad, para equipos/ROMs
+      // donde el plugin nativo se cuelga en vez de devolver un resultado
+      // (no debería pasar, pero si pasa, mejor mostrar el botón de
+      // descarga manual -ver ActualizacionDialog- que dejar la barra
+      // pegada para siempre sin ninguna salida).
+      final resultado = await OpenFile.open(archivoDestino.path).timeout(
+        const Duration(seconds: 20),
+        onTimeout: () => OpenResult(type: ResultType.error, message: 'El instalador de Android no respondió a tiempo'),
+      );
       if (resultado.type != ResultType.done) {
         throw Exception(resultado.message);
       }

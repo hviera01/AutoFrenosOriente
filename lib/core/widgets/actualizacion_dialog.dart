@@ -2,6 +2,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../services/actualizacion_service.dart';
 
 /// Diálogo central que avisa que hay una versión nueva publicada. Se abre
@@ -60,8 +61,27 @@ class _ActualizacionDialogState extends State<_ActualizacionDialog> {
       if (!mounted) return;
       setState(() {
         _descargando = false;
-        _error = 'No se pudo descargar la actualización. Probá de nuevo más tarde.';
+        // En Android, "probá de nuevo" no alcanza si la causa es algo del
+        // equipo/ROM que el reintento automático no arregla solo (ver
+        // ActualizacionService.descargarEInstalar): por eso acá también se
+        // ofrece el link directo de descarga, para que el usuario pueda
+        // terminar la actualización a mano con el navegador -que no
+        // depende de ningún plugin ni permiso especial de la app- en vez
+        // de quedar sin ninguna salida.
+        _error = (!kIsWeb && Platform.isAndroid)
+            ? 'No se pudo instalar automáticamente. Podés descargarla manualmente abajo.'
+            : 'No se pudo descargar la actualización. Probá de nuevo más tarde.';
       });
+    }
+  }
+
+  Future<void> _descargarManualmente() async {
+    final uri = Uri.parse(widget.actualizacion.urlDescarga);
+    try {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _error = 'No se pudo abrir el navegador. Descargala a mano desde:\n${widget.actualizacion.urlDescarga}');
     }
   }
 
@@ -101,10 +121,16 @@ class _ActualizacionDialogState extends State<_ActualizacionDialog> {
           ? const []
           : [
               TextButton(onPressed: () => Navigator.pop(context), child: Text('Después', style: GoogleFonts.poppins())),
+              if (_error != null && !kIsWeb && Platform.isAndroid)
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF0D2B4E), side: const BorderSide(color: Color(0xFF0D2B4E))),
+                  onPressed: _descargarManualmente,
+                  child: Text('Descargar manualmente', style: GoogleFonts.poppins()),
+                ),
               FilledButton(
                 style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E)),
                 onPressed: _actualizar,
-                child: Text('Actualizar ahora', style: GoogleFonts.poppins()),
+                child: Text(_error != null ? 'Reintentar' : 'Actualizar ahora', style: GoogleFonts.poppins()),
               ),
             ],
     );
