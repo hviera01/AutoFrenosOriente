@@ -155,4 +155,9 @@ class NegocioRepository {
     await _doc.set({'impresoraRedIp': ip, 'impresoraRedPuerto': puerto}, SetOptions(merge: true));
     _invalidarCache();
   }
+
+  Future<void> actualizarIpsPermitidasInventarioLectura(String ips) async {
+    await _doc.set({'ipsPermitidasInventarioLectura': ips}, SetOptions(merge: true));
+    _invalidarCache();
+  }
 }

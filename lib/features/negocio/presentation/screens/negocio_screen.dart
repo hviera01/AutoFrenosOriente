@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/services/impresora_red_service.dart';
+import '../../../../core/services/ip_publica_service.dart';
 import '../../../ventas/providers/ventas_provider.dart';
 import '../../data/negocio_model.dart';
 import '../../providers/negocio_provider.dart';
@@ -51,6 +52,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
   final _ipRedController = TextEditingController();
   final _puertoRedController = TextEditingController();
   final _ctrlProximoFactura = TextEditingController();
+  final _ipsPermitidasController = TextEditingController();
   final _servicioImpresoraRed = ImpresoraRedService();
 
   DateTime? _fechaLimite;
@@ -62,6 +64,8 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
   int? _proximoFacturaActual;
   bool _cargandoProximoFactura = true;
   bool _guardandoProximoFactura = false;
+  bool _guardandoIps = false;
+  bool _buscandoIpActual = false;
   String? _error;
 
   @override
@@ -82,6 +86,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
     _permisos = Map<String, bool>.from(m.permisos);
     _ipRedController.text = m.impresoraRedIp;
     _puertoRedController.text = m.impresoraRedPuerto.toString();
+    _ipsPermitidasController.text = m.ipsPermitidasInventarioLectura;
     _cargarProximoFactura();
   }
 
@@ -135,6 +140,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
     _ipRedController.dispose();
     _puertoRedController.dispose();
     _ctrlProximoFactura.dispose();
+    _ipsPermitidasController.dispose();
     super.dispose();
   }
 
@@ -212,6 +218,34 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
     }
   }
 
+  Future<void> _usarIpActual() async {
+    setState(() => _buscandoIpActual = true);
+    final ip = await IpPublicaService.obtener();
+    if (!mounted) return;
+    setState(() => _buscandoIpActual = false);
+    if (ip == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No se pudo detectar la IP actual. Revisá la conexión a internet.')));
+      return;
+    }
+    final actuales = _ipsPermitidasController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toSet();
+    if (actuales.contains(ip)) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Esa IP ($ip) ya está en la lista')));
+      return;
+    }
+    actuales.add(ip);
+    setState(() => _ipsPermitidasController.text = actuales.join(', '));
+  }
+
+  Future<void> _guardarIpsPermitidas() async {
+    setState(() => _guardandoIps = true);
+    try {
+      await ref.read(negocioRepositoryProvider).actualizarIpsPermitidasInventarioLectura(_ipsPermitidasController.text.trim());
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Restricción de red guardada')));
+    } finally {
+      if (mounted) setState(() => _guardandoIps = false);
+    }
+  }
+
   void _alternarPermiso(String key, bool valor) {
     setState(() => _permisos[key] = valor);
     ref.read(negocioRepositoryProvider).actualizarPermisos(_permisos);
@@ -286,6 +320,8 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
               SliverToBoxAdapter(child: _tarjetaDatos(esMovil)),
               SliverToBoxAdapter(child: const SizedBox(height: 18)),
               SliverToBoxAdapter(child: _tarjetaPermisos(esMovil, tieneClave)),
+              SliverToBoxAdapter(child: const SizedBox(height: 18)),
+              SliverToBoxAdapter(child: _tarjetaAccesoRestringido(esMovil)),
               SliverToBoxAdapter(child: const SizedBox(height: 18)),
               SliverToBoxAdapter(child: _tarjetaImpresoras(esMovil)),
               SliverToBoxAdapter(child: const SizedBox(height: 18)),
@@ -514,6 +550,61 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
           const SizedBox(height: 6),
           ...PermisosEspeciales.etiquetas.entries.map(
             (entrada) => _filaPermiso(entrada.key, entrada.value, PermisosEspeciales.descripciones[entrada.key] ?? '', tieneClave),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _tarjetaAccesoRestringido(bool esMovil) {
+    final tieneRestriccion = _ipsPermitidasController.text.trim().isNotEmpty;
+    return _tarjeta(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _tituloSeccion('Acceso restringido a Inventario (Empleado encargado)', Icons.wifi_lock_outlined),
+          const SizedBox(height: 6),
+          Text(
+            'Un usuario con el rol "Empleado encargado" solo va a poder iniciar sesión conectado a estas redes (IP pública). Dejalo vacío para no restringir por red. Presioná "Usar mi IP actual" estando conectado a la red del negocio.',
+            style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600),
+          ),
+          const SizedBox(height: 18),
+          TextField(
+            controller: _ipsPermitidasController,
+            style: GoogleFonts.poppins(fontSize: 13.5),
+            decoration: _decoracion('IPs permitidas (separadas por coma)'),
+            onChanged: (_) => setState(() {}),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 12,
+            runSpacing: 10,
+            children: [
+              OutlinedButton.icon(
+                onPressed: _buscandoIpActual ? null : _usarIpActual,
+                icon: _buscandoIpActual
+                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Icon(Icons.my_location, size: 18),
+                label: Text('Usar mi IP actual', style: GoogleFonts.poppins(fontSize: 13)),
+                style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+              ),
+              FilledButton(
+                onPressed: _guardandoIps ? null : _guardarIpsPermitidas,
+                style: FilledButton.styleFrom(backgroundColor: const Color(0xFF1A1A1A), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                child: Text('Guardar', style: GoogleFonts.poppins(fontSize: 13, color: Colors.white)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Icon(tieneRestriccion ? Icons.check_circle : Icons.info_outline, size: 15, color: tieneRestriccion ? const Color(0xFF16A34A) : Colors.grey.shade500),
+              const SizedBox(width: 6),
+              Text(
+                tieneRestriccion ? 'Restricción de red activa' : 'Sin restricción de red configurada',
+                style: GoogleFonts.poppins(fontSize: 12, color: tieneRestriccion ? const Color(0xFF16A34A) : Colors.grey.shade500),
+              ),
+            ],
           ),
         ],
       ),

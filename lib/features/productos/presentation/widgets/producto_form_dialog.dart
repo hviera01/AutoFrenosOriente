@@ -9,8 +9,14 @@ import '../../../../core/widgets/reintentar_dialog.dart';
 
 class ProductoFormDialog extends ConsumerStatefulWidget {
   final ProductoModel? producto;
+  // El rol Roles.inventarioLectura puede editar libremente código, nombre y
+  // ubicación de un producto YA EXISTENTE, pero nada más (ni precios, ni
+  // categoría, ni estado, ni eliminarlo) -pedido explícito del dueño-. Al
+  // crear un producto nuevo este rol sí tiene el formulario completo, sin
+  // restricción (ver InventarioScreen._abrirFormulario).
+  final bool edicionLimitada;
 
-  const ProductoFormDialog({super.key, this.producto});
+  const ProductoFormDialog({super.key, this.producto, this.edicionLimitada = false});
 
   @override
   ConsumerState<ProductoFormDialog> createState() => _ProductoFormDialogState();
@@ -286,126 +292,128 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
                       decoration: _decoracion('Ubicación (opcional)'),
                     ),
                     const SizedBox(height: 14),
-                    categoriasAsync.when(
-                      data: (categorias) {
-                        return DropdownButtonFormField<String>(
-                          value: _idCategoria,
-                          decoration: _decoracion('Categoría'),
-                          style: GoogleFonts.poppins(fontSize: 14, color: const Color(0xFF1A1A1A)),
-                          items: categorias.map((c) {
-                            return DropdownMenuItem(value: c.id, child: Text(c.descripcion));
-                          }).toList(),
-                          onChanged: (v) => setState(() => _idCategoria = v),
-                        );
-                      },
-                      loading: () => const LinearProgressIndicator(),
-                      error: (e, st) => Text('Error cargando categorías', style: GoogleFonts.poppins(color: Colors.red, fontSize: 12)),
-                    ),
-                    const SizedBox(height: 14),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                      decoration: BoxDecoration(color: const Color(0xFFE8EAF0), borderRadius: BorderRadius.circular(12)),
-                      child: Row(
-                        children: [
-                          Icon(Icons.content_cut_outlined, size: 18, color: Colors.grey.shade700),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text('Es un servicio (no lleva stock)', style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade700)),
-                          ),
-                          Switch(
-                            value: _esServicio,
-                            activeThumbColor: const Color(0xFF0D2B4E),
-                            onChanged: editando ? null : (v) => setState(() => _esServicio = v),
-                          ),
-                        ],
+                    if (!widget.edicionLimitada) ...[
+                      categoriasAsync.when(
+                        data: (categorias) {
+                          return DropdownButtonFormField<String>(
+                            value: _idCategoria,
+                            decoration: _decoracion('Categoría'),
+                            style: GoogleFonts.poppins(fontSize: 14, color: const Color(0xFF1A1A1A)),
+                            items: categorias.map((c) {
+                              return DropdownMenuItem(value: c.id, child: Text(c.descripcion));
+                            }).toList(),
+                            onChanged: (v) => setState(() => _idCategoria = v),
+                          );
+                        },
+                        loading: () => const LinearProgressIndicator(),
+                        error: (e, st) => Text('Error cargando categorías', style: GoogleFonts.poppins(color: Colors.red, fontSize: 12)),
                       ),
-                    ),
-                    const SizedBox(height: 14),
-                    Row(
-                      children: [
-                        if (!_esServicio) ...[
-                          Expanded(
-                            child: TextField(
-                              controller: _stockController,
-                              enabled: !editando,
-                              keyboardType: TextInputType.number,
-                              style: GoogleFonts.poppins(fontSize: 14),
-                              decoration: _decoracion(editando ? 'Existencia (ajustar abajo)' : 'Existencia inicial'),
+                      const SizedBox(height: 14),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        decoration: BoxDecoration(color: const Color(0xFFE8EAF0), borderRadius: BorderRadius.circular(12)),
+                        child: Row(
+                          children: [
+                            Icon(Icons.content_cut_outlined, size: 18, color: Colors.grey.shade700),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text('Es un servicio (no lleva stock)', style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade700)),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                        ],
-                        Expanded(
-                          child: TextField(
-                            controller: _precioCompraController,
-                            keyboardType: TextInputType.number,
-                            style: GoogleFonts.poppins(fontSize: 14),
-                            decoration: _decoracion('Precio Compra'),
-                          ),
+                            Switch(
+                              value: _esServicio,
+                              activeThumbColor: const Color(0xFF0D2B4E),
+                              onChanged: editando ? null : (v) => setState(() => _esServicio = v),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                    TextField(
-                      controller: _precioVentaController,
-                      keyboardType: TextInputType.number,
-                      style: GoogleFonts.poppins(fontSize: 14),
-                      decoration: _decoracion('Precio Venta'),
-                    ),
-                    const SizedBox(height: 8),
-                    InkWell(
-                      onTap: () => setState(() => _mostrarNivelesExtra = !_mostrarNivelesExtra),
-                      child: Row(
-                        children: [
-                          Icon(_mostrarNivelesExtra ? Icons.remove_circle_outline : Icons.add_circle_outline, size: 18, color: const Color(0xFF0D2B4E)),
-                          const SizedBox(width: 8),
-                          Text('Niveles de precio adicionales', style: GoogleFonts.poppins(fontSize: 12.5, color: const Color(0xFF0D2B4E), fontWeight: FontWeight.w600)),
-                        ],
                       ),
-                    ),
-                    if (_mostrarNivelesExtra) ...[
                       const SizedBox(height: 14),
                       Row(
                         children: [
-                          Expanded(
-                            child: TextField(
-                              controller: _precioVenta2Controller,
-                              keyboardType: TextInputType.number,
-                              style: GoogleFonts.poppins(fontSize: 14),
-                              decoration: _decoracion('Precio Venta 2'),
+                          if (!_esServicio) ...[
+                            Expanded(
+                              child: TextField(
+                                controller: _stockController,
+                                enabled: !editando,
+                                keyboardType: TextInputType.number,
+                                style: GoogleFonts.poppins(fontSize: 14),
+                                decoration: _decoracion(editando ? 'Existencia (ajustar abajo)' : 'Existencia inicial'),
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
+                            const SizedBox(width: 12),
+                          ],
                           Expanded(
                             child: TextField(
-                              controller: _precioVenta3Controller,
+                              controller: _precioCompraController,
                               keyboardType: TextInputType.number,
                               style: GoogleFonts.poppins(fontSize: 14),
-                              decoration: _decoracion('Precio Venta 3'),
+                              decoration: _decoracion('Precio Compra'),
                             ),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 14),
+                      TextField(
+                        controller: _precioVentaController,
+                        keyboardType: TextInputType.number,
+                        style: GoogleFonts.poppins(fontSize: 14),
+                        decoration: _decoracion('Precio Venta'),
+                      ),
+                      const SizedBox(height: 8),
+                      InkWell(
+                        onTap: () => setState(() => _mostrarNivelesExtra = !_mostrarNivelesExtra),
+                        child: Row(
+                          children: [
+                            Icon(_mostrarNivelesExtra ? Icons.remove_circle_outline : Icons.add_circle_outline, size: 18, color: const Color(0xFF0D2B4E)),
+                            const SizedBox(width: 8),
+                            Text('Niveles de precio adicionales', style: GoogleFonts.poppins(fontSize: 12.5, color: const Color(0xFF0D2B4E), fontWeight: FontWeight.w600)),
+                          ],
+                        ),
+                      ),
+                      if (_mostrarNivelesExtra) ...[
+                        const SizedBox(height: 14),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: _precioVenta2Controller,
+                                keyboardType: TextInputType.number,
+                                style: GoogleFonts.poppins(fontSize: 14),
+                                decoration: _decoracion('Precio Venta 2'),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: TextField(
+                                controller: _precioVenta3Controller,
+                                keyboardType: TextInputType.number,
+                                style: GoogleFonts.poppins(fontSize: 14),
+                                decoration: _decoracion('Precio Venta 3'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                      const SizedBox(height: 14),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE8EAF0),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Text('Estado', style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade700)),
+                            const Spacer(),
+                            Text(
+                              _activo ? 'Activo' : 'Inactivo',
+                              style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: _activo ? const Color(0xFF16A34A) : Colors.grey.shade500),
+                            ),
+                            Switch(value: _activo, activeColor: const Color(0xFF16A34A), onChanged: (v) => setState(() => _activo = v)),
+                          ],
+                        ),
                       ),
                     ],
-                    const SizedBox(height: 14),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE8EAF0),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          Text('Estado', style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade700)),
-                          const Spacer(),
-                          Text(
-                            _activo ? 'Activo' : 'Inactivo',
-                            style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: _activo ? const Color(0xFF16A34A) : Colors.grey.shade500),
-                          ),
-                          Switch(value: _activo, activeColor: const Color(0xFF16A34A), onChanged: (v) => setState(() => _activo = v)),
-                        ],
-                      ),
-                    ),
                     if (_error != null) ...[
                       const SizedBox(height: 14),
                       Container(
@@ -428,7 +436,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
               padding: const EdgeInsets.fromLTRB(28, 12, 28, 24),
               child: Row(
                 children: [
-                  if (editando)
+                  if (editando && !widget.edicionLimitada)
                     IconButton(
                       onPressed: _guardando ? null : _eliminar,
                       icon: const Icon(Icons.delete_outline, color: Color(0xFF0D2B4E)),

@@ -22,6 +22,24 @@ Future<bool> verificarAccesoEspecial(BuildContext context, WidgetRef ref, String
   return ok ?? false;
 }
 
+/// Pide la clave especial directo, sin mirar los toggles de "dónde pedirla"
+/// (a diferencia de [verificarAccesoEspecial]): se usa para que el admin
+/// autorice puntualmente un login fuera del horario permitido del rol
+/// Roles.inventarioLectura (ver LoginScreen._pedirAutorizacionHorario). Si el
+/// negocio no tiene clave especial configurada, no hay forma de autorizar.
+Future<bool> pedirClaveEspecialDirecta(BuildContext context, WidgetRef ref) async {
+  final negocio = await ref.read(negocioRepositoryProvider).obtenerNegocioActual();
+  if (!negocio.tieneClaveEspecial) return false;
+  if (!context.mounted) return false;
+  final repo = ref.read(negocioRepositoryProvider);
+  final ok = await showDialog<bool>(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) => _ClaveEspecialDialog(hashEsperado: negocio.claveEspecialHash, repo: repo),
+  );
+  return ok ?? false;
+}
+
 class _ClaveEspecialDialog extends StatefulWidget {
   final String hashEsperado;
   final NegocioRepository repo;

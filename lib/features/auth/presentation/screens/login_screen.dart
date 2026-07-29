@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../providers/auth_provider.dart';
+import '../../../negocio/presentation/widgets/acceso_especial.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -30,8 +31,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     ref.read(authProvider.notifier).login(codigo, clave);
   }
 
+  // Roles.inventarioLectura pidió entrar fuera del horario permitido (ver
+  // AuthNotifier.login): en vez de bloquearlo directo, se le pide al admin
+  // la clave especial para autorizar ese login puntual.
+  Future<void> _pedirAutorizacionHorario() async {
+    final autorizado = await pedirClaveEspecialDirecta(context, ref);
+    if (!mounted) return;
+    if (autorizado) {
+      ref.read(authProvider.notifier).login(_codigoController.text.trim(), _claveController.text.trim(), autorizacionEspecial: true);
+    } else {
+      ref.read(authProvider.notifier).cancelarAutorizacionHorario();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    ref.listen<AuthState>(authProvider, (previous, next) {
+      if (next.requiereAutorizacionHorario) _pedirAutorizacionHorario();
+    });
     final authState = ref.watch(authProvider);
     final tamano = MediaQuery.of(context).size;
     final anchoTarjeta = tamano.width < 480 ? tamano.width - 40 : 440.0;

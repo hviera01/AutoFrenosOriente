@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../data/usuario_model.dart';
 import '../../providers/usuarios_provider.dart';
 import '../widgets/usuario_form_dialog.dart';
+import '../../../../core/constants/roles.dart';
 
 class UsuariosScreen extends ConsumerWidget {
   const UsuariosScreen({super.key});
@@ -164,7 +165,7 @@ class UsuariosScreen extends ConsumerWidget {
                     Expanded(
                       flex: 2,
                       child: Text(
-                        usuario.rol,
+                        Roles.etiquetas[usuario.rol] ?? usuario.rol,
                         style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade700),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -238,7 +239,7 @@ class UsuariosScreen extends ConsumerWidget {
                   runSpacing: 8,
                   children: [
                     _chipInfo('Documento', u.documento),
-                    _chipInfo('Rol', u.rol),
+                    _chipInfo('Rol', Roles.etiquetas[u.rol] ?? u.rol),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(

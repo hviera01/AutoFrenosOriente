@@ -22,6 +22,8 @@ import '../../../negocio/providers/negocio_provider.dart';
 import '../../../negocio/presentation/widgets/acceso_especial.dart';
 import '../../../../core/widgets/barcode_scanner_screen.dart';
 import '../../../../core/utils/codigo_barras_utils.dart';
+import '../../../../core/constants/roles.dart';
+import '../../../auth/providers/auth_provider.dart';
 
 class InventarioScreen extends ConsumerStatefulWidget {
   const InventarioScreen({super.key});
@@ -194,13 +196,16 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     });
   }
 
-  Future<void> _abrirFormulario([ProductoModel? producto]) async {
-    if (producto != null) {
+  Future<void> _abrirFormulario([ProductoModel? producto, bool soloLectura = false]) async {
+    // El rol Roles.inventarioLectura tiene permiso libre (sin clave especial)
+    // para editar código/nombre/ubicación de un producto existente -el
+    // formulario mismo (edicionLimitada) le bloquea el resto de los campos-.
+    if (producto != null && !soloLectura) {
       final autorizado = await verificarAccesoEspecial(context, ref, PermisosEspeciales.inventarioEditarProducto);
       if (!autorizado || !mounted) return;
     }
     if (!mounted) return;
-    showDialog(context: context, builder: (context) => ProductoFormDialog(producto: producto));
+    showDialog(context: context, builder: (context) => ProductoFormDialog(producto: producto, edicionLimitada: soloLectura && producto != null));
   }
 
   Future<void> _abrirAjusteStock(ProductoModel producto) async {
@@ -374,6 +379,9 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     final categoriasAsync = ref.watch(categoriasStreamProvider);
     final busqueda = ref.watch(inventarioBusquedaProvider);
     final vista = ref.watch(inventarioVistaProvider);
+    // Rol de acceso restringido a Inventario: solo ver, sin precios de costo,
+    // sin totales de valor, sin editar/ajustar nada (ver Roles.inventarioLectura).
+    final soloLectura = ref.watch(authProvider).usuario?.rol == Roles.inventarioLectura;
     final categoriasLista = categoriasAsync.value ?? <dynamic>[];
     final Map<String, String> mapaCategorias = {
       for (final c in categoriasLista) c.id as String: c.descripcion as String,
@@ -397,6 +405,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                       Text('Inventario', style: GoogleFonts.poppins(fontSize: esMovil ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
                       productosAsync.when(
                         data: (productos) {
+                          if (soloLectura) return _badgeInfo('${productos.length} productos', const Color(0xFF0D2B4E));
                           final (valorCompra, valorVenta) = _resumenValores(productos);
                           return Wrap(
                             spacing: 8,
@@ -429,30 +438,36 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                         label: Text('Refrescar', style: GoogleFonts.poppins(fontSize: 13)),
                         style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                       ),
-                      OutlinedButton.icon(
-                        onPressed: _abrirImportar,
-                        icon: const Icon(Icons.upload_file_outlined, size: 18),
-                        label: Text('Importar', style: GoogleFonts.poppins(fontSize: 13)),
-                        style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: () => _exportarExcel(mapaCategorias),
-                        icon: const Icon(Icons.grid_on_outlined, size: 18),
-                        label: Text('Excel', style: GoogleFonts.poppins(fontSize: 13)),
-                        style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: () => _exportarPdf(mapaCategorias),
-                        icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
-                        label: Text('PDF', style: GoogleFonts.poppins(fontSize: 13)),
-                        style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: () => _imprimirTicketGrid(mapaCategorias),
-                        icon: const Icon(Icons.receipt_long_outlined, size: 18),
-                        label: Text('Ticket', style: GoogleFonts.poppins(fontSize: 13)),
-                        style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                      ),
+                      if (!soloLectura) ...[
+                        OutlinedButton.icon(
+                          onPressed: _abrirImportar,
+                          icon: const Icon(Icons.upload_file_outlined, size: 18),
+                          label: Text('Importar', style: GoogleFonts.poppins(fontSize: 13)),
+                          style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: () => _exportarExcel(mapaCategorias),
+                          icon: const Icon(Icons.grid_on_outlined, size: 18),
+                          label: Text('Excel', style: GoogleFonts.poppins(fontSize: 13)),
+                          style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: () => _exportarPdf(mapaCategorias),
+                          icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
+                          label: Text('PDF', style: GoogleFonts.poppins(fontSize: 13)),
+                          style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: () => _imprimirTicketGrid(mapaCategorias),
+                          icon: const Icon(Icons.receipt_long_outlined, size: 18),
+                          label: Text('Ticket', style: GoogleFonts.poppins(fontSize: 13)),
+                          style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                        ),
+                      ],
+                      // Crear productos nuevos queda con el formulario completo
+                      // incluso para el rol de acceso limitado (pedido del
+                      // dueño); lo único restringido es EDITAR un producto ya
+                      // existente (ver ProductoFormDialog.edicionLimitada).
                       FilledButton.icon(
                         onPressed: () => _abrirFormulario(),
                         icon: const Icon(Icons.add, size: 18),
@@ -496,7 +511,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                         return Focus(
                           focusNode: _focusNode,
                           onKeyEvent: _manejarTeclado,
-                          child: esMovil ? _tarjetas(lista, mapaCategorias) : _tabla(lista, mapaCategorias),
+                          child: esMovil ? _tarjetas(lista, mapaCategorias, soloLectura) : _tabla(lista, mapaCategorias, soloLectura),
                         );
                       },
                       loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF0D2B4E))),
@@ -518,7 +533,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     );
   }
 
-  Widget _tabla(List<ProductoModel> lista, Map<String, String> mapaCategorias) {
+  Widget _tabla(List<ProductoModel> lista, Map<String, String> mapaCategorias, bool soloLectura) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final ancho = constraints.maxWidth;
@@ -529,7 +544,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
         // saber cuántas líneas necesita cada nombre (ver _alturaFila). 76 es
         // el ancho fijo de la columna de acciones; 24 es el padding
         // horizontal de la celda (12 a cada lado).
-        final totalFlex = 12 + 24 + (mostrarDescripcion ? 20 : 0) + (mostrarCategoria ? 17 : 0) + 12 + 14 + 14 + 11;
+        final totalFlex = 12 + 24 + (mostrarDescripcion ? 20 : 0) + (mostrarCategoria ? 17 : 0) + 12 + 14 + (soloLectura ? 0 : 14) + 11;
         final anchoContenido = (ancho - 76).clamp(0, double.infinity);
         final anchoColumnaNombre = (anchoContenido * (24 / totalFlex) - 24).clamp(0, double.infinity).toDouble();
         _anchoColumnaNombreActual = anchoColumnaNombre;
@@ -547,7 +562,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                   if (mostrarCategoria) _celdaHeader(texto: 'CATEGORÍA', flex: 17),
                   _celdaHeader(texto: 'EXISTENCIA', flex: 12, columnaOrdenKey: 'existencia'),
                   _celdaHeader(texto: _precioConIsv ? 'P. VENTA (C/ISV)' : 'P. VENTA (S/ISV)', flex: 14, columnaOrdenKey: 'precioVenta'),
-                  _celdaHeader(texto: 'P. COMPRA', flex: 14, columnaOrdenKey: 'precioCompra'),
+                  if (!soloLectura) _celdaHeader(texto: 'P. COMPRA', flex: 14, columnaOrdenKey: 'precioCompra'),
                   _celdaHeader(texto: 'ESTADO', flex: 11),
                   _celdaHeaderAcciones(),
                 ],
@@ -616,7 +631,8 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                             ),
                           ),
                           _celdaTabla(flex: 14, child: Text(formatearMoneda(_precioMostrado(producto)), maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 12.5, color: const Color(0xFF3F434A)))),
-                          _celdaTabla(flex: 14, child: Text(formatearMoneda(producto.precioCompra), maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 12.5, color: const Color(0xFF3F434A)))),
+                          if (!soloLectura)
+                            _celdaTabla(flex: 14, child: Text(formatearMoneda(producto.precioCompra), maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 12.5, color: const Color(0xFF3F434A)))),
                           _celdaTabla(
                             flex: 11,
                             child: Align(
@@ -628,7 +644,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                               ),
                             ),
                           ),
-                          _celdaAcciones(producto),
+                          _celdaAcciones(producto, soloLectura),
                         ],
                       ),
                     ),
@@ -642,7 +658,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     );
   }
 
-  Widget _tarjetas(List<ProductoModel> lista, Map<String, String> mapaCategorias) {
+  Widget _tarjetas(List<ProductoModel> lista, Map<String, String> mapaCategorias, bool soloLectura) {
     return ListView.separated(
       padding: const EdgeInsets.all(14),
       itemCount: lista.length,
@@ -667,7 +683,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(child: Text(p.nombre, style: GoogleFonts.poppins(fontSize: 14.5, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A)))),
-                    _celdaAccionesMovil(p),
+                    _celdaAccionesMovil(p, soloLectura),
                   ],
                 ),
                 if (p.descripcion.isNotEmpty) ...[
@@ -699,7 +715,8 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                   runSpacing: 4,
                   children: [
                     Text('Venta (${_precioConIsv ? 'c/ISV' : 's/ISV'}): ${formatearMoneda(_precioMostrado(p))}', style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600)),
-                    Text('Compra: ${formatearMoneda(p.precioCompra)}', style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600)),
+                    if (!soloLectura)
+                      Text('Compra: ${formatearMoneda(p.precioCompra)}', style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600)),
                   ],
                 ),
               ],
@@ -762,7 +779,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     );
   }
 
-  Widget _celdaAcciones(ProductoModel producto) {
+  Widget _celdaAcciones(ProductoModel producto, bool soloLectura) {
     return Container(
       width: 76,
       height: double.infinity,
@@ -774,13 +791,13 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         elevation: 8,
         position: PopupMenuPosition.under,
-        onSelected: (valor) => _manejarAccion(valor, producto),
-        itemBuilder: (context) => _opcionesMenu(),
+        onSelected: (valor) => _manejarAccion(valor, producto, soloLectura),
+        itemBuilder: (context) => _opcionesMenu(soloLectura),
       ),
     );
   }
 
-  Widget _celdaAccionesMovil(ProductoModel producto) {
+  Widget _celdaAccionesMovil(ProductoModel producto, bool soloLectura) {
     return PopupMenuButton<String>(
       tooltip: 'Más acciones',
       padding: EdgeInsets.zero,
@@ -788,15 +805,15 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 8,
       position: PopupMenuPosition.under,
-      onSelected: (valor) => _manejarAccion(valor, producto),
-      itemBuilder: (context) => _opcionesMenu(),
+      onSelected: (valor) => _manejarAccion(valor, producto, soloLectura),
+      itemBuilder: (context) => _opcionesMenu(soloLectura),
     );
   }
 
-  void _manejarAccion(String valor, ProductoModel producto) {
+  void _manejarAccion(String valor, ProductoModel producto, bool soloLectura) {
     switch (valor) {
       case 'editar':
-        _abrirFormulario(producto);
+        _abrirFormulario(producto, soloLectura);
         break;
       case 'ajustar':
         _abrirAjusteStock(producto);
@@ -819,7 +836,15 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     }
   }
 
-  List<PopupMenuEntry<String>> _opcionesMenu() {
+  List<PopupMenuEntry<String>> _opcionesMenu(bool soloLectura) {
+    if (soloLectura) {
+      return [
+        _opcionMenu(valor: 'editar', icono: Icons.edit_outlined, texto: 'Editar código/nombre/ubicación'),
+        const PopupMenuDivider(),
+        _opcionMenu(valor: 'historial_stock', icono: Icons.history, texto: 'Historial de existencia'),
+        _opcionMenu(valor: 'historial_ventas', icono: Icons.point_of_sale_outlined, texto: 'Historial de ventas'),
+      ];
+    }
     return [
       _opcionMenu(valor: 'editar', icono: Icons.edit_outlined, texto: 'Editar producto'),
       _opcionMenu(valor: 'ajustar', icono: Icons.tune, texto: 'Ajustar existencia'),

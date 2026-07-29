@@ -77,6 +77,11 @@ class NegocioModel {
   // automática -si no coincide con el papel real, el ticket sale
   // descentrado o recortado a los lados-.
   final double anchoTicketMm;
+  // IPs públicas separadas por coma desde las que puede entrar un usuario
+  // con rol Roles.inventarioLectura (ver AuthNotifier.login). Vacío = sin
+  // restricción de red configurada -no bloquea a nadie, es el estado por
+  // defecto hasta que un admin la active a propósito desde esta pantalla-.
+  final String ipsPermitidasInventarioLectura;
 
   const NegocioModel({
     this.nombre = '',
@@ -104,6 +109,7 @@ class NegocioModel {
     this.impresoraRedIp = '',
     this.impresoraRedPuerto = 9100,
     this.anchoTicketMm = 80,
+    this.ipsPermitidasInventarioLectura = '',
   });
 
   bool get tieneClaveEspecial => claveEspecialHash.isNotEmpty;
@@ -138,6 +144,7 @@ class NegocioModel {
       impresoraRedIp: data['impresoraRedIp'] ?? '',
       impresoraRedPuerto: ((data['impresoraRedPuerto'] ?? 9100) as num).toInt(),
       anchoTicketMm: ((data['anchoTicketMm'] ?? 80) as num).toDouble(),
+      ipsPermitidasInventarioLectura: data['ipsPermitidasInventarioLectura'] ?? '',
     );
   }
 
@@ -168,6 +175,7 @@ class NegocioModel {
       'impresoraRedIp': impresoraRedIp,
       'impresoraRedPuerto': impresoraRedPuerto,
       'anchoTicketMm': anchoTicketMm,
+      'ipsPermitidasInventarioLectura': ipsPermitidasInventarioLectura,
     };
   }
 
@@ -197,6 +205,7 @@ class NegocioModel {
     String? impresoraRedIp,
     int? impresoraRedPuerto,
     double? anchoTicketMm,
+    String? ipsPermitidasInventarioLectura,
   }) {
     return NegocioModel(
       nombre: nombre ?? this.nombre,
@@ -224,6 +233,7 @@ class NegocioModel {
       impresoraRedIp: impresoraRedIp ?? this.impresoraRedIp,
       impresoraRedPuerto: impresoraRedPuerto ?? this.impresoraRedPuerto,
       anchoTicketMm: anchoTicketMm ?? this.anchoTicketMm,
+      ipsPermitidasInventarioLectura: ipsPermitidasInventarioLectura ?? this.ipsPermitidasInventarioLectura,
     );
   }
 }

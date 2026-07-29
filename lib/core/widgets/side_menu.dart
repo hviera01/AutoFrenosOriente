@@ -9,6 +9,7 @@ import '../services/actualizacion_service.dart';
 import '../utils/pantalla_builder.dart';
 import '../widgets/actualizacion_dialog.dart';
 import '../../features/auth/providers/auth_provider.dart';
+import '../constants/roles.dart';
 
 class SideMenu extends ConsumerWidget {
   final VoidCallback onCerrar;
@@ -41,12 +42,22 @@ class SideMenu extends ConsumerWidget {
     );
   }
 
+  // Inventario con rol InventarioLectura es el único caso hoy de acceso
+  // parcial a un submódulo "soloAdmin": la pantalla misma (InventarioScreen)
+  // se encarga de mostrarse en modo solo-lectura para ese rol -acá solo se
+  // decide si aparece en el menú-.
+  bool _puedeVer(SubModulo s, bool esAdmin, String? rol) {
+    if (esAdmin || !s.soloAdmin) return true;
+    return rol == Roles.inventarioLectura && s.moduleKey == 'inventario';
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
-    final esAdmin = authState.usuario?.rol == 'Administrador';
+    final rol = authState.usuario?.rol;
+    final esAdmin = rol == Roles.administrador;
     final modulos = obtenerModulos().where((m) {
-      return m.subModulos.any((s) => esAdmin || !s.soloAdmin);
+      return m.subModulos.any((s) => _puedeVer(s, esAdmin, rol));
     }).toList();
 
     return Material(
@@ -82,7 +93,7 @@ class SideMenu extends ConsumerWidget {
                   itemCount: modulos.length,
                   itemBuilder: (context, index) {
                     final modulo = modulos[index];
-                    final disponibles = modulo.subModulos.where((s) => esAdmin || !s.soloAdmin).toList();
+                    final disponibles = modulo.subModulos.where((s) => _puedeVer(s, esAdmin, rol)).toList();
                     if (disponibles.length == 1) {
                       return ListTile(
                         leading: Icon(modulo.icono, color: modulo.color, size: 22),
