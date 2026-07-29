@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
-import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import '../version_app.dart';
 
@@ -65,24 +64,25 @@ class ActualizacionService {
     }
   }
 
-  /// Descarga el instalador/APK a una carpeta temporal y lo instala.
+  /// Descarga el instalador a una carpeta temporal y lo corre. Solo Windows:
+  /// en Android la instalación quedó a cargo del navegador (ver
+  /// ActualizacionDialog), no de este método -después de fallar varias veces
+  /// con el instalador nativo de Android (OpenFile: permisos, timeouts,
+  /// particularidades de cada equipo/ROM que se rompían de formas distintas
+  /// cada vez), se optó por delegar por completo en Chrome/el gestor de
+  /// descargas del teléfono, que ya sabe instalar un APK de forma confiable
+  /// sin que la app tenga que manejar ningún permiso especial-.
   ///
-  /// En Windows, el instalador de Inno Setup (mismo AppId que la instalación
-  /// actual) reemplaza los archivos solo -por eso acá se cierra esta
-  /// instancia (exit) apenas queda lanzado, para no competir por los
-  /// archivos que está por sobrescribir-.
-  ///
-  /// En Android no hay forma de instalar sin que el usuario confirme (una
-  /// restricción del sistema operativo, no hay vuelta): esto abre la
-  /// pantalla del instalador de Android con el APK descargado, y ahí el
-  /// usuario decide si instala. La app sigue corriendo mientras tanto.
+  /// El instalador de Inno Setup (mismo AppId que la instalación actual)
+  /// reemplaza los archivos solo -por eso acá se cierra esta instancia
+  /// (exit) apenas queda lanzado, para no competir por los archivos que está
+  /// por sobrescribir-.
   static Future<void> descargarEInstalar(
     ActualizacionDisponible actualizacion,
     void Function(double progreso) onProgreso,
   ) async {
     final carpetaTemp = await getTemporaryDirectory();
-    final nombreArchivo = Platform.isAndroid ? 'AutoFrenosActualizacion.apk' : 'AutoFrenosActualizacion.exe';
-    final archivoDestino = File('${carpetaTemp.path}${Platform.pathSeparator}$nombreArchivo');
+    final archivoDestino = File('${carpetaTemp.path}${Platform.pathSeparator}AutoFrenosActualizacion.exe');
 
     final cliente = http.Client();
     try {
@@ -98,28 +98,6 @@ class ActualizacionService {
       await sink.close();
     } finally {
       cliente.close();
-    }
-
-    if (Platform.isAndroid) {
-      // done = el instalador de Android se abrió bien (de ahí en más es el
-      // usuario quien decide si instala). Cualquier otro resultado -por
-      // ejemplo permissionDenied, si falta el permiso REQUEST_INSTALL_
-      // PACKAGES- antes se ignoraba en silencio: la barra de descarga
-      // llegaba al 100% y ahí se quedaba, sin ningún error visible.
-      //
-      // El timeout es una segunda red de seguridad, para equipos/ROMs
-      // donde el plugin nativo se cuelga en vez de devolver un resultado
-      // (no debería pasar, pero si pasa, mejor mostrar el botón de
-      // descarga manual -ver ActualizacionDialog- que dejar la barra
-      // pegada para siempre sin ninguna salida).
-      final resultado = await OpenFile.open(archivoDestino.path).timeout(
-        const Duration(seconds: 20),
-        onTimeout: () => OpenResult(type: ResultType.error, message: 'El instalador de Android no respondió a tiempo'),
-      );
-      if (resultado.type != ResultType.done) {
-        throw Exception(resultado.message);
-      }
-      return;
     }
 
     await Process.start(archivoDestino.path, [], mode: ProcessStartMode.detached);
