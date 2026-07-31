@@ -197,6 +197,12 @@ class _AppShellState extends ConsumerState<AppShell> {
     final tabsState = ref.watch(tabsProvider);
     final authState = ref.watch(authProvider);
     final usuario = authState.usuario;
+    // Escuchado acá (además de en SistemaVentasApp) para que las pestañas ya
+    // abiertas -guardadas como Widget ya construido en tabsProvider- también
+    // se reconstruyan con la fuente nueva. Ver KeyedSubtree más abajo: sin
+    // eso, Flutter reconoce el mismo Widget de siempre y no la aplica hasta
+    // reabrir la app.
+    final fuente = ref.watch(tipografiaProvider);
 
     if (_esPcPrincipal) {
       ref.listen<AsyncValue<List<VentaModel>>>(ventasConSolicitudImpresionEnVivoStreamProvider, (previous, next) {
@@ -224,7 +230,12 @@ class _AppShellState extends ConsumerState<AppShell> {
                     ? const SizedBox()
                     : IndexedStack(
                         index: tabsState.indiceActivo,
-                        children: tabsState.tabs.map((t) => t.contenido).toList(),
+                        // Key con la fuente actual: fuerza a reconstruir cada
+                        // pestaña desde cero cuando cambia (t.contenido es el
+                        // mismo Widget guardado en tabsProvider desde que se
+                        // abrió, así que sin esto Flutter lo da por igual y
+                        // no vuelve a llamar a su build()).
+                        children: tabsState.tabs.map((t) => KeyedSubtree(key: ValueKey('${t.id}_$fuente'), child: t.contenido)).toList(),
                       ),
               ),
             ],
