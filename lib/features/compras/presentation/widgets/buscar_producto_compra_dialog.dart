@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../productos/data/producto_model.dart';
 import '../../../productos/providers/productos_provider.dart';
 import '../../../productos/presentation/widgets/producto_form_dialog.dart';
 import '../../../categorias/providers/categorias_provider.dart';
 import '../../../../core/utils/texto_utils.dart';
 import '../../../../core/utils/formato_moneda.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 /// Buscador de productos para Compras: a diferencia del de Ventas no maneja
 /// niveles de precio de venta, sino el costo de compra registrado en el
@@ -163,7 +163,7 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
                   IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
                   const SizedBox(width: 6),
                   Expanded(
-                    child: Text('Buscar Producto', style: GoogleFonts.poppins(fontSize: esMovil ? 18 : 21, fontWeight: FontWeight.w700)),
+                    child: Text('Buscar Producto', style: appFont(fontSize: esMovil ? 18 : 21, fontWeight: FontWeight.w700)),
                   ),
                 ],
               ),
@@ -172,7 +172,7 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
                 padding: EdgeInsets.only(left: esMovil ? 0 : 54),
                 child: Text(
                   'Enter en el buscador busca · doble clic o Enter en la lista agrega el producto resaltado',
-                  style: GoogleFonts.poppins(fontSize: esMovil ? 11.5 : 12.5, color: Colors.grey.shade500),
+                  style: appFont(fontSize: esMovil ? 11.5 : 12.5, color: Colors.grey.shade500),
                 ),
               ),
               const SizedBox(height: 16),
@@ -195,10 +195,10 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
                             child: TextField(
                               controller: _busquedaController,
                               autofocus: true,
-                              style: GoogleFonts.poppins(fontSize: 14),
+                              style: appFont(fontSize: 14),
                               decoration: InputDecoration(
                                 hintText: 'Escribí y presioná Enter para buscar...',
-                                hintStyle: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade400),
+                                hintStyle: appFont(fontSize: 13, color: Colors.grey.shade400),
                                 border: InputBorder.none,
                                 isDense: true,
                               ),
@@ -213,7 +213,7 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
                   OutlinedButton.icon(
                     onPressed: _crearProductoNuevo,
                     icon: const Icon(Icons.add_circle_outline, size: 18),
-                    label: Text('Producto Nuevo', style: GoogleFonts.poppins(fontSize: 13)),
+                    label: Text('Producto Nuevo', style: appFont(fontSize: 13)),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: const Color(0xFF0D2B4E),
                       side: const BorderSide(color: Color(0xFF0D2B4E)),
@@ -246,7 +246,7 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
                               children: [
                                 Icon(Icons.search, size: 48, color: Colors.grey.shade300),
                                 const SizedBox(height: 12),
-                                Text('Escribí algo y presioná Enter para buscar', style: GoogleFonts.poppins(color: Colors.grey.shade500)),
+                                Text('Escribí algo y presioná Enter para buscar', style: appFont(color: Colors.grey.shade500)),
                               ],
                             ),
                           );
@@ -256,7 +256,7 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
                         _listaActual = lista;
                         if (lista.isEmpty) {
                           return Center(
-                            child: Text('No se encontraron productos', style: GoogleFonts.poppins(color: Colors.grey.shade500)),
+                            child: Text('No se encontraron productos', style: appFont(color: Colors.grey.shade500)),
                           );
                         }
                         return Column(
@@ -282,7 +282,7 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
                         );
                       },
                       loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF0D2B4E))),
-                      error: (e, st) => Center(child: Text('Error: $e', style: GoogleFonts.poppins(color: Colors.red))),
+                      error: (e, st) => Center(child: Text('Error: $e', style: appFont(color: Colors.red))),
                     ),
                   ),
                 ),
@@ -295,7 +295,7 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
   }
 
   Widget _encabezadoTabla() {
-    final estilo = GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.grey.shade600);
+    final estilo = appFont(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.grey.shade600);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -330,28 +330,28 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Expanded(flex: 2, child: Text(p.codigo, style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade600))),
+              Expanded(flex: 2, child: Text(p.codigo, style: appFont(fontSize: 13, color: Colors.grey.shade600))),
               Expanded(
                 flex: 5,
                 child: Padding(
                   padding: const EdgeInsets.only(right: 10),
-                  child: Text(p.nombre, softWrap: true, style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600)),
+                  child: Text(p.nombre, softWrap: true, style: appFont(fontSize: 13.5, fontWeight: FontWeight.w600)),
                 ),
               ),
               Expanded(
                 flex: 2,
                 child: Padding(
                   padding: const EdgeInsets.only(right: 10),
-                  child: Text(mapaCategorias[p.idCategoria] ?? '-', softWrap: true, style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600)),
+                  child: Text(mapaCategorias[p.idCategoria] ?? '-', softWrap: true, style: appFont(fontSize: 12.5, color: Colors.grey.shade600)),
                 ),
               ),
               Expanded(
                 flex: 2,
-                child: Text(formatearMoneda(p.precioCompra), textAlign: TextAlign.right, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF2B6CB0))),
+                child: Text(formatearMoneda(p.precioCompra), textAlign: TextAlign.right, style: appFont(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF2B6CB0))),
               ),
               Expanded(
                 flex: 2,
-                child: Text(formatearMoneda(p.precioVenta), textAlign: TextAlign.right, style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A))),
+                child: Text(formatearMoneda(p.precioVenta), textAlign: TextAlign.right, style: appFont(fontSize: 13.5, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A))),
               ),
               Expanded(
                 flex: 2,
@@ -361,7 +361,7 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
                     decoration: BoxDecoration(color: const Color(0xFFF0FBF4), borderRadius: BorderRadius.circular(8)),
                     child: Text(
                       p.stock.toStringAsFixed(p.stock == p.stock.roundToDouble() ? 0 : 2),
-                      style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF1E9E5A)),
+                      style: appFont(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF1E9E5A)),
                     ),
                   ),
                 ),
@@ -401,9 +401,9 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(p.nombre, softWrap: true, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600)),
+                        Text(p.nombre, softWrap: true, style: appFont(fontSize: 14, fontWeight: FontWeight.w600)),
                         const SizedBox(height: 2),
-                        Text('${p.codigo} · ${mapaCategorias[p.idCategoria] ?? '-'}', softWrap: true, style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade500)),
+                        Text('${p.codigo} · ${mapaCategorias[p.idCategoria] ?? '-'}', softWrap: true, style: appFont(fontSize: 12, color: Colors.grey.shade500)),
                       ],
                     ),
                   ),
@@ -412,7 +412,7 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
                     decoration: BoxDecoration(color: const Color(0xFFF0FBF4), borderRadius: BorderRadius.circular(8)),
                     child: Text(
                       'Existencia: ${p.stock.toStringAsFixed(p.stock == p.stock.roundToDouble() ? 0 : 2)}',
-                      style: GoogleFonts.poppins(fontSize: 11.5, fontWeight: FontWeight.w600, color: const Color(0xFF1E9E5A)),
+                      style: appFont(fontSize: 11.5, fontWeight: FontWeight.w600, color: const Color(0xFF1E9E5A)),
                     ),
                   ),
                 ],
@@ -420,9 +420,9 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
               const SizedBox(height: 10),
               Row(
                 children: [
-                  Text('Costo: ${formatearMoneda(p.precioCompra)}', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF2B6CB0))),
+                  Text('Costo: ${formatearMoneda(p.precioCompra)}', style: appFont(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF2B6CB0))),
                   const SizedBox(width: 14),
-                  Text('Venta: ${formatearMoneda(p.precioVenta)}', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A))),
+                  Text('Venta: ${formatearMoneda(p.precioVenta)}', style: appFont(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A))),
                 ],
               ),
             ],

@@ -2,7 +2,6 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:printing/printing.dart';
 import '../../data/item_traslado_model.dart';
 import '../../data/traslado_export_service.dart';
@@ -18,6 +17,7 @@ import '../../../compras/presentation/widgets/buscar_producto_compra_dialog.dart
 import '../../../ventas/presentation/widgets/teclado_numerico_dialog.dart';
 import '../../../ventas/providers/ventas_provider.dart' show presenciaImpresionRepositoryProvider;
 import '../../../../core/widgets/pdf_preview_dialog.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 /// Registrar Traslado: antes era un diálogo chico centrado; ahora es una
 /// pestaña grande como Registrar Venta/Compra, con la tabla de productos
@@ -201,14 +201,14 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(titulo, style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
-        content: Text(mensaje, style: GoogleFonts.poppins(fontSize: 13)),
+        title: Text(titulo, style: appFont(fontWeight: FontWeight.w700)),
+        content: Text(mensaje, style: appFont(fontSize: 13)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('No', style: GoogleFonts.poppins())),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('No', style: appFont())),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E)),
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Sí, imprimir', style: GoogleFonts.poppins()),
+            child: Text('Sí, imprimir', style: appFont()),
           ),
         ],
       ),
@@ -289,7 +289,7 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
           backgroundColor: const Color(0xFFF2F3F7),
           appBar: AppBar(
             backgroundColor: const Color(0xFF0D2B4E),
-            title: Text('Productos del traslado', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w700)),
+            title: Text('Productos del traslado', style: appFont(color: Colors.white, fontWeight: FontWeight.w700)),
             iconTheme: const IconThemeData(color: Colors.white),
           ),
           body: StatefulBuilder(
@@ -306,7 +306,7 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
   InputDecoration _decoracion(String label) {
     return InputDecoration(
       labelText: label,
-      labelStyle: GoogleFonts.poppins(fontSize: 13),
+      labelStyle: appFont(fontSize: 13),
       filled: true,
       fillColor: const Color(0xFFE8EAF0),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -322,9 +322,9 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
         child: DropdownButton<SucursalModel>(
           isExpanded: true,
           value: valor,
-          hint: Text(label, style: GoogleFonts.poppins(fontSize: 13.5, color: Colors.grey.shade600)),
-          style: GoogleFonts.poppins(fontSize: 14, color: const Color(0xFF1A1A1A)),
-          items: opciones.map((s) => DropdownMenuItem(value: s, child: Text(s.nombre, style: GoogleFonts.poppins(fontSize: 14)))).toList(),
+          hint: Text(label, style: appFont(fontSize: 13.5, color: Colors.grey.shade600)),
+          style: appFont(fontSize: 14, color: const Color(0xFF1A1A1A)),
+          items: opciones.map((s) => DropdownMenuItem(value: s, child: Text(s.nombre, style: appFont(fontSize: 14)))).toList(),
           onChanged: onChanged,
         ),
       ),
@@ -364,7 +364,7 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Registrar Traslado', style: GoogleFonts.poppins(fontSize: esMovil ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+                Text('Registrar Traslado', style: appFont(fontSize: esMovil ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
                 const SizedBox(height: 14),
                 _tarjetaDatos(esMovil),
                 const SizedBox(height: 14),
@@ -387,7 +387,7 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
       child: sucursalesAsync.when(
         data: (sucursales) {
           if (sucursales.length < 2) {
-            return Text('Necesitás al menos 2 sucursales activas registradas para hacer un traslado.', style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade600));
+            return Text('Necesitás al menos 2 sucursales activas registradas para hacer un traslado.', style: appFont(fontSize: 13, color: Colors.grey.shade600));
           }
           if (!_defaultsSucursalAplicados) {
             _defaultsSucursalAplicados = true;
@@ -416,14 +416,14 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
               ),
               SizedBox(
                 width: esMovil ? double.infinity : 320,
-                child: TextField(controller: _observacionesController, style: GoogleFonts.poppins(fontSize: 13), decoration: _decoracion('Observaciones (opcional)')),
+                child: TextField(controller: _observacionesController, style: appFont(fontSize: 13), decoration: _decoracion('Observaciones (opcional)')),
               ),
               SizedBox(width: esMovil ? double.infinity : 420, child: _selectorEstadoInicial()),
             ],
           );
         },
         loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF0D2B4E))),
-        error: (e, st) => Text('Error: $e', style: GoogleFonts.poppins(color: Colors.red)),
+        error: (e, st) => Text('Error: $e', style: appFont(color: Colors.red)),
       ),
     );
   }
@@ -442,7 +442,7 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
             duration: const Duration(milliseconds: 150),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 11),
             decoration: BoxDecoration(color: activo ? const Color(0xFF0D2B4E) : Colors.transparent, borderRadius: BorderRadius.circular(10)),
-            child: Text(etiqueta, textAlign: TextAlign.center, style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600, color: activo ? Colors.white : const Color(0xFF666A72))),
+            child: Text(etiqueta, textAlign: TextAlign.center, style: appFont(fontSize: 12.5, fontWeight: FontWeight.w600, color: activo ? Colors.white : const Color(0xFF666A72))),
           ),
         ),
       );
@@ -451,7 +451,7 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Queda registrado como', style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.grey.shade500, letterSpacing: 0.3)),
+        Text('Queda registrado como', style: appFont(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.grey.shade500, letterSpacing: 0.3)),
         const SizedBox(height: 4),
         Container(
           height: 46,
@@ -477,15 +477,15 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
         children: [
           Row(
             children: [
-              Text('Productos', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+              Text('Productos', style: appFont(fontSize: 15, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
               const SizedBox(width: 10),
-              Text('(${_items.length})', style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade500)),
+              Text('(${_items.length})', style: appFont(fontSize: 13, color: Colors.grey.shade500)),
               const Spacer(),
               if (!grande)
                 OutlinedButton.icon(
                   onPressed: _verMasGrande,
                   icon: const Icon(Icons.open_in_full, size: 16),
-                  label: Text('Ver más grande', style: GoogleFonts.poppins(fontSize: 12.5)),
+                  label: Text('Ver más grande', style: appFont(fontSize: 12.5)),
                   style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7))),
                 ),
               const SizedBox(width: 8),
@@ -495,7 +495,7 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
                   alReconstruir();
                 },
                 icon: const Icon(Icons.add, size: 18),
-                label: Text('Agregar', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+                label: Text('Agregar', style: appFont(fontSize: 13, fontWeight: FontWeight.w600)),
                 style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
               ),
             ],
@@ -504,7 +504,7 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
           if (_items.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 30),
-              child: Center(child: Text('Sin productos todavía', style: GoogleFonts.poppins(fontSize: 13.5, color: Colors.grey.shade500))),
+              child: Center(child: Text('Sin productos todavía', style: appFont(fontSize: 13.5, color: Colors.grey.shade500))),
             )
           else
             // Column sin virtualizar (no ListView): un traslado no tiene la
@@ -521,7 +521,7 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.red.shade200)),
-              child: Text(_error!, style: GoogleFonts.poppins(color: Colors.red.shade700, fontSize: 12)),
+              child: Text(_error!, style: appFont(color: Colors.red.shade700, fontSize: 12)),
             ),
           ],
         ],
@@ -561,8 +561,8 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            if (codigo.isNotEmpty) Text(codigo, style: GoogleFonts.poppins(fontSize: grande ? 12 : 11, color: Colors.grey.shade500)),
-                            Text(item.nombreProducto, style: GoogleFonts.poppins(fontSize: grande ? 16 : 14, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A))),
+                            if (codigo.isNotEmpty) Text(codigo, style: appFont(fontSize: grande ? 12 : 11, color: Colors.grey.shade500)),
+                            Text(item.nombreProducto, style: appFont(fontSize: grande ? 16 : 14, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A))),
                           ],
                         ),
                       ),
@@ -572,7 +572,7 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
                           controller: ctrl,
                           keyboardType: const TextInputType.numberWithOptions(decimal: true),
                           textAlign: TextAlign.center,
-                          style: GoogleFonts.poppins(fontSize: grande ? 15 : 13),
+                          style: appFont(fontSize: grande ? 15 : 13),
                           decoration: InputDecoration(
                             isDense: true,
                             contentPadding: EdgeInsets.symmetric(vertical: grande ? 12 : 8),
@@ -618,11 +618,11 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
                     width: grande ? 260 : 200,
                     child: TextField(
                       controller: ctrlUbicacion,
-                      style: GoogleFonts.poppins(fontSize: grande ? 13 : 12),
+                      style: appFont(fontSize: grande ? 13 : 12),
                       decoration: InputDecoration(
                         isDense: true,
                         hintText: 'Ubicación (opcional)',
-                        hintStyle: GoogleFonts.poppins(fontSize: grande ? 12.5 : 11.5, color: Colors.grey.shade400),
+                        hintStyle: appFont(fontSize: grande ? 12.5 : 11.5, color: Colors.grey.shade400),
                         prefixIcon: Icon(Icons.place_outlined, size: 16, color: Colors.grey.shade500),
                         contentPadding: const EdgeInsets.symmetric(vertical: 6),
                         filled: true,
@@ -667,14 +667,14 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
     return _tarjeta(
       child: Row(
         children: [
-          Text('Total: ${totalUnidades.toStringAsFixed(totalUnidades == totalUnidades.roundToDouble() ? 0 : 2)} unidades', style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A))),
+          Text('Total: ${totalUnidades.toStringAsFixed(totalUnidades == totalUnidades.roundToDouble() ? 0 : 2)} unidades', style: appFont(fontSize: 13.5, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A))),
           const Spacer(),
           FilledButton.icon(
             onPressed: _guardando ? null : _guardar,
             icon: _guardando
                 ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                 : const Icon(Icons.sync_alt, size: 18),
-            label: Text(_guardando ? 'Guardando...' : 'Registrar Traslado', style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w700, color: Colors.white)),
+            label: Text(_guardando ? 'Guardando...' : 'Registrar Traslado', style: appFont(fontSize: 13.5, fontWeight: FontWeight.w700, color: Colors.white)),
             style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E), padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
           ),
         ],

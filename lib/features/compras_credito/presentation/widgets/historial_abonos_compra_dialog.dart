@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../data/compra_credito_model.dart';
 import '../../data/abono_compra_model.dart';
 import '../../providers/compras_credito_provider.dart';
 import '../../../../core/utils/formato_moneda.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 class HistorialAbonosCompraDialog extends ConsumerWidget {
   final CompraCreditoModel compra;
@@ -34,21 +34,21 @@ class HistorialAbonosCompraDialog extends ConsumerWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text('Historial de Abonos · ${compra.noFactura}', style: GoogleFonts.poppins(fontSize: 14.5, fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis),
+                  child: Text('Historial de Abonos · ${compra.noFactura}', style: appFont(fontSize: 14.5, fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis),
                 ),
                 IconButton(icon: const Icon(Icons.close, size: 20), onPressed: () => Navigator.pop(context)),
               ],
             ),
             const SizedBox(height: 4),
-            Text(compra.nombreProveedor, style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600)),
+            Text(compra.nombreProveedor, style: appFont(fontSize: 12.5, color: Colors.grey.shade600)),
             const SizedBox(height: 14),
             Expanded(
               child: abonosAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF0D2B4E))),
-                error: (e, st) => Center(child: Text('Error: $e', style: GoogleFonts.poppins(color: Colors.red))),
+                error: (e, st) => Center(child: Text('Error: $e', style: appFont(color: Colors.red))),
                 data: (abonos) {
                   if (abonos.isEmpty) {
-                    return Center(child: Text('Todavía no hay abonos registrados', textAlign: TextAlign.center, style: GoogleFonts.poppins(color: Colors.grey.shade500)));
+                    return Center(child: Text('Todavía no hay abonos registrados', textAlign: TextAlign.center, style: appFont(color: Colors.grey.shade500)));
                   }
                   return esMovil ? _tarjetas(abonos) : _tabla(abonos);
                 },
@@ -114,7 +114,7 @@ class HistorialAbonosCompraDialog extends ConsumerWidget {
   Widget _celdaHeader(String texto, int flex) {
     return Expanded(
       flex: flex,
-      child: Text(texto, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.grey.shade600)),
+      child: Text(texto, maxLines: 1, overflow: TextOverflow.ellipsis, style: appFont(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.grey.shade600)),
     );
   }
 
@@ -123,7 +123,7 @@ class HistorialAbonosCompraDialog extends ConsumerWidget {
       flex: flex,
       child: Padding(
         padding: const EdgeInsets.only(right: 6),
-        child: Text(texto, maxLines: 2, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 12, fontWeight: peso, color: color ?? const Color(0xFF1A1A1A))),
+        child: Text(texto, maxLines: 2, overflow: TextOverflow.ellipsis, style: appFont(fontSize: 12, fontWeight: peso, color: color ?? const Color(0xFF1A1A1A))),
       ),
     );
   }
@@ -143,23 +143,23 @@ class HistorialAbonosCompraDialog extends ConsumerWidget {
             children: [
               Row(
                 children: [
-                  Text(formatearMoneda(a.montoAbonado), style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w700, color: const Color(0xFF16A34A))),
+                  Text(formatearMoneda(a.montoAbonado), style: appFont(fontSize: 13.5, fontWeight: FontWeight.w700, color: const Color(0xFF16A34A))),
                   const Spacer(),
-                  Text(a.fecha != null ? formatoFecha.format(a.fecha!) : '-', style: GoogleFonts.poppins(fontSize: 10.5, color: Colors.grey.shade500)),
+                  Text(a.fecha != null ? formatoFecha.format(a.fecha!) : '-', style: appFont(fontSize: 10.5, color: Colors.grey.shade500)),
                 ],
               ),
               const SizedBox(height: 6),
-              Text('Saldo anterior: ${formatearMoneda(a.saldoAnterior)} → Saldo pendiente: ${formatearMoneda(a.saldoPendiente)}', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade700)),
+              Text('Saldo anterior: ${formatearMoneda(a.saldoAnterior)} → Saldo pendiente: ${formatearMoneda(a.saldoPendiente)}', style: appFont(fontSize: 12, color: Colors.grey.shade700)),
               if (a.interes > 0) ...[
                 const SizedBox(height: 4),
-                Text('Interés aplicado: ${formatearMoneda(a.interes)}', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade700)),
+                Text('Interés aplicado: ${formatearMoneda(a.interes)}', style: appFont(fontSize: 12, color: Colors.grey.shade700)),
               ],
               const SizedBox(height: 6),
               Row(
                 children: [
-                  Text(a.metodoPago, style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500)),
-                  if (a.numeroRecibo.isNotEmpty) Text(' · Recibo: ${a.numeroRecibo}', style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500)),
-                  if (a.usuario.isNotEmpty) Text(' · ${a.usuario}', style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500)),
+                  Text(a.metodoPago, style: appFont(fontSize: 11, color: Colors.grey.shade500)),
+                  if (a.numeroRecibo.isNotEmpty) Text(' · Recibo: ${a.numeroRecibo}', style: appFont(fontSize: 11, color: Colors.grey.shade500)),
+                  if (a.usuario.isNotEmpty) Text(' · ${a.usuario}', style: appFont(fontSize: 11, color: Colors.grey.shade500)),
                 ],
               ),
             ],

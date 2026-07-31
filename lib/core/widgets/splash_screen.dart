@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../services/tipografia_service.dart';
 
 /// Pantalla de bienvenida con el logo, mostrada brevemente antes de
 /// [siguiente] (normalmente AuthGate) mientras arranca la app. Es una
@@ -83,12 +83,12 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               const SizedBox(height: 24),
               Text(
                 'AUTO FRENOS ORIENTE',
-                style: GoogleFonts.poppins(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700, letterSpacing: 1.2),
+                style: appFont(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700, letterSpacing: 1.2),
               ),
               const SizedBox(height: 6),
               Text(
                 'Frenos y Repuestos',
-                style: GoogleFonts.poppins(color: Colors.white.withOpacity(0.7), fontSize: 12, letterSpacing: 0.6),
+                style: appFont(color: Colors.white.withOpacity(0.7), fontSize: 12, letterSpacing: 0.6),
               ),
             ],
           ),

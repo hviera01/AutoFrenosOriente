@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../data/producto_model.dart';
 import '../../providers/productos_provider.dart';
@@ -8,6 +7,7 @@ import '../../../../core/utils/formato_moneda.dart';
 import '../../../ventas/presentation/screens/detalle_venta_screen.dart';
 import '../../../compras/presentation/screens/detalle_compra_screen.dart';
 import '../../../traslados/presentation/screens/detalle_traslado_screen.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 /// Fila normalizada para mostrar en la tabla, sea de venta, compra o
 /// traslado. [precio] queda null para traslados (no tienen precio).
@@ -114,7 +114,7 @@ class _HistorialMovimientosDialogState extends ConsumerState<HistorialMovimiento
             Row(
               children: [
                 Expanded(
-                  child: Text('$titulo · ${widget.producto.nombre}', style: GoogleFonts.poppins(fontSize: 14.5, fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis),
+                  child: Text('$titulo · ${widget.producto.nombre}', style: appFont(fontSize: 14.5, fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis),
                 ),
                 IconButton(icon: const Icon(Icons.close, size: 20), onPressed: () => Navigator.pop(context)),
               ],
@@ -127,7 +127,7 @@ class _HistorialMovimientosDialogState extends ConsumerState<HistorialMovimiento
                 _botonFecha('Desde', _fechaInicio, formatoDia, () => _seleccionarFecha(true)),
                 _botonFecha('Hasta', _fechaFin, formatoDia, () => _seleccionarFecha(false)),
                 if (_fechaInicio != null || _fechaFin != null)
-                  TextButton.icon(onPressed: _limpiarFechas, icon: const Icon(Icons.close, size: 16), label: Text('Limpiar fechas', style: GoogleFonts.poppins(fontSize: 12))),
+                  TextButton.icon(onPressed: _limpiarFechas, icon: const Icon(Icons.close, size: 16), label: Text('Limpiar fechas', style: appFont(fontSize: 12))),
               ],
             ),
             const SizedBox(height: 14),
@@ -148,7 +148,7 @@ class _HistorialMovimientosDialogState extends ConsumerState<HistorialMovimiento
     final async = ref.watch(historialVentasProductoProvider(widget.producto.id));
     return async.when(
       loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF0D2B4E))),
-      error: (e, st) => Center(child: Text('Error: $e', style: GoogleFonts.poppins(color: Colors.red))),
+      error: (e, st) => Center(child: Text('Error: $e', style: appFont(color: Colors.red))),
       data: (data) {
         final filas = _filtrar(data
             .map((r) => _FilaHistorial(
@@ -169,7 +169,7 @@ class _HistorialMovimientosDialogState extends ConsumerState<HistorialMovimiento
     final async = ref.watch(historialPreciosCompraProvider(widget.producto.id));
     return async.when(
       loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF0D2B4E))),
-      error: (e, st) => Center(child: Text('Error: $e', style: GoogleFonts.poppins(color: Colors.red))),
+      error: (e, st) => Center(child: Text('Error: $e', style: appFont(color: Colors.red))),
       data: (data) {
         final filas = _filtrar(data
             .map((r) => _FilaHistorial(
@@ -190,7 +190,7 @@ class _HistorialMovimientosDialogState extends ConsumerState<HistorialMovimiento
     final async = ref.watch(historialTrasladosProductoProvider(widget.producto.id));
     return async.when(
       loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF0D2B4E))),
-      error: (e, st) => Center(child: Text('Error: $e', style: GoogleFonts.poppins(color: Colors.red))),
+      error: (e, st) => Center(child: Text('Error: $e', style: appFont(color: Colors.red))),
       data: (data) {
         final filas = _filtrar(data
             .map((r) => _FilaHistorial(
@@ -216,9 +216,9 @@ class _HistorialMovimientosDialogState extends ConsumerState<HistorialMovimiento
     required String vacio,
   }) {
     if (filas.isEmpty) {
-      return Center(child: Text(vacio, textAlign: TextAlign.center, style: GoogleFonts.poppins(color: Colors.grey.shade500)));
+      return Center(child: Text(vacio, textAlign: TextAlign.center, style: appFont(color: Colors.grey.shade500)));
     }
-    final estiloHeader = GoogleFonts.poppins(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600);
+    final estiloHeader = appFont(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600);
     const anchoTabla = 640.0;
     return Container(
       decoration: BoxDecoration(border: Border.all(color: const Color(0xFFB6BCC7)), borderRadius: BorderRadius.circular(12)),
@@ -254,11 +254,11 @@ class _HistorialMovimientosDialogState extends ConsumerState<HistorialMovimiento
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                         child: Row(
                           children: [
-                            SizedBox(width: 140, child: Text(r.fecha != null ? formatoFecha.format(r.fecha!) : '-', style: GoogleFonts.poppins(fontSize: 12))),
-                            SizedBox(width: 130, child: Text(r.documento, style: GoogleFonts.poppins(fontSize: 12), overflow: TextOverflow.ellipsis)),
-                            Expanded(child: Text(r.contraparte, style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600), overflow: TextOverflow.ellipsis)),
-                            SizedBox(width: 70, child: Text(_formatoCantidad(r.cantidad), textAlign: TextAlign.right, style: GoogleFonts.poppins(fontSize: 12))),
-                            if (r.precio != null) SizedBox(width: 100, child: Text(formatearMoneda(r.precio!), textAlign: TextAlign.right, style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700))),
+                            SizedBox(width: 140, child: Text(r.fecha != null ? formatoFecha.format(r.fecha!) : '-', style: appFont(fontSize: 12))),
+                            SizedBox(width: 130, child: Text(r.documento, style: appFont(fontSize: 12), overflow: TextOverflow.ellipsis)),
+                            Expanded(child: Text(r.contraparte, style: appFont(fontSize: 12, color: Colors.grey.shade600), overflow: TextOverflow.ellipsis)),
+                            SizedBox(width: 70, child: Text(_formatoCantidad(r.cantidad), textAlign: TextAlign.right, style: appFont(fontSize: 12))),
+                            if (r.precio != null) SizedBox(width: 100, child: Text(formatearMoneda(r.precio!), textAlign: TextAlign.right, style: appFont(fontSize: 12, fontWeight: FontWeight.w700))),
                             SizedBox(
                               width: 48,
                               child: IconButton(
@@ -298,7 +298,7 @@ class _HistorialMovimientosDialogState extends ConsumerState<HistorialMovimiento
           children: [
             const Icon(Icons.calendar_today_outlined, size: 15, color: Color(0xFF6B7280)),
             const SizedBox(width: 8),
-            Text(fecha != null ? '$label: ${formato.format(fecha)}' : label, style: GoogleFonts.poppins(fontSize: 12.5, color: const Color(0xFF1A1A1A))),
+            Text(fecha != null ? '$label: ${formato.format(fecha)}' : label, style: appFont(fontSize: 12.5, color: const Color(0xFF1A1A1A))),
           ],
         ),
       ),

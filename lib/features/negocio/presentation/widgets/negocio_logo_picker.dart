@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../providers/negocio_provider.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 const _tamanoMaximoBytes = 700 * 1024;
 
@@ -61,7 +61,7 @@ class _NegocioLogoPickerState extends ConsumerState<NegocioLogoPicker> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(widget.titulo, style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A))),
+        Text(widget.titulo, style: appFont(fontSize: 12.5, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A))),
         const SizedBox(height: 8),
         Container(
           width: 128,
@@ -82,7 +82,7 @@ class _NegocioLogoPickerState extends ConsumerState<NegocioLogoPicker> {
             icon: _subiendo
                 ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF0D2B4E)))
                 : const Icon(Icons.upload_outlined, size: 16),
-            label: Text(_subiendo ? 'Guardando...' : 'Subir', style: GoogleFonts.poppins(fontSize: 12)),
+            label: Text(_subiendo ? 'Guardando...' : 'Subir', style: appFont(fontSize: 12)),
             style: OutlinedButton.styleFrom(
               foregroundColor: const Color(0xFF1A1A1A),
               side: const BorderSide(color: Color(0xFFB6BCC7)),

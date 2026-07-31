@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../data/cliente_dashboard_repository.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 const _colorPrincipal = Color(0xFF0D2B4E);
 const _colorAcento = Color(0xFF14B8A6);
@@ -47,8 +47,8 @@ class _ClienteDashboardDialogState extends State<ClienteDashboardDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Panel de Clientes', style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700, color: Colors.white)),
-                        Text('Último año de ventas activas · sin "Consumidor final"', style: GoogleFonts.poppins(fontSize: 11.5, color: Colors.white.withOpacity(0.75))),
+                        Text('Panel de Clientes', style: appFont(fontSize: 17, fontWeight: FontWeight.w700, color: Colors.white)),
+                        Text('Último año de ventas activas · sin "Consumidor final"', style: appFont(fontSize: 11.5, color: Colors.white.withOpacity(0.75))),
                       ],
                     ),
                   ),
@@ -69,7 +69,7 @@ class _ClienteDashboardDialogState extends State<ClienteDashboardDialog> {
                     return const Center(child: CircularProgressIndicator(color: _colorPrincipal));
                   }
                   if (snap.hasError) {
-                    return Center(child: Text('Error: ${snap.error}', style: GoogleFonts.poppins(color: Colors.red)));
+                    return Center(child: Text('Error: ${snap.error}', style: appFont(color: Colors.red)));
                   }
                   final data = snap.data!;
                   return LayoutBuilder(
@@ -154,11 +154,11 @@ class _ClienteDashboardDialogState extends State<ClienteDashboardDialog> {
               children: [
                 Icon(icono, size: 16, color: color),
                 const SizedBox(width: 6),
-                Expanded(child: Text(titulo, style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade600), overflow: TextOverflow.ellipsis)),
+                Expanded(child: Text(titulo, style: appFont(fontSize: 11, color: Colors.grey.shade600), overflow: TextOverflow.ellipsis)),
               ],
             ),
             const SizedBox(height: 8),
-            Text(valor, style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w800, color: _colorPrincipal)),
+            Text(valor, style: appFont(fontSize: 22, fontWeight: FontWeight.w800, color: _colorPrincipal)),
           ],
         ),
       ),
@@ -194,12 +194,12 @@ class _ClienteDashboardDialogState extends State<ClienteDashboardDialog> {
             children: [
               const Icon(Icons.star_outline, size: 18, color: Color(0xFFF59E0B)),
               const SizedBox(width: 8),
-              Text('Clientes más frecuentes', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+              Text('Clientes más frecuentes', style: appFont(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
             ],
           ),
           const SizedBox(height: 16),
           if (lista.isEmpty)
-            Padding(padding: const EdgeInsets.symmetric(vertical: 30), child: Center(child: Text('Sin datos suficientes todavía', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade500))))
+            Padding(padding: const EdgeInsets.symmetric(vertical: 30), child: Center(child: Text('Sin datos suficientes todavía', style: appFont(fontSize: 12, color: Colors.grey.shade500))))
           else
             SizedBox(
               height: 240,
@@ -210,14 +210,14 @@ class _ClienteDashboardDialogState extends State<ClienteDashboardDialog> {
                     touchTooltipData: BarTouchTooltipData(
                       getTooltipItem: (group, groupIndex, rod, rodIndex) {
                         final c = lista[group.x];
-                        return BarTooltipItem('${c.nombre}\n${rod.toY.toInt()} visitas', GoogleFonts.poppins(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600));
+                        return BarTooltipItem('${c.nombre}\n${rod.toY.toInt()} visitas', appFont(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600));
                       },
                     ),
                   ),
                   titlesData: FlTitlesData(
                     topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                     rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 28, getTitlesWidget: (v, meta) => v == v.roundToDouble() ? Text(v.toInt().toString(), style: GoogleFonts.poppins(fontSize: 10, color: Colors.grey.shade500)) : const SizedBox())),
+                    leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 28, getTitlesWidget: (v, meta) => v == v.roundToDouble() ? Text(v.toInt().toString(), style: appFont(fontSize: 10, color: Colors.grey.shade500)) : const SizedBox())),
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
@@ -231,7 +231,7 @@ class _ClienteDashboardDialogState extends State<ClienteDashboardDialog> {
                             padding: const EdgeInsets.only(top: 8),
                             child: Transform.rotate(
                               angle: -0.5,
-                              child: Text(corto, style: GoogleFonts.poppins(fontSize: 9.5, color: Colors.grey.shade700)),
+                              child: Text(corto, style: appFont(fontSize: 9.5, color: Colors.grey.shade700)),
                             ),
                           );
                         },
@@ -265,11 +265,11 @@ class _ClienteDashboardDialogState extends State<ClienteDashboardDialog> {
             children: [
               const Icon(Icons.calendar_month_outlined, size: 18, color: _colorAcento),
               const SizedBox(width: 8),
-              Expanded(child: Text('Visitas por día de la semana', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A)))),
+              Expanded(child: Text('Visitas por día de la semana', style: appFont(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A)))),
             ],
           ),
           const SizedBox(height: 4),
-          Text('Todo el negocio, no solo clientes identificados', style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500)),
+          Text('Todo el negocio, no solo clientes identificados', style: appFont(fontSize: 11, color: Colors.grey.shade500)),
           const SizedBox(height: 16),
           SizedBox(
             height: 240,
@@ -278,13 +278,13 @@ class _ClienteDashboardDialogState extends State<ClienteDashboardDialog> {
                 maxY: maximo <= 0 ? 10 : maximo * 1.2,
                 barTouchData: BarTouchData(
                   touchTooltipData: BarTouchTooltipData(
-                    getTooltipItem: (group, groupIndex, rod, rodIndex) => BarTooltipItem('${diasSemanaCortos[group.x]}\n${rod.toY.toInt()} visitas', GoogleFonts.poppins(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
+                    getTooltipItem: (group, groupIndex, rod, rodIndex) => BarTooltipItem('${diasSemanaCortos[group.x]}\n${rod.toY.toInt()} visitas', appFont(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
                   ),
                 ),
                 titlesData: FlTitlesData(
                   topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                   rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 28, getTitlesWidget: (v, meta) => v == v.roundToDouble() ? Text(v.toInt().toString(), style: GoogleFonts.poppins(fontSize: 10, color: Colors.grey.shade500)) : const SizedBox())),
+                  leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 28, getTitlesWidget: (v, meta) => v == v.roundToDouble() ? Text(v.toInt().toString(), style: appFont(fontSize: 10, color: Colors.grey.shade500)) : const SizedBox())),
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
@@ -292,7 +292,7 @@ class _ClienteDashboardDialogState extends State<ClienteDashboardDialog> {
                       getTitlesWidget: (value, meta) {
                         final i = value.toInt();
                         if (i < 0 || i >= 7) return const SizedBox();
-                        return Padding(padding: const EdgeInsets.only(top: 8), child: Text(diasSemanaCortos[i], style: GoogleFonts.poppins(fontSize: 10.5, color: Colors.grey.shade600)));
+                        return Padding(padding: const EdgeInsets.only(top: 8), child: Text(diasSemanaCortos[i], style: appFont(fontSize: 10.5, color: Colors.grey.shade600)));
                       },
                     ),
                   ),
@@ -322,19 +322,19 @@ class _ClienteDashboardDialogState extends State<ClienteDashboardDialog> {
             children: [
               const Icon(Icons.person_off_outlined, size: 18, color: _colorAlerta),
               const SizedBox(width: 8),
-              Text('Clientes inactivos', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+              Text('Clientes inactivos', style: appFont(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
             ],
           ),
           const SizedBox(height: 12),
           if (data.inactivos.isEmpty)
-            Text('No hay clientes que dejaron de venir', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade500))
+            Text('No hay clientes que dejaron de venir', style: appFont(fontSize: 12, color: Colors.grey.shade500))
           else
             ...data.inactivos.take(15).map((c) => Padding(
                   padding: const EdgeInsets.symmetric(vertical: 5),
                   child: Row(
                     children: [
-                      Expanded(child: Text(c.nombre, style: GoogleFonts.poppins(fontSize: 12.5), overflow: TextOverflow.ellipsis)),
-                      Text('${c.diasSinVisitar} días', style: GoogleFonts.poppins(fontSize: 11.5, color: Colors.grey.shade600, fontWeight: FontWeight.w600)),
+                      Expanded(child: Text(c.nombre, style: appFont(fontSize: 12.5), overflow: TextOverflow.ellipsis)),
+                      Text('${c.diasSinVisitar} días', style: appFont(fontSize: 11.5, color: Colors.grey.shade600, fontWeight: FontWeight.w600)),
                     ],
                   ),
                 )),
@@ -352,16 +352,16 @@ class _ClienteDashboardDialogState extends State<ClienteDashboardDialog> {
             children: [
               const Icon(Icons.notifications_outlined, size: 18, color: _colorAcento),
               const SizedBox(width: 8),
-              Text('Recordatorios', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+              Text('Recordatorios', style: appFont(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
             ],
           ),
           const SizedBox(height: 12),
           if (data.recordatorios.isEmpty)
-            Text('Sin recordatorios por ahora', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade500))
+            Text('Sin recordatorios por ahora', style: appFont(fontSize: 12, color: Colors.grey.shade500))
           else
             ...data.recordatorios.map((r) => Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Text('• $r', style: GoogleFonts.poppins(fontSize: 12.5)),
+                  child: Text('• $r', style: appFont(fontSize: 12.5)),
                 )),
         ],
       ),

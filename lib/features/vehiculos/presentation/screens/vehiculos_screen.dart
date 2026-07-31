@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../data/vehiculo_model.dart';
 import '../../providers/vehiculos_provider.dart';
 import '../widgets/vehiculo_form_dialog.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 class VehiculosScreen extends ConsumerStatefulWidget {
   const VehiculosScreen({super.key});
@@ -33,11 +33,11 @@ class _VehiculosScreenState extends ConsumerState<VehiculosScreen> {
             child: NestedScrollView(
               headerSliverBuilder: (context, innerBoxIsScrolled) => [
                 SliverToBoxAdapter(
-                  child: Text('Vehículos', style: GoogleFonts.poppins(fontSize: esMovil ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+                  child: Text('Vehículos', style: appFont(fontSize: esMovil ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
                 ),
                 SliverToBoxAdapter(child: const SizedBox(height: 4)),
                 SliverToBoxAdapter(
-                  child: Text('Registro de vehículos por cliente, para elegirlos rápido al facturar', style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600)),
+                  child: Text('Registro de vehículos por cliente, para elegirlos rápido al facturar', style: appFont(fontSize: 12.5, color: Colors.grey.shade600)),
                 ),
                 SliverToBoxAdapter(child: const SizedBox(height: 16)),
                 SliverToBoxAdapter(
@@ -80,7 +80,7 @@ class _VehiculosScreenState extends ConsumerState<VehiculosScreen> {
                           children: [
                             Icon(Icons.directions_car_filled_outlined, size: 56, color: Colors.grey.shade300),
                             const SizedBox(height: 12),
-                            Text(_busqueda.isEmpty ? 'No hay vehículos registrados' : 'No se encontraron vehículos', style: GoogleFonts.poppins(color: Colors.grey.shade500)),
+                            Text(_busqueda.isEmpty ? 'No hay vehículos registrados' : 'No se encontraron vehículos', style: appFont(color: Colors.grey.shade500)),
                           ],
                         ),
                       );
@@ -89,7 +89,7 @@ class _VehiculosScreenState extends ConsumerState<VehiculosScreen> {
                     return esMovil ? _tarjetas(filtrados) : _tabla(filtrados);
                   },
                   loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF0D2B4E))),
-                  error: (e, st) => Center(child: Text('Error: $e', style: GoogleFonts.poppins(color: Colors.red))),
+                  error: (e, st) => Center(child: Text('Error: $e', style: appFont(color: Colors.red))),
                 ),
               ),
             ),
@@ -147,7 +147,7 @@ class _VehiculosScreenState extends ConsumerState<VehiculosScreen> {
   Widget _celdaHeader(String texto, int flex) {
     return Expanded(
       flex: flex,
-      child: Text(texto, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 10.5, fontWeight: FontWeight.w700, color: const Color(0xFF666A72), letterSpacing: 0.35)),
+      child: Text(texto, maxLines: 1, overflow: TextOverflow.ellipsis, style: appFont(fontSize: 10.5, fontWeight: FontWeight.w700, color: const Color(0xFF666A72), letterSpacing: 0.35)),
     );
   }
 
@@ -156,7 +156,7 @@ class _VehiculosScreenState extends ConsumerState<VehiculosScreen> {
       flex: flex,
       child: Padding(
         padding: const EdgeInsets.only(right: 8),
-        child: Text(texto, maxLines: 2, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: peso, color: gris ? Colors.grey.shade600 : const Color(0xFF1A1A1A))),
+        child: Text(texto, maxLines: 2, overflow: TextOverflow.ellipsis, style: appFont(fontSize: 12.5, fontWeight: peso, color: gris ? Colors.grey.shade600 : const Color(0xFF1A1A1A))),
       ),
     );
   }
@@ -177,7 +177,7 @@ class _VehiculosScreenState extends ConsumerState<VehiculosScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(v.nombreCliente.isEmpty ? 'Sin cliente' : v.nombreCliente, style: GoogleFonts.poppins(fontSize: 14.5, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+                Text(v.nombreCliente.isEmpty ? 'Sin cliente' : v.nombreCliente, style: appFont(fontSize: 14.5, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
@@ -200,7 +200,7 @@ class _VehiculosScreenState extends ConsumerState<VehiculosScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(color: const Color(0xFFE8EAF0), borderRadius: BorderRadius.circular(8)),
-      child: Text('$label: $valor', style: GoogleFonts.poppins(fontSize: 11.5, color: const Color(0xFF3F434A))),
+      child: Text('$label: $valor', style: appFont(fontSize: 11.5, color: const Color(0xFF3F434A))),
     );
   }
 
@@ -215,10 +215,10 @@ class _VehiculosScreenState extends ConsumerState<VehiculosScreen> {
           const SizedBox(width: 10),
           Expanded(
             child: TextField(
-              style: GoogleFonts.poppins(fontSize: 13),
+              style: appFont(fontSize: 13),
               decoration: InputDecoration(
                 hintText: 'Buscar por cliente, marca, modelo o placa...',
-                hintStyle: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade400),
+                hintStyle: appFont(fontSize: 13, color: Colors.grey.shade400),
                 border: InputBorder.none,
                 isDense: true,
               ),
@@ -234,7 +234,7 @@ class _VehiculosScreenState extends ConsumerState<VehiculosScreen> {
     return OutlinedButton.icon(
       onPressed: () => ref.invalidate(vehiculosStreamProvider),
       icon: const Icon(Icons.refresh, size: 18),
-      label: Text('Refrescar', style: GoogleFonts.poppins(fontSize: 13)),
+      label: Text('Refrescar', style: appFont(fontSize: 13)),
       style: OutlinedButton.styleFrom(
         foregroundColor: const Color(0xFF1A1A1A),
         side: const BorderSide(color: Color(0xFFB6BCC7)),
@@ -248,7 +248,7 @@ class _VehiculosScreenState extends ConsumerState<VehiculosScreen> {
     return FilledButton.icon(
       onPressed: () => _abrirFormulario(),
       icon: const Icon(Icons.add, size: 18),
-      label: Text('Nuevo Vehículo', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+      label: Text('Nuevo Vehículo', style: appFont(fontSize: 13, fontWeight: FontWeight.w600)),
       style: FilledButton.styleFrom(
         backgroundColor: const Color(0xFF0D2B4E),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),

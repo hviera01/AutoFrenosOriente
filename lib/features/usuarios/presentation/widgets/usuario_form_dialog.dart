@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../data/usuario_model.dart';
 import '../../providers/usuarios_provider.dart';
 import '../../../../core/constants/roles.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 class UsuarioFormDialog extends ConsumerStatefulWidget {
   final UsuarioModel? usuario;
@@ -85,14 +85,14 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Eliminar usuario', style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
-        content: Text('¿Seguro que querés eliminar este usuario?', style: GoogleFonts.poppins(fontSize: 13)),
+        title: Text('Eliminar usuario', style: appFont(fontWeight: FontWeight.w700)),
+        content: Text('¿Seguro que querés eliminar este usuario?', style: appFont(fontSize: 13)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancelar', style: GoogleFonts.poppins())),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancelar', style: appFont())),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E)),
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Eliminar', style: GoogleFonts.poppins()),
+            child: Text('Eliminar', style: appFont()),
           ),
         ],
       ),
@@ -113,7 +113,7 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
   InputDecoration _decoracion(String label) {
     return InputDecoration(
       labelText: label,
-      labelStyle: GoogleFonts.poppins(fontSize: 13),
+      labelStyle: appFont(fontSize: 13),
       filled: true,
       fillColor: const Color(0xFFE8EAF0),
       border: OutlineInputBorder(
@@ -159,7 +159,7 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
                   Expanded(
                     child: Text(
                       editando ? 'Editar Usuario' : 'Nuevo Usuario',
-                      style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A)),
+                      style: appFont(fontSize: 17, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A)),
                     ),
                   ),
                   IconButton(
@@ -172,26 +172,26 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
               TextField(
                 controller: _documentoController,
                 autofocus: true,
-                style: GoogleFonts.poppins(fontSize: 14),
+                style: appFont(fontSize: 14),
                 decoration: _decoracion('Documento'),
               ),
               const SizedBox(height: 14),
               TextField(
                 controller: _nombreController,
-                style: GoogleFonts.poppins(fontSize: 14),
+                style: appFont(fontSize: 14),
                 decoration: _decoracion('Nombre completo'),
               ),
               const SizedBox(height: 14),
               TextField(
                 controller: _correoController,
-                style: GoogleFonts.poppins(fontSize: 14),
+                style: appFont(fontSize: 14),
                 decoration: _decoracion('Correo'),
               ),
               const SizedBox(height: 14),
               TextField(
                 controller: _claveController,
                 obscureText: true,
-                style: GoogleFonts.poppins(fontSize: 14),
+                style: appFont(fontSize: 14),
                 decoration: _decoracion(editando ? 'Nueva contraseña (opcional)' : 'Contraseña'),
               ),
               const SizedBox(height: 14),
@@ -199,7 +199,7 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
                 initialValue: _rol,
                 decoration: _decoracion('Rol'),
                 items: [Roles.administrador, Roles.empleado, Roles.inventarioLectura]
-                    .map((r) => DropdownMenuItem(value: r, child: Text(Roles.etiquetas[r] ?? r, style: GoogleFonts.poppins(fontSize: 13))))
+                    .map((r) => DropdownMenuItem(value: r, child: Text(Roles.etiquetas[r] ?? r, style: appFont(fontSize: 13))))
                     .toList(),
                 onChanged: (v) => setState(() => _rol = v ?? Roles.empleado),
               ),
@@ -212,11 +212,11 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
                 ),
                 child: Row(
                   children: [
-                    Text('Estado', style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade700)),
+                    Text('Estado', style: appFont(fontSize: 13, color: Colors.grey.shade700)),
                     const Spacer(),
                     Text(
                       _activo ? 'Activo' : 'Inactivo',
-                      style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: _activo ? const Color(0xFF16A34A) : Colors.grey.shade500),
+                      style: appFont(fontSize: 13, fontWeight: FontWeight.w600, color: _activo ? const Color(0xFF16A34A) : Colors.grey.shade500),
                     ),
                     Switch(
                       value: _activo,
@@ -236,7 +236,7 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: Colors.red.shade200),
                   ),
-                  child: Text(_error!, style: GoogleFonts.poppins(color: Colors.red.shade700, fontSize: 12)),
+                  child: Text(_error!, style: appFont(color: Colors.red.shade700, fontSize: 12)),
                 ),
               ],
               const SizedBox(height: 24),
@@ -254,7 +254,7 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
                   const Spacer(),
                   TextButton(
                     onPressed: _guardando ? null : () => Navigator.pop(context),
-                    child: Text('Cancelar', style: GoogleFonts.poppins(color: Colors.grey.shade700)),
+                    child: Text('Cancelar', style: appFont(color: Colors.grey.shade700)),
                   ),
                   const SizedBox(width: 10),
                   FilledButton(
@@ -266,7 +266,7 @@ class _UsuarioFormDialogState extends ConsumerState<UsuarioFormDialog> {
                     ),
                     child: _guardando
                         ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.2))
-                        : Text('Guardar', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.white)),
+                        : Text('Guardar', style: appFont(fontWeight: FontWeight.w600, color: Colors.white)),
                   ),
                 ],
               ),

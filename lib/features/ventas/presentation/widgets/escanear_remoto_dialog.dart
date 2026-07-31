@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 /// URL fija del sitio publicado en GitHub Pages: el QR siempre tiene que
 /// apuntar ahí (la página que sabe leer el parámetro `?escanear=` y mostrar
@@ -60,7 +60,7 @@ class _EscanearRemotoDialogState extends State<EscanearRemotoDialog> {
           children: [
             Row(
               children: [
-                Expanded(child: Text('Escanear con el celular', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700))),
+                Expanded(child: Text('Escanear con el celular', style: appFont(fontSize: 16, fontWeight: FontWeight.w700))),
                 IconButton(icon: const Icon(Icons.close, size: 20), onPressed: () => Navigator.pop(context)),
               ],
             ),
@@ -68,7 +68,7 @@ class _EscanearRemotoDialogState extends State<EscanearRemotoDialog> {
             Text(
               'Apuntá la cámara del celular a este código QR (no hace falta ninguna app, se abre directo en el navegador). Esta ventana se cierra sola apenas el celular se conecte.',
               textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600),
+              style: appFont(fontSize: 12.5, color: Colors.grey.shade600),
             ),
             const SizedBox(height: 18),
             Container(
@@ -77,7 +77,7 @@ class _EscanearRemotoDialogState extends State<EscanearRemotoDialog> {
               child: QrImageView(data: url, size: 200, backgroundColor: Colors.white),
             ),
             const SizedBox(height: 14),
-            Text('Código: ${widget.codigo}', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: 1.2)),
+            Text('Código: ${widget.codigo}', style: appFont(fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: 1.2)),
           ],
         ),
       ),
@@ -111,7 +111,7 @@ class EscaneoActivoDialog extends StatelessWidget {
               children: [
                 Icon(Icons.wifi_tethering, color: Colors.green.shade600, size: 22),
                 const SizedBox(width: 10),
-                Expanded(child: Text('Escaneo activo', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700))),
+                Expanded(child: Text('Escaneo activo', style: appFont(fontSize: 16, fontWeight: FontWeight.w700))),
                 IconButton(icon: const Icon(Icons.close, size: 20), onPressed: () => Navigator.pop(context)),
               ],
             ),
@@ -123,7 +123,7 @@ class EscaneoActivoDialog extends StatelessWidget {
                 return Text(
                   'Hay un celular conectado y escaneando ($total código(s) recibido(s)).',
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade700),
+                  style: appFont(fontSize: 13, color: Colors.grey.shade700),
                 );
               },
             ),
@@ -133,7 +133,7 @@ class EscaneoActivoDialog extends StatelessWidget {
               child: OutlinedButton.icon(
                 onPressed: alEscanearOtro,
                 icon: const Icon(Icons.qr_code_scanner, size: 18),
-                label: Text('Escanear con otro celular', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+                label: Text('Escanear con otro celular', style: appFont(fontSize: 13, fontWeight: FontWeight.w600)),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: const Color(0xFF1A1A1A),
                   side: const BorderSide(color: Color(0xFFB6BCC7)),
@@ -148,7 +148,7 @@ class EscaneoActivoDialog extends StatelessWidget {
               child: OutlinedButton.icon(
                 onPressed: alFinalizar,
                 icon: const Icon(Icons.stop_circle_outlined, size: 18),
-                label: Text('Finalizar escaneo', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+                label: Text('Finalizar escaneo', style: appFont(fontSize: 13, fontWeight: FontWeight.w600)),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: const Color(0xFF0D2B4E),
                   side: const BorderSide(color: Color(0xFF0D2B4E)),

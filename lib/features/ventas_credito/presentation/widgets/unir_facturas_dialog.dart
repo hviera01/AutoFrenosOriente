@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../data/venta_credito_model.dart';
 import '../../providers/ventas_credito_provider.dart';
 import '../../../../core/utils/formato_moneda.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 class UnirFacturasDialog extends ConsumerStatefulWidget {
   final List<VentaCreditoModel> facturas;
@@ -80,7 +80,7 @@ class _UnirFacturasDialogState extends ConsumerState<UnirFacturasDialog> {
   InputDecoration _decoracion(String label) {
     return InputDecoration(
       labelText: label,
-      labelStyle: GoogleFonts.poppins(fontSize: 13),
+      labelStyle: appFont(fontSize: 13),
       filled: true,
       fillColor: const Color(0xFFE8EAF0),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -115,7 +115,7 @@ class _UnirFacturasDialogState extends ConsumerState<UnirFacturasDialog> {
                   ),
                   const SizedBox(width: 14),
                   Expanded(
-                    child: Text('Unir Facturas de Crédito', style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+                    child: Text('Unir Facturas de Crédito', style: appFont(fontSize: 17, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
                   ),
                   IconButton(icon: const Icon(Icons.close, size: 20), onPressed: () => Navigator.pop(context)),
                 ],
@@ -136,9 +136,9 @@ class _UnirFacturasDialogState extends ConsumerState<UnirFacturasDialog> {
                             decoration: const BoxDecoration(color: Color(0xFFECEEF3), borderRadius: BorderRadius.vertical(top: Radius.circular(12))),
                             child: Row(
                               children: [
-                                Expanded(flex: 2, child: Text('FACTURA', style: GoogleFonts.poppins(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600))),
-                                Expanded(flex: 3, child: Text('CLIENTE', style: GoogleFonts.poppins(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600))),
-                                Expanded(flex: 2, child: Text('SALDO', textAlign: TextAlign.right, style: GoogleFonts.poppins(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600))),
+                                Expanded(flex: 2, child: Text('FACTURA', style: appFont(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600))),
+                                Expanded(flex: 3, child: Text('CLIENTE', style: appFont(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600))),
+                                Expanded(flex: 2, child: Text('SALDO', textAlign: TextAlign.right, style: appFont(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600))),
                               ],
                             ),
                           ),
@@ -146,9 +146,9 @@ class _UnirFacturasDialogState extends ConsumerState<UnirFacturasDialog> {
                                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                                 child: Row(
                                   children: [
-                                    Expanded(flex: 2, child: Text(f.numeroDocumento, style: GoogleFonts.poppins(fontSize: 12.5))),
-                                    Expanded(flex: 3, child: Text(f.nombreCliente, style: GoogleFonts.poppins(fontSize: 12.5), overflow: TextOverflow.ellipsis)),
-                                    Expanded(flex: 2, child: Text(formatearMoneda(f.saldoPendiente), textAlign: TextAlign.right, style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600))),
+                                    Expanded(flex: 2, child: Text(f.numeroDocumento, style: appFont(fontSize: 12.5))),
+                                    Expanded(flex: 3, child: Text(f.nombreCliente, style: appFont(fontSize: 12.5), overflow: TextOverflow.ellipsis)),
+                                    Expanded(flex: 2, child: Text(formatearMoneda(f.saldoPendiente), textAlign: TextAlign.right, style: appFont(fontSize: 12.5, fontWeight: FontWeight.w600))),
                                   ],
                                 ),
                               )),
@@ -158,13 +158,13 @@ class _UnirFacturasDialogState extends ConsumerState<UnirFacturasDialog> {
                     const SizedBox(height: 18),
                     TextField(
                       controller: _documentoController,
-                      style: GoogleFonts.poppins(fontSize: 14),
+                      style: appFont(fontSize: 14),
                       decoration: _decoracion('Documento cliente (opcional)'),
                     ),
                     const SizedBox(height: 14),
                     TextField(
                       controller: _nombreController,
-                      style: GoogleFonts.poppins(fontSize: 14),
+                      style: appFont(fontSize: 14),
                       decoration: _decoracion('Nombre cliente'),
                     ),
                     const SizedBox(height: 14),
@@ -175,7 +175,7 @@ class _UnirFacturasDialogState extends ConsumerState<UnirFacturasDialog> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Fecha de vencimiento', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600)),
+                              Text('Fecha de vencimiento', style: appFont(fontSize: 12, color: Colors.grey.shade600)),
                               const SizedBox(height: 6),
                               InkWell(
                                 onTap: _seleccionarFecha,
@@ -187,7 +187,7 @@ class _UnirFacturasDialogState extends ConsumerState<UnirFacturasDialog> {
                                     children: [
                                       Icon(Icons.calendar_today_outlined, size: 16, color: Colors.grey.shade500),
                                       const SizedBox(width: 10),
-                                      Text(formatoFecha.format(_fechaVencimiento), style: GoogleFonts.poppins(fontSize: 13.5, color: const Color(0xFF1A1A1A))),
+                                      Text(formatoFecha.format(_fechaVencimiento), style: appFont(fontSize: 13.5, color: const Color(0xFF1A1A1A))),
                                     ],
                                   ),
                                 ),
@@ -200,12 +200,12 @@ class _UnirFacturasDialogState extends ConsumerState<UnirFacturasDialog> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Total unificado', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600)),
+                              Text('Total unificado', style: appFont(fontSize: 12, color: Colors.grey.shade600)),
                               const SizedBox(height: 6),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                                 decoration: BoxDecoration(color: const Color(0xFFE8EAF0), borderRadius: BorderRadius.circular(12)),
-                                child: Text(formatearMoneda(_totalUnificado), style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+                                child: Text(formatearMoneda(_totalUnificado), style: appFont(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
                               ),
                             ],
                           ),
@@ -222,7 +222,7 @@ class _UnirFacturasDialogState extends ConsumerState<UnirFacturasDialog> {
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: Colors.red.shade200),
                         ),
-                        child: Text(_error!, style: GoogleFonts.poppins(color: Colors.red.shade700, fontSize: 12)),
+                        child: Text(_error!, style: appFont(color: Colors.red.shade700, fontSize: 12)),
                       ),
                     ],
                     const SizedBox(height: 8),
@@ -237,7 +237,7 @@ class _UnirFacturasDialogState extends ConsumerState<UnirFacturasDialog> {
                   const Spacer(),
                   TextButton(
                     onPressed: _guardando ? null : () => Navigator.pop(context),
-                    child: Text('Cancelar', style: GoogleFonts.poppins(color: Colors.grey.shade700)),
+                    child: Text('Cancelar', style: appFont(color: Colors.grey.shade700)),
                   ),
                   const SizedBox(width: 10),
                   FilledButton(
@@ -249,7 +249,7 @@ class _UnirFacturasDialogState extends ConsumerState<UnirFacturasDialog> {
                     ),
                     child: _guardando
                         ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.2))
-                        : Text('Unir Facturas', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.white)),
+                        : Text('Unir Facturas', style: appFont(fontWeight: FontWeight.w600, color: Colors.white)),
                   ),
                 ],
               ),

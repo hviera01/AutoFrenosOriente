@@ -1,9 +1,9 @@
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/actualizacion_service.dart';
+import '../services/tipografia_service.dart';
 
 /// Diálogo central que avisa que hay una versión nueva publicada. Se abre
 /// solo (al iniciar la app, ver AppShell) o a mano desde "Buscar
@@ -83,7 +83,7 @@ class _ActualizacionDialogState extends State<_ActualizacionDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: Text('Actualización disponible', style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
+      title: Text('Actualización disponible', style: appFont(fontWeight: FontWeight.w700)),
       content: SizedBox(
         width: 360,
         child: Column(
@@ -92,21 +92,21 @@ class _ActualizacionDialogState extends State<_ActualizacionDialog> {
           children: [
             Text(
               'Hay una nueva versión (v${widget.actualizacion.version}) disponible para instalar.',
-              style: GoogleFonts.poppins(fontSize: 13.5),
+              style: appFont(fontSize: 13.5),
             ),
             if (widget.actualizacion.notas.isNotEmpty) ...[
               const SizedBox(height: 10),
-              Text(widget.actualizacion.notas, style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600)),
+              Text(widget.actualizacion.notas, style: appFont(fontSize: 12.5, color: Colors.grey.shade600)),
             ],
             if (_descargando) ...[
               const SizedBox(height: 16),
               LinearProgressIndicator(value: _progreso > 0 ? _progreso : null),
               const SizedBox(height: 6),
-              Text('Descargando...', style: GoogleFonts.poppins(fontSize: 11.5, color: Colors.grey.shade500)),
+              Text('Descargando...', style: appFont(fontSize: 11.5, color: Colors.grey.shade500)),
             ],
             if (_error != null) ...[
               const SizedBox(height: 12),
-              Text(_error!, style: GoogleFonts.poppins(fontSize: 12, color: Colors.red)),
+              Text(_error!, style: appFont(fontSize: 12, color: Colors.red)),
             ],
           ],
         ),
@@ -114,17 +114,17 @@ class _ActualizacionDialogState extends State<_ActualizacionDialog> {
       actions: _descargando
           ? const []
           : [
-              TextButton(onPressed: () => Navigator.pop(context), child: Text('Después', style: GoogleFonts.poppins())),
+              TextButton(onPressed: () => Navigator.pop(context), child: Text('Después', style: appFont())),
               if (_error != null && !kIsWeb && Platform.isAndroid)
                 OutlinedButton(
                   style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF0D2B4E), side: const BorderSide(color: Color(0xFF0D2B4E))),
                   onPressed: _descargarManualmente,
-                  child: Text('Descargar manualmente', style: GoogleFonts.poppins()),
+                  child: Text('Descargar manualmente', style: appFont()),
                 ),
               FilledButton(
                 style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E)),
                 onPressed: _actualizar,
-                child: Text(_error != null ? 'Reintentar' : 'Actualizar ahora', style: GoogleFonts.poppins()),
+                child: Text(_error != null ? 'Reintentar' : 'Actualizar ahora', style: appFont()),
               ),
             ],
     );

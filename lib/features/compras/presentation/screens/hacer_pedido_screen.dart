@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../data/item_pedido_model.dart';
 import '../../data/pedido_export_service.dart';
 import '../../../productos/data/producto_model.dart';
@@ -9,6 +8,7 @@ import '../../../proveedores/providers/proveedores_provider.dart';
 import '../../../negocio/providers/negocio_provider.dart';
 import '../../../../core/widgets/pdf_preview_dialog.dart';
 import '../widgets/buscar_producto_compra_dialog.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 /// Pedido de compra: agregás productos y la cantidad que necesitás, y se
 /// genera un PDF listo para enviarle al proveedor. No se guarda nada en
@@ -123,7 +123,7 @@ class _HacerPedidoScreenState extends ConsumerState<HacerPedidoScreen> {
   InputDecoration _decoracion(String label) {
     return InputDecoration(
       labelText: label,
-      labelStyle: GoogleFonts.poppins(fontSize: 12.5),
+      labelStyle: appFont(fontSize: 12.5),
       filled: true,
       fillColor: const Color(0xFFE8EAF0),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -171,7 +171,7 @@ class _HacerPedidoScreenState extends ConsumerState<HacerPedidoScreen> {
                     icon: _generando
                         ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.2))
                         : const Icon(Icons.picture_as_pdf_outlined, size: 20),
-                    label: Text('Generar PDF del Pedido', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white)),
+                    label: Text('Generar PDF del Pedido', style: appFont(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white)),
                     style: FilledButton.styleFrom(backgroundColor: const Color(0xFF1A1A1A), padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                   ),
                 ),
@@ -189,11 +189,11 @@ class _HacerPedidoScreenState extends ConsumerState<HacerPedidoScreen> {
       spacing: 12,
       runSpacing: 10,
       children: [
-        Text('Hacer Pedido', style: GoogleFonts.poppins(fontSize: esMovil ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+        Text('Hacer Pedido', style: appFont(fontSize: esMovil ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
         OutlinedButton.icon(
           onPressed: _limpiar,
           icon: const Icon(Icons.delete_sweep_outlined, size: 18),
-          label: Text('Limpiar', style: GoogleFonts.poppins(fontSize: 13)),
+          label: Text('Limpiar', style: appFont(fontSize: 13)),
           style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
         ),
       ],
@@ -216,23 +216,23 @@ class _HacerPedidoScreenState extends ConsumerState<HacerPedidoScreen> {
                   initialValue: _proveedor,
                   isExpanded: true,
                   decoration: _decoracion('Proveedor (opcional)'),
-                  style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF1A1A1A)),
+                  style: appFont(fontSize: 13, color: const Color(0xFF1A1A1A)),
                   items: [
-                    DropdownMenuItem<ProveedorModel?>(value: null, child: Text('Sin especificar', style: GoogleFonts.poppins(fontSize: 13))),
+                    DropdownMenuItem<ProveedorModel?>(value: null, child: Text('Sin especificar', style: appFont(fontSize: 13))),
                     ...proveedores.map((p) => DropdownMenuItem<ProveedorModel?>(value: p, child: Text(p.razonSocial, overflow: TextOverflow.ellipsis))),
                   ],
                   onChanged: (v) => setState(() => _proveedor = v),
                 );
               },
               loading: () => const LinearProgressIndicator(),
-              error: (e, st) => Text('Error cargando proveedores', style: GoogleFonts.poppins(color: Colors.red, fontSize: 12)),
+              error: (e, st) => Text('Error cargando proveedores', style: appFont(color: Colors.red, fontSize: 12)),
             ),
           ),
           SizedBox(
             width: esMovil ? double.infinity : 360,
             child: TextField(
               controller: _observacionesController,
-              style: GoogleFonts.poppins(fontSize: 13),
+              style: appFont(fontSize: 13),
               decoration: _decoracion('Observaciones (opcional)'),
             ),
           ),
@@ -256,12 +256,12 @@ class _HacerPedidoScreenState extends ConsumerState<HacerPedidoScreen> {
         children: [
           Row(
             children: [
-              Text('Productos del pedido', style: GoogleFonts.poppins(fontSize: 14.5, fontWeight: FontWeight.w700)),
+              Text('Productos del pedido', style: appFont(fontSize: 14.5, fontWeight: FontWeight.w700)),
               const Spacer(),
               FilledButton.icon(
                 onPressed: _agregarProducto,
                 icon: const Icon(Icons.add, size: 18),
-                label: Text('Agregar Producto', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+                label: Text('Agregar Producto', style: appFont(fontSize: 13, fontWeight: FontWeight.w600)),
                 style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
               ),
             ],
@@ -274,7 +274,7 @@ class _HacerPedidoScreenState extends ConsumerState<HacerPedidoScreen> {
                 child: Text(
                   'Todavía no agregaste productos.\nUsá "Agregar Producto" para buscar del inventario.',
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.poppins(color: Colors.grey.shade500),
+                  style: appFont(color: Colors.grey.shade500),
                 ),
               ),
             )
@@ -291,7 +291,7 @@ class _HacerPedidoScreenState extends ConsumerState<HacerPedidoScreen> {
   }
 
   Widget _encabezadoTabla() {
-    final estilo = GoogleFonts.poppins(fontSize: 11.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600);
+    final estilo = appFont(fontSize: 11.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600);
     return Row(
       children: [
         Expanded(flex: 2, child: Text('Código', style: estilo)),
@@ -314,7 +314,7 @@ class _HacerPedidoScreenState extends ConsumerState<HacerPedidoScreen> {
       controller: ctrl,
       textAlign: TextAlign.center,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      style: GoogleFonts.poppins(fontSize: 13),
+      style: appFont(fontSize: 13),
       decoration: InputDecoration(
         filled: true,
         fillColor: const Color(0xFFE8EAF0),
@@ -333,9 +333,9 @@ class _HacerPedidoScreenState extends ConsumerState<HacerPedidoScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Expanded(flex: 2, child: Text(item.codigo.isEmpty ? '-' : item.codigo, style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600))),
-          Expanded(flex: 5, child: Text(item.nombreProducto, softWrap: true, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600))),
-          Expanded(flex: 2, child: Text(_formatoCantidad(item.stockActual), textAlign: TextAlign.center, style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600))),
+          Expanded(flex: 2, child: Text(item.codigo.isEmpty ? '-' : item.codigo, style: appFont(fontSize: 12.5, color: Colors.grey.shade600))),
+          Expanded(flex: 5, child: Text(item.nombreProducto, softWrap: true, style: appFont(fontSize: 13, fontWeight: FontWeight.w600))),
+          Expanded(flex: 2, child: Text(_formatoCantidad(item.stockActual), textAlign: TextAlign.center, style: appFont(fontSize: 12.5, color: Colors.grey.shade600))),
           Expanded(flex: 2, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: _campoCantidad(index, item))),
           SizedBox(
             width: 40,
@@ -360,8 +360,8 @@ class _HacerPedidoScreenState extends ConsumerState<HacerPedidoScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(item.nombreProducto, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
-                    Text('${item.codigo.isEmpty ? '-' : item.codigo} · Stock: ${_formatoCantidad(item.stockActual)}', style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500)),
+                    Text(item.nombreProducto, style: appFont(fontSize: 13, fontWeight: FontWeight.w600)),
+                    Text('${item.codigo.isEmpty ? '-' : item.codigo} · Stock: ${_formatoCantidad(item.stockActual)}', style: appFont(fontSize: 11, color: Colors.grey.shade500)),
                   ],
                 ),
               ),

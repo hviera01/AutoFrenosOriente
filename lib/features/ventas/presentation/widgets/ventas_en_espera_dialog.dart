@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../data/venta_en_espera_model.dart';
 import '../../providers/ventas_provider.dart';
 import '../../../../core/utils/formato_moneda.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 class VentasEnEsperaDialog extends ConsumerWidget {
   const VentasEnEsperaDialog({super.key});
@@ -14,14 +14,14 @@ class VentasEnEsperaDialog extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Eliminar venta en espera', style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
-        content: Text('¿Seguro que querés eliminar esta venta guardada?', style: GoogleFonts.poppins(fontSize: 13)),
+        title: Text('Eliminar venta en espera', style: appFont(fontWeight: FontWeight.w700)),
+        content: Text('¿Seguro que querés eliminar esta venta guardada?', style: appFont(fontSize: 13)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancelar', style: GoogleFonts.poppins())),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancelar', style: appFont())),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E)),
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Eliminar', style: GoogleFonts.poppins()),
+            child: Text('Eliminar', style: appFont()),
           ),
         ],
       ),
@@ -53,7 +53,7 @@ class VentasEnEsperaDialog extends ConsumerWidget {
           children: [
             Row(
               children: [
-                Expanded(child: Text('Ventas en Espera', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700))),
+                Expanded(child: Text('Ventas en Espera', style: appFont(fontSize: 16, fontWeight: FontWeight.w700))),
                 IconButton(icon: const Icon(Icons.close, size: 20), onPressed: () => Navigator.pop(context)),
               ],
             ),
@@ -68,7 +68,7 @@ class VentasEnEsperaDialog extends ConsumerWidget {
                         children: [
                           Icon(Icons.pause_circle_outline, size: 48, color: Colors.grey.shade300),
                           const SizedBox(height: 10),
-                          Text('No hay ventas en espera', style: GoogleFonts.poppins(color: Colors.grey.shade500)),
+                          Text('No hay ventas en espera', style: appFont(color: Colors.grey.shade500)),
                         ],
                       ),
                     );
@@ -92,16 +92,16 @@ class VentasEnEsperaDialog extends ConsumerWidget {
                                   children: [
                                     Text(
                                       sesion.nombreCliente.isEmpty ? 'Sin cliente' : sesion.nombreCliente,
-                                      style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w700),
+                                      style: appFont(fontSize: 13.5, fontWeight: FontWeight.w700),
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
                                       '${sesion.tipoDocumento} · ${sesion.items.length} producto(s) · ${formatearMoneda(sesion.total)}',
-                                      style: GoogleFonts.poppins(fontSize: 11.5, color: Colors.grey.shade600),
+                                      style: appFont(fontSize: 11.5, color: Colors.grey.shade600),
                                     ),
                                     if (sesion.fecha != null) ...[
                                       const SizedBox(height: 2),
-                                      Text(formatoFecha.format(sesion.fecha!), style: GoogleFonts.poppins(fontSize: 10.5, color: Colors.grey.shade400)),
+                                      Text(formatoFecha.format(sesion.fecha!), style: appFont(fontSize: 10.5, color: Colors.grey.shade400)),
                                     ],
                                   ],
                                 ),
@@ -118,7 +118,7 @@ class VentasEnEsperaDialog extends ConsumerWidget {
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF0D2B4E))),
-                error: (e, st) => Center(child: Text('Error: $e', style: GoogleFonts.poppins(color: Colors.red))),
+                error: (e, st) => Center(child: Text('Error: $e', style: appFont(color: Colors.red))),
               ),
             ),
           ],

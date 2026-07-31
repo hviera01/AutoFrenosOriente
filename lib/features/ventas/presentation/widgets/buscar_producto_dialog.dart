@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatf
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../productos/data/producto_model.dart';
 import '../../../productos/providers/productos_provider.dart';
 import '../../../productos/presentation/widgets/producto_form_dialog.dart';
@@ -11,6 +10,7 @@ import '../../../../core/utils/texto_utils.dart';
 import '../../../../core/utils/formato_moneda.dart';
 import '../../../../core/utils/codigo_barras_utils.dart';
 import '../../../../core/widgets/barcode_scanner_screen.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 /// Resultado de elegir un producto (y el nivel de precio con el que se va a
 /// vender) desde el buscador.
@@ -283,7 +283,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                   IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
                   const SizedBox(width: 6),
                   Expanded(
-                    child: Text('Buscar Producto', style: GoogleFonts.poppins(fontSize: esMovil ? 18 : 21, fontWeight: FontWeight.w700)),
+                    child: Text('Buscar Producto', style: appFont(fontSize: esMovil ? 18 : 21, fontWeight: FontWeight.w700)),
                   ),
                 ],
               ),
@@ -292,7 +292,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                 padding: EdgeInsets.only(left: esMovil ? 0 : 54),
                 child: Text(
                   'Enter en el buscador busca · doble clic o Enter en la lista agrega el producto resaltado',
-                  style: GoogleFonts.poppins(fontSize: esMovil ? 11.5 : 12.5, color: Colors.grey.shade500),
+                  style: appFont(fontSize: esMovil ? 11.5 : 12.5, color: Colors.grey.shade500),
                 ),
               ),
               const SizedBox(height: 16),
@@ -315,10 +315,10 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                             child: TextField(
                               controller: _busquedaController,
                               autofocus: true,
-                              style: GoogleFonts.poppins(fontSize: 14),
+                              style: appFont(fontSize: 14),
                               decoration: InputDecoration(
                                 hintText: 'Escribí y presioná Enter para buscar...',
-                                hintStyle: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade400),
+                                hintStyle: appFont(fontSize: 13, color: Colors.grey.shade400),
                                 border: InputBorder.none,
                                 isDense: true,
                               ),
@@ -339,7 +339,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                     OutlinedButton.icon(
                       onPressed: _escanear,
                       icon: const Icon(Icons.qr_code_scanner, size: 18),
-                      label: Text('Escanear', style: GoogleFonts.poppins(fontSize: 13)),
+                      label: Text('Escanear', style: appFont(fontSize: 13)),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: const Color(0xFF1A1A1A),
                         side: const BorderSide(color: Color(0xFFB6BCC7)),
@@ -350,7 +350,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                   OutlinedButton.icon(
                     onPressed: _crearProductoNuevo,
                     icon: const Icon(Icons.add_circle_outline, size: 18),
-                    label: Text('Producto Nuevo', style: GoogleFonts.poppins(fontSize: 13)),
+                    label: Text('Producto Nuevo', style: appFont(fontSize: 13)),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: const Color(0xFF0D2B4E),
                       side: const BorderSide(color: Color(0xFF0D2B4E)),
@@ -383,7 +383,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                             children: [
                               Icon(Icons.search, size: 48, color: Colors.grey.shade300),
                               const SizedBox(height: 12),
-                              Text('Escribí algo y presioná Enter para buscar', style: GoogleFonts.poppins(color: Colors.grey.shade500)),
+                              Text('Escribí algo y presioná Enter para buscar', style: appFont(color: Colors.grey.shade500)),
                             ],
                           ),
                         );
@@ -393,7 +393,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                       _listaActual = lista;
                       if (lista.isEmpty) {
                         return Center(
-                          child: Text('No se encontraron productos', style: GoogleFonts.poppins(color: Colors.grey.shade500)),
+                          child: Text('No se encontraron productos', style: appFont(color: Colors.grey.shade500)),
                         );
                       }
                       return Column(
@@ -419,7 +419,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                       );
                     },
                     loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF0D2B4E))),
-                    error: (e, st) => Center(child: Text('Error: $e', style: GoogleFonts.poppins(color: Colors.red))),
+                    error: (e, st) => Center(child: Text('Error: $e', style: appFont(color: Colors.red))),
                     ),
                   ),
                 ),
@@ -446,7 +446,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
           ),
           child: Text(
             texto,
-            style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: activo ? Colors.white : const Color(0xFF666A72)),
+            style: appFont(fontSize: 13, fontWeight: FontWeight.w600, color: activo ? Colors.white : const Color(0xFF666A72)),
           ),
         ),
       );
@@ -468,7 +468,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
   }
 
   Widget _encabezadoTabla() {
-    final estilo = GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.grey.shade600);
+    final estilo = appFont(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.grey.shade600);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -513,14 +513,14 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
   Widget _celdaPrecio(ProductoModel p) {
     final precio = _precioActivo(p);
     if (precio == null) {
-      return Text('—', style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade400));
+      return Text('—', style: appFont(fontSize: 13, color: Colors.grey.shade400));
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(formatearMoneda(precio.precio), style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF2B6CB0))),
-        if (precio.nivel != _nivelActivo) Text('Nivel ${precio.nivel}', style: GoogleFonts.poppins(fontSize: 10.5, color: Colors.grey.shade500)),
+        Text(formatearMoneda(precio.precio), style: appFont(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF2B6CB0))),
+        if (precio.nivel != _nivelActivo) Text('Nivel ${precio.nivel}', style: appFont(fontSize: 10.5, color: Colors.grey.shade500)),
       ],
     );
   }
@@ -547,19 +547,19 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Expanded(flex: 2, child: Text(p.codigo, style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade600))),
+              Expanded(flex: 2, child: Text(p.codigo, style: appFont(fontSize: 13, color: Colors.grey.shade600))),
               Expanded(
                 flex: 6,
                 child: Padding(
                   padding: const EdgeInsets.only(right: 10),
-                  child: Text(p.nombre, softWrap: true, style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600)),
+                  child: Text(p.nombre, softWrap: true, style: appFont(fontSize: 13.5, fontWeight: FontWeight.w600)),
                 ),
               ),
               Expanded(
                 flex: 3,
                 child: Padding(
                   padding: const EdgeInsets.only(right: 10),
-                  child: Text(mapaCategorias[p.idCategoria] ?? '-', softWrap: true, style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600)),
+                  child: Text(mapaCategorias[p.idCategoria] ?? '-', softWrap: true, style: appFont(fontSize: 12.5, color: Colors.grey.shade600)),
                 ),
               ),
               Expanded(
@@ -574,7 +574,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                     decoration: BoxDecoration(color: bajoStock ? const Color(0xFFFCE4E4) : const Color(0xFFF0FBF4), borderRadius: BorderRadius.circular(8)),
                     child: Text(
                       p.stock.toStringAsFixed(p.stock == p.stock.roundToDouble() ? 0 : 2),
-                      style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: bajoStock ? const Color(0xFF0D2B4E) : const Color(0xFF1E9E5A)),
+                      style: appFont(fontSize: 12, fontWeight: FontWeight.w600, color: bajoStock ? const Color(0xFF0D2B4E) : const Color(0xFF1E9E5A)),
                     ),
                   ),
                 ),
@@ -615,9 +615,9 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(p.nombre, softWrap: true, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600)),
+                        Text(p.nombre, softWrap: true, style: appFont(fontSize: 14, fontWeight: FontWeight.w600)),
                         const SizedBox(height: 2),
-                        Text('${p.codigo} · ${mapaCategorias[p.idCategoria] ?? '-'}', softWrap: true, style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade500)),
+                        Text('${p.codigo} · ${mapaCategorias[p.idCategoria] ?? '-'}', softWrap: true, style: appFont(fontSize: 12, color: Colors.grey.shade500)),
                       ],
                     ),
                   ),
@@ -626,7 +626,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                     decoration: BoxDecoration(color: bajoStock ? const Color(0xFFFCE4E4) : const Color(0xFFF0FBF4), borderRadius: BorderRadius.circular(8)),
                     child: Text(
                       'Existencia: ${p.stock.toStringAsFixed(p.stock == p.stock.roundToDouble() ? 0 : 2)}',
-                      style: GoogleFonts.poppins(fontSize: 11.5, fontWeight: FontWeight.w600, color: bajoStock ? const Color(0xFF0D2B4E) : const Color(0xFF1E9E5A)),
+                      style: appFont(fontSize: 11.5, fontWeight: FontWeight.w600, color: bajoStock ? const Color(0xFF0D2B4E) : const Color(0xFF1E9E5A)),
                     ),
                   ),
                 ],

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../data/producto_model.dart';
 import '../../data/producto_export_service.dart';
 import '../../providers/productos_provider.dart';
@@ -24,6 +23,7 @@ import '../../../../core/widgets/barcode_scanner_screen.dart';
 import '../../../../core/utils/codigo_barras_utils.dart';
 import '../../../../core/constants/roles.dart';
 import '../../../auth/providers/auth_provider.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 class InventarioScreen extends ConsumerStatefulWidget {
   const InventarioScreen({super.key});
@@ -114,7 +114,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     if (cacheado != null) return cacheado;
 
     final tp = TextPainter(
-      text: TextSpan(text: nombre, style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600)),
+      text: TextSpan(text: nombre, style: appFont(fontSize: 12.5, fontWeight: FontWeight.w600)),
       textDirection: TextDirection.ltr,
       maxLines: 6,
     )..layout(maxWidth: anchoColumnaNombre);
@@ -402,7 +402,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                     spacing: 12,
                     runSpacing: 10,
                     children: [
-                      Text('Inventario', style: GoogleFonts.poppins(fontSize: esMovil ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+                      Text('Inventario', style: appFont(fontSize: esMovil ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
                       productosAsync.when(
                         data: (productos) {
                           if (soloLectura) return _badgeInfo('${productos.length} productos', const Color(0xFF0D2B4E));
@@ -435,32 +435,32 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                       OutlinedButton.icon(
                         onPressed: () => ref.invalidate(productosStreamProvider),
                         icon: const Icon(Icons.refresh, size: 18),
-                        label: Text('Refrescar', style: GoogleFonts.poppins(fontSize: 13)),
+                        label: Text('Refrescar', style: appFont(fontSize: 13)),
                         style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                       ),
                       if (!soloLectura) ...[
                         OutlinedButton.icon(
                           onPressed: _abrirImportar,
                           icon: const Icon(Icons.upload_file_outlined, size: 18),
-                          label: Text('Importar', style: GoogleFonts.poppins(fontSize: 13)),
+                          label: Text('Importar', style: appFont(fontSize: 13)),
                           style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                         ),
                         OutlinedButton.icon(
                           onPressed: () => _exportarExcel(mapaCategorias),
                           icon: const Icon(Icons.grid_on_outlined, size: 18),
-                          label: Text('Excel', style: GoogleFonts.poppins(fontSize: 13)),
+                          label: Text('Excel', style: appFont(fontSize: 13)),
                           style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                         ),
                         OutlinedButton.icon(
                           onPressed: () => _exportarPdf(mapaCategorias),
                           icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
-                          label: Text('PDF', style: GoogleFonts.poppins(fontSize: 13)),
+                          label: Text('PDF', style: appFont(fontSize: 13)),
                           style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                         ),
                         OutlinedButton.icon(
                           onPressed: () => _imprimirTicketGrid(mapaCategorias),
                           icon: const Icon(Icons.receipt_long_outlined, size: 18),
-                          label: Text('Ticket', style: GoogleFonts.poppins(fontSize: 13)),
+                          label: Text('Ticket', style: appFont(fontSize: 13)),
                           style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                         ),
                       ],
@@ -471,7 +471,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                       FilledButton.icon(
                         onPressed: () => _abrirFormulario(),
                         icon: const Icon(Icons.add, size: 18),
-                        label: Text('Nuevo Producto', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+                        label: Text('Nuevo Producto', style: appFont(fontSize: 13, fontWeight: FontWeight.w600)),
                         style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E), padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                       ),
                     ],
@@ -501,7 +501,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                                 Text(
                                   vista == 'filtrados' && busqueda.isEmpty ? 'Escribí algo y presioná buscar' : 'No hay productos encontrados',
                                   textAlign: TextAlign.center,
-                                  style: GoogleFonts.poppins(color: Colors.grey.shade500),
+                                  style: appFont(color: Colors.grey.shade500),
                                 ),
                               ],
                             ),
@@ -515,7 +515,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                         );
                       },
                       loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF0D2B4E))),
-                      error: (e, st) => Center(child: Text('Error: $e', style: GoogleFonts.poppins(color: Colors.red))),
+                      error: (e, st) => Center(child: Text('Error: $e', style: appFont(color: Colors.red))),
                     ),
                   ),
             ),
@@ -529,7 +529,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
-      child: Text(texto, style: GoogleFonts.poppins(fontSize: 11.5, fontWeight: FontWeight.w600, color: color)),
+      child: Text(texto, style: appFont(fontSize: 11.5, fontWeight: FontWeight.w600, color: color)),
     );
   }
 
@@ -607,18 +607,18 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          _celdaTabla(flex: 12, child: Text(producto.codigo, maxLines: 6, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 12.5, color: const Color(0xFF3F434A)))),
+                          _celdaTabla(flex: 12, child: Text(producto.codigo, maxLines: 6, overflow: TextOverflow.ellipsis, style: appFont(fontSize: 12.5, color: const Color(0xFF3F434A)))),
                           // El nombre prácticamente nunca se recorta: la altura
                           // de la fila ya se calculó (_alturaFila) midiendo
                           // cuántas líneas necesita (mismo tope de 6 líneas acá
                           // como red de seguridad si el ancho cambiara justo
                           // entre la medición y el pintado, ej. al redimensionar
                           // la ventana).
-                          _celdaTabla(flex: 24, child: Text(producto.nombre, maxLines: 6, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A)))),
+                          _celdaTabla(flex: 24, child: Text(producto.nombre, maxLines: 6, overflow: TextOverflow.ellipsis, style: appFont(fontSize: 12.5, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A)))),
                           if (mostrarDescripcion)
-                            _celdaTabla(flex: 20, child: Text(producto.descripcion.isEmpty ? '-' : producto.descripcion, maxLines: 2, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600))),
+                            _celdaTabla(flex: 20, child: Text(producto.descripcion.isEmpty ? '-' : producto.descripcion, maxLines: 2, overflow: TextOverflow.ellipsis, style: appFont(fontSize: 12, color: Colors.grey.shade600))),
                           if (mostrarCategoria)
-                            _celdaTabla(flex: 17, child: Text(mapaCategorias[producto.idCategoria] ?? '-', maxLines: 2, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 12.5, color: const Color(0xFF3F434A)))),
+                            _celdaTabla(flex: 17, child: Text(mapaCategorias[producto.idCategoria] ?? '-', maxLines: 2, overflow: TextOverflow.ellipsis, style: appFont(fontSize: 12.5, color: const Color(0xFF3F434A)))),
                           _celdaTabla(
                             flex: 12,
                             child: Align(
@@ -626,13 +626,13 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                                 decoration: BoxDecoration(color: bajoStock ? const Color(0xFFFCE4E4) : const Color(0xFFEFF4FF), borderRadius: BorderRadius.circular(8)),
-                                child: Text(producto.stock.toString(), style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w700, color: bajoStock ? const Color(0xFF0D2B4E) : const Color(0xFF3B82F6))),
+                                child: Text(producto.stock.toString(), style: appFont(fontSize: 12.5, fontWeight: FontWeight.w700, color: bajoStock ? const Color(0xFF0D2B4E) : const Color(0xFF3B82F6))),
                               ),
                             ),
                           ),
-                          _celdaTabla(flex: 14, child: Text(formatearMoneda(_precioMostrado(producto)), maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 12.5, color: const Color(0xFF3F434A)))),
+                          _celdaTabla(flex: 14, child: Text(formatearMoneda(_precioMostrado(producto)), maxLines: 1, overflow: TextOverflow.ellipsis, style: appFont(fontSize: 12.5, color: const Color(0xFF3F434A)))),
                           if (!soloLectura)
-                            _celdaTabla(flex: 14, child: Text(formatearMoneda(producto.precioCompra), maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 12.5, color: const Color(0xFF3F434A)))),
+                            _celdaTabla(flex: 14, child: Text(formatearMoneda(producto.precioCompra), maxLines: 1, overflow: TextOverflow.ellipsis, style: appFont(fontSize: 12.5, color: const Color(0xFF3F434A)))),
                           _celdaTabla(
                             flex: 11,
                             child: Align(
@@ -640,7 +640,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
                                 decoration: BoxDecoration(color: producto.estado ? const Color(0xFFE8F8EE) : Colors.grey.shade200, borderRadius: BorderRadius.circular(8)),
-                                child: Text(producto.estado ? 'Activo' : 'Inactivo', maxLines: 1, style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: producto.estado ? const Color(0xFF16A34A) : Colors.grey.shade600)),
+                                child: Text(producto.estado ? 'Activo' : 'Inactivo', maxLines: 1, style: appFont(fontSize: 11, fontWeight: FontWeight.w600, color: producto.estado ? const Color(0xFF16A34A) : Colors.grey.shade600)),
                               ),
                             ),
                           ),
@@ -682,13 +682,13 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(child: Text(p.nombre, style: GoogleFonts.poppins(fontSize: 14.5, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A)))),
+                    Expanded(child: Text(p.nombre, style: appFont(fontSize: 14.5, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A)))),
                     _celdaAccionesMovil(p, soloLectura),
                   ],
                 ),
                 if (p.descripcion.isNotEmpty) ...[
                   const SizedBox(height: 4),
-                  Text(p.descripcion, style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600)),
+                  Text(p.descripcion, style: appFont(fontSize: 12, color: Colors.grey.shade600)),
                 ],
                 const SizedBox(height: 10),
                 Wrap(
@@ -700,12 +700,12 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(color: bajoStock ? const Color(0xFFFCE4E4) : const Color(0xFFEFF4FF), borderRadius: BorderRadius.circular(8)),
-                      child: Text('Existencia: ${p.stock}', style: GoogleFonts.poppins(fontSize: 11.5, fontWeight: FontWeight.w700, color: bajoStock ? const Color(0xFF0D2B4E) : const Color(0xFF3B82F6))),
+                      child: Text('Existencia: ${p.stock}', style: appFont(fontSize: 11.5, fontWeight: FontWeight.w700, color: bajoStock ? const Color(0xFF0D2B4E) : const Color(0xFF3B82F6))),
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(color: p.estado ? const Color(0xFFE8F8EE) : Colors.grey.shade200, borderRadius: BorderRadius.circular(8)),
-                      child: Text(p.estado ? 'Activo' : 'Inactivo', style: GoogleFonts.poppins(fontSize: 11.5, fontWeight: FontWeight.w600, color: p.estado ? const Color(0xFF16A34A) : Colors.grey.shade600)),
+                      child: Text(p.estado ? 'Activo' : 'Inactivo', style: appFont(fontSize: 11.5, fontWeight: FontWeight.w600, color: p.estado ? const Color(0xFF16A34A) : Colors.grey.shade600)),
                     ),
                   ],
                 ),
@@ -714,9 +714,9 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                   spacing: 16,
                   runSpacing: 4,
                   children: [
-                    Text('Venta (${_precioConIsv ? 'c/ISV' : 's/ISV'}): ${formatearMoneda(_precioMostrado(p))}', style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600)),
+                    Text('Venta (${_precioConIsv ? 'c/ISV' : 's/ISV'}): ${formatearMoneda(_precioMostrado(p))}', style: appFont(fontSize: 12.5, fontWeight: FontWeight.w600)),
                     if (!soloLectura)
-                      Text('Compra: ${formatearMoneda(p.precioCompra)}', style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600)),
+                      Text('Compra: ${formatearMoneda(p.precioCompra)}', style: appFont(fontSize: 12.5, color: Colors.grey.shade600)),
                   ],
                 ),
               ],
@@ -731,7 +731,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(color: const Color(0xFFE8EAF0), borderRadius: BorderRadius.circular(8)),
-      child: Text('$label: $valor', style: GoogleFonts.poppins(fontSize: 11.5, color: const Color(0xFF3F434A))),
+      child: Text('$label: $valor', style: appFont(fontSize: 11.5, color: const Color(0xFF3F434A))),
     );
   }
 
@@ -750,7 +750,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Flexible(
-                child: Text(texto, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 10.5, fontWeight: FontWeight.w700, color: activa ? const Color(0xFF0D2B4E) : const Color(0xFF666A72), letterSpacing: 0.35)),
+                child: Text(texto, maxLines: 1, overflow: TextOverflow.ellipsis, style: appFont(fontSize: 10.5, fontWeight: FontWeight.w700, color: activa ? const Color(0xFF0D2B4E) : const Color(0xFF666A72), letterSpacing: 0.35)),
               ),
               if (columnaOrdenKey != null) ...[
                 const SizedBox(width: 4),
@@ -764,7 +764,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
   }
 
   Widget _celdaHeaderAcciones() {
-    return Container(width: 76, height: double.infinity, alignment: Alignment.center, child: Text('ACCIONES', maxLines: 1, style: GoogleFonts.poppins(fontSize: 9.5, fontWeight: FontWeight.w700, color: const Color(0xFF666A72), letterSpacing: 0.25)));
+    return Container(width: 76, height: double.infinity, alignment: Alignment.center, child: Text('ACCIONES', maxLines: 1, style: appFont(fontSize: 9.5, fontWeight: FontWeight.w700, color: const Color(0xFF666A72), letterSpacing: 0.25)));
   }
 
   Widget _celdaTabla({required int flex, required Widget child}) {
@@ -862,7 +862,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     return PopupMenuItem<String>(
       value: valor,
       height: 44,
-      child: Row(children: [Icon(icono, size: 19, color: const Color(0xFF4B4F58)), const SizedBox(width: 12), Text(texto, style: GoogleFonts.poppins(fontSize: 12.5, color: const Color(0xFF25272B)))]),
+      child: Row(children: [Icon(icono, size: 19, color: const Color(0xFF4B4F58)), const SizedBox(width: 12), Text(texto, style: appFont(fontSize: 12.5, color: const Color(0xFF25272B)))]),
     );
   }
 
@@ -875,7 +875,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
         child: DropdownButton<String>(
           value: vista,
           isExpanded: true,
-          style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF1A1A1A)),
+          style: appFont(fontSize: 13, color: const Color(0xFF1A1A1A)),
           items: const [
             DropdownMenuItem(value: 'filtrados', child: Text('Productos filtrados')),
             DropdownMenuItem(value: 'todos', child: Text('Mostrar todos')),
@@ -905,7 +905,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
           ),
           child: Text(
             texto,
-            style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: activo ? Colors.white : const Color(0xFF666A72)),
+            style: appFont(fontSize: 13, fontWeight: FontWeight.w600, color: activo ? Colors.white : const Color(0xFF666A72)),
           ),
         ),
       );
@@ -938,8 +938,8 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
             child: TextField(
               controller: _busquedaController,
               autofocus: true,
-              style: GoogleFonts.poppins(fontSize: 13),
-              decoration: InputDecoration(hintText: 'Buscar o escanear código de barras...', hintStyle: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade400), border: InputBorder.none, isDense: true),
+              style: appFont(fontSize: 13),
+              decoration: InputDecoration(hintText: 'Buscar o escanear código de barras...', hintStyle: appFont(fontSize: 12.5, color: Colors.grey.shade400), border: InputBorder.none, isDense: true),
               onSubmitted: (_) => _buscar(),
             ),
           ),

@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, Tar
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -43,6 +42,7 @@ import '../widgets/teclado_numerico_dialog.dart';
 import '../widgets/escanear_remoto_dialog.dart';
 import '../../data/tipos_documento.dart';
 import 'detalle_venta_screen.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 const _metodosPago = ['Efectivo', 'Tarjeta', 'Transferencia', 'Mixto'];
 
@@ -356,14 +356,14 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(titulo, style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
-        content: Text(mensaje, style: GoogleFonts.poppins(fontSize: 13)),
+        title: Text(titulo, style: appFont(fontWeight: FontWeight.w700)),
+        content: Text(mensaje, style: appFont(fontSize: 13)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('No', style: GoogleFonts.poppins())),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('No', style: appFont())),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E)),
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Sí', style: GoogleFonts.poppins()),
+            child: Text('Sí', style: appFont()),
           ),
         ],
       ),
@@ -430,11 +430,11 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
     final elegido = await showDialog<VehiculoModel>(
       context: context,
       builder: (context) => SimpleDialog(
-        title: Text('Vehículos de ${cliente.nombreCompleto}', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 15)),
+        title: Text('Vehículos de ${cliente.nombreCompleto}', style: appFont(fontWeight: FontWeight.w700, fontSize: 15)),
         children: vehiculos
             .map((v) => SimpleDialogOption(
                   onPressed: () => Navigator.pop(context, v),
-                  child: Text(v.descripcion, style: GoogleFonts.poppins(fontSize: 13.5)),
+                  child: Text(v.descripcion, style: appFont(fontSize: 13.5)),
                 ))
             .toList(),
       ),
@@ -996,7 +996,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
       // tener que volver a cargar todo.
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('⚠ $mensaje', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+          content: Text('⚠ $mensaje', style: appFont(fontWeight: FontWeight.w600)),
           backgroundColor: const Color(0xFF0D2B4E),
           duration: const Duration(seconds: 12),
           showCloseIcon: true,
@@ -1163,17 +1163,17 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
       barrierDismissible: false,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Venta ${venta.numeroDocumento} registrada', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 16)),
-        content: Text('¿Qué querés hacer con el ticket?', style: GoogleFonts.poppins(fontSize: 13)),
+        title: Text('Venta ${venta.numeroDocumento} registrada', style: appFont(fontWeight: FontWeight.w700, fontSize: 16)),
+        content: Text('¿Qué querés hacer con el ticket?', style: appFont(fontSize: 13)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, 'pendiente'),
-            child: Text('Dejar pendiente', style: GoogleFonts.poppins()),
+            child: Text('Dejar pendiente', style: appFont()),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E)),
             onPressed: () => Navigator.pop(context, 'imprimir'),
-            child: Text('Imprimir', style: GoogleFonts.poppins()),
+            child: Text('Imprimir', style: appFont()),
           ),
         ],
       ),
@@ -1297,29 +1297,29 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
       spacing: 12,
       runSpacing: 10,
       children: [
-        Text('Registrar Venta', style: GoogleFonts.poppins(fontSize: esMovil ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+        Text('Registrar Venta', style: appFont(fontSize: esMovil ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
         OutlinedButton.icon(
           onPressed: _confirmarLimpiar,
           icon: const Icon(Icons.delete_sweep_outlined, size: 18),
-          label: Text('Limpiar Venta', style: GoogleFonts.poppins(fontSize: 13)),
+          label: Text('Limpiar Venta', style: appFont(fontSize: 13)),
           style: _estiloBotonSecundario(),
         ),
         OutlinedButton.icon(
           onPressed: _guardarEnEspera,
           icon: const Icon(Icons.pause_circle_outline, size: 18),
-          label: Text('Guardar en Espera', style: GoogleFonts.poppins(fontSize: 13)),
+          label: Text('Guardar en Espera', style: appFont(fontSize: 13)),
           style: _estiloBotonSecundario(),
         ),
         OutlinedButton.icon(
           onPressed: _verEnEspera,
           icon: const Icon(Icons.list_alt_outlined, size: 18),
-          label: Text('Ver en Espera', style: GoogleFonts.poppins(fontSize: 13)),
+          label: Text('Ver en Espera', style: appFont(fontSize: 13)),
           style: _estiloBotonSecundario(),
         ),
         OutlinedButton.icon(
           onPressed: _verDetalleVenta,
           icon: const Icon(Icons.receipt_long_outlined, size: 18),
-          label: Text('Ver Detalle', style: GoogleFonts.poppins(fontSize: 13)),
+          label: Text('Ver Detalle', style: appFont(fontSize: 13)),
           style: _estiloBotonSecundario(),
         ),
         Badge(
@@ -1329,7 +1329,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
           child: OutlinedButton.icon(
             onPressed: _verPendientesImpresion,
             icon: const Icon(Icons.print_disabled_outlined, size: 18),
-            label: Text('Pendientes de Impresión', style: GoogleFonts.poppins(fontSize: 13)),
+            label: Text('Pendientes de Impresión', style: appFont(fontSize: 13)),
             style: _estiloBotonSecundario(),
           ),
         ),
@@ -1371,7 +1371,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
   InputDecoration _decoracion(String label) {
     return InputDecoration(
       labelText: label,
-      labelStyle: GoogleFonts.poppins(fontSize: 12.5),
+      labelStyle: appFont(fontSize: 12.5),
       filled: true,
       fillColor: const Color(0xFFE8EAF0),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -1407,7 +1407,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                       children: [
                         Icon(Icons.calendar_today_outlined, size: 16, color: Colors.grey.shade500),
                         const SizedBox(width: 10),
-                        Flexible(child: Text(formatoFecha.format(carrito.fecha), overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF1A1A1A)))),
+                        Flexible(child: Text(formatoFecha.format(carrito.fecha), overflow: TextOverflow.ellipsis, style: appFont(fontSize: 13, color: const Color(0xFF1A1A1A)))),
                       ],
                     ),
                   ),
@@ -1419,7 +1419,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                   initialValue: carrito.tipoDocumento,
                   isExpanded: true,
                   decoration: _decoracion('Tipo de documento'),
-                  style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF1A1A1A)),
+                  style: appFont(fontSize: 13, color: const Color(0xFF1A1A1A)),
                   items: tiposDocumento.entries.map((e) => DropdownMenuItem(value: e.key, child: Text(e.value, overflow: TextOverflow.ellipsis))).toList(),
                   onChanged: (v) {
                     if (v == null) return;
@@ -1434,10 +1434,10 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                     Expanded(
                       child: TextField(
                         controller: _nombreClienteController,
-                        style: GoogleFonts.poppins(fontSize: 13),
+                        style: appFont(fontSize: 13),
                         decoration: _decoracion('Cliente').copyWith(
                           hintText: 'Vacío = Consumidor Final',
-                          hintStyle: GoogleFonts.poppins(fontSize: 11.5, color: Colors.grey.shade400),
+                          hintStyle: appFont(fontSize: 11.5, color: Colors.grey.shade400),
                         ),
                       ),
                     ),
@@ -1454,7 +1454,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                 width: esMovil ? double.infinity : 180,
                 child: TextField(
                   controller: _documentoClienteController,
-                  style: GoogleFonts.poppins(fontSize: 13),
+                  style: appFont(fontSize: 13),
                   decoration: _decoracion('RTN / Documento'),
                   onChanged: (v) => ref.read(carritoVentaProvider.notifier).establecerDocumentoCliente(v),
                 ),
@@ -1465,7 +1465,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                   initialValue: carrito.condicion,
                   isExpanded: true,
                   decoration: _decoracion('Condición'),
-                  style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF1A1A1A)),
+                  style: appFont(fontSize: 13, color: const Color(0xFF1A1A1A)),
                   items: const [
                     DropdownMenuItem(value: 'Contado', child: Text('Contado')),
                     DropdownMenuItem(value: 'Credito', child: Text('Crédito')),
@@ -1485,7 +1485,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                     initialValue: _metodosPago.contains(carrito.metodoPago) ? carrito.metodoPago : null,
                     isExpanded: true,
                     decoration: _decoracion('Método de pago'),
-                    style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF1A1A1A)),
+                    style: appFont(fontSize: 13, color: const Color(0xFF1A1A1A)),
                     items: _metodosPago.map((m) => DropdownMenuItem(value: m, child: Text(m))).toList(),
                     onChanged: (v) {
                       if (v == null) return;
@@ -1509,7 +1509,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                     controller: _porcentajeTarjetaController,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))],
-                    style: GoogleFonts.poppins(fontSize: 13),
+                    style: appFont(fontSize: 13),
                     decoration: _decoracion('% comisión tarjeta'),
                     onChanged: (v) {
                       final valor = double.tryParse(v.replaceAll(',', '.')) ?? 0;
@@ -1524,7 +1524,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                 width: esMovil ? double.infinity : 260,
                 child: TextField(
                   controller: _vehiculoController,
-                  style: GoogleFonts.poppins(fontSize: 13),
+                  style: appFont(fontSize: 13),
                   decoration: _decoracion('Vehículo').copyWith(
                     suffixIcon: IconButton(
                       tooltip: 'Elegir vehículo del cliente',
@@ -1545,7 +1545,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                     children: [
                       Text(
                         _datosExpandidos ? 'Ver menos' : 'Más datos',
-                        style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600, color: const Color(0xFF0D2B4E)),
+                        style: appFont(fontSize: 12.5, fontWeight: FontWeight.w600, color: const Color(0xFF0D2B4E)),
                       ),
                       Icon(_datosExpandidos ? Icons.expand_less : Icons.expand_more, size: 20, color: const Color(0xFF0D2B4E)),
                     ],
@@ -1567,7 +1567,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                       children: [
                         Divider(color: Colors.grey.shade200),
                         const SizedBox(height: 14),
-                        Text('Descuento y campos fiscales de uso poco frecuente', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade500)),
+                        Text('Descuento y campos fiscales de uso poco frecuente', style: appFont(fontSize: 12, color: Colors.grey.shade500)),
                         const SizedBox(height: 12),
                         Wrap(
                           spacing: 14,
@@ -1599,7 +1599,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                                           child: Text(
                                             'Vence: ${carrito.fechaVencimiento != null ? formatoFecha.format(carrito.fechaVencimiento!) : 'Sin definir'}',
                                             overflow: TextOverflow.ellipsis,
-                                            style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF1A1A1A)),
+                                            style: appFont(fontSize: 13, color: const Color(0xFF1A1A1A)),
                                           ),
                                         ),
                                       ],
@@ -1612,7 +1612,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                               child: TextField(
                                 controller: _descuentoGlobalController,
                                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                style: GoogleFonts.poppins(fontSize: 13),
+                                style: appFont(fontSize: 13),
                                 decoration: _decoracion('Descuento global (%) sobre toda la venta'),
                                 onChanged: (v) {
                                   final valor = double.tryParse(v.replaceAll(',', '').trim());
@@ -1626,7 +1626,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                               child: TextField(
                                 enabled: !carrito.esCotizacion,
                                 controller: _ocController,
-                                style: GoogleFonts.poppins(fontSize: 13),
+                                style: appFont(fontSize: 13),
                                 decoration: _decoracion('No. O/C exenta'),
                                 onChanged: (v) => ref.read(carritoVentaProvider.notifier).establecerOc(v),
                               ),
@@ -1636,7 +1636,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                               child: TextField(
                                 enabled: !carrito.esCotizacion,
                                 controller: _regExoneradoController,
-                                style: GoogleFonts.poppins(fontSize: 13),
+                                style: appFont(fontSize: 13),
                                 decoration: _decoracion('No. Reg. exonerado'),
                                 onChanged: (v) => ref.read(carritoVentaProvider.notifier).establecerRegExonerado(v),
                               ),
@@ -1646,7 +1646,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                               child: TextField(
                                 enabled: !carrito.esCotizacion,
                                 controller: _regSagController,
-                                style: GoogleFonts.poppins(fontSize: 13),
+                                style: appFont(fontSize: 13),
                                 decoration: _decoracion('No. Reg. SAG'),
                                 onChanged: (v) => ref.read(carritoVentaProvider.notifier).establecerRegSag(v),
                               ),
@@ -1732,7 +1732,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
               ? Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Productos en la venta', style: GoogleFonts.poppins(fontSize: 14.5, fontWeight: FontWeight.w700)),
+                    Text('Productos en la venta', style: appFont(fontSize: 14.5, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 10),
                     Row(
                       children: [
@@ -1740,7 +1740,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                           child: FilledButton.icon(
                             onPressed: _agregarProductoDesdeBusqueda,
                             icon: const Icon(Icons.add, size: 18),
-                            label: Text('Agregar Producto', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+                            label: Text('Agregar Producto', style: appFont(fontSize: 13, fontWeight: FontWeight.w600)),
                             style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                           ),
                         ),
@@ -1749,7 +1749,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                           OutlinedButton.icon(
                             onPressed: _escanearConCamara,
                             icon: const Icon(Icons.qr_code_scanner, size: 16),
-                            label: Text('Escanear', style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600)),
+                            label: Text('Escanear', style: appFont(fontSize: 12.5, fontWeight: FontWeight.w600)),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: const Color(0xFF1A1A1A),
                               side: const BorderSide(color: Color(0xFFB6BCC7)),
@@ -1764,7 +1764,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                 )
               : Row(
                   children: [
-                    Text('Productos en la venta', style: GoogleFonts.poppins(fontSize: 14.5, fontWeight: FontWeight.w700)),
+                    Text('Productos en la venta', style: appFont(fontSize: 14.5, fontWeight: FontWeight.w700)),
                     const SizedBox(width: 14),
                     IconButton(
                       tooltip: 'Ver la tabla más grande',
@@ -1778,7 +1778,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                       icon: Icon(_escaneoRemotoConectado ? Icons.wifi_tethering : Icons.qr_code_scanner, size: 18, color: _escaneoRemotoConectado ? Colors.green.shade600 : null),
                       label: Text(
                         _escaneoRemotoConectado ? 'Escaneo activo' : 'Escanear con celular',
-                        style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: _escaneoRemotoConectado ? Colors.green.shade700 : null),
+                        style: appFont(fontSize: 13, fontWeight: FontWeight.w600, color: _escaneoRemotoConectado ? Colors.green.shade700 : null),
                       ),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: const Color(0xFF1A1A1A),
@@ -1791,7 +1791,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                     FilledButton.icon(
                       onPressed: _agregarProductoDesdeBusqueda,
                       icon: const Icon(Icons.add, size: 18),
-                      label: Text('Agregar Producto', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+                      label: Text('Agregar Producto', style: appFont(fontSize: 13, fontWeight: FontWeight.w600)),
                       style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                     ),
                   ],
@@ -1809,7 +1809,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                 child: Text(
                   'Todavía no agregaste productos.\nUsá "Agregar Producto" para buscar del inventario.',
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.poppins(color: Colors.grey.shade500),
+                  style: appFont(color: Colors.grey.shade500),
                 ),
               ),
             )
@@ -1836,7 +1836,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
             // controladores).
             Expanded(
               child: Center(
-                child: Text('Viendo la tabla ampliada…', style: GoogleFonts.poppins(color: Colors.grey.shade400)),
+                child: Text('Viendo la tabla ampliada…', style: appFont(color: Colors.grey.shade400)),
               ),
             )
           else
@@ -1895,7 +1895,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                   children: [
                     Row(
                       children: [
-                        Text('Productos en la venta', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700)),
+                        Text('Productos en la venta', style: appFont(fontSize: 18, fontWeight: FontWeight.w700)),
                         const SizedBox(width: 14),
                         // Sigue funcionando igual que en la pantalla normal:
                         // abre el mismo buscador, y lo que se elija ahí se
@@ -1907,7 +1907,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                         OutlinedButton.icon(
                           onPressed: _agregarProductoDesdeBusqueda,
                           icon: const Icon(Icons.add, size: 18),
-                          label: Text('Agregar Producto', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+                          label: Text('Agregar Producto', style: appFont(fontSize: 13, fontWeight: FontWeight.w600)),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: const Color(0xFF1A1A1A),
                             side: const BorderSide(color: Color(0xFFB6BCC7)),
@@ -1925,7 +1925,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                     Expanded(
                       child: carrito.items.isEmpty
                           ? Center(
-                              child: Text('Todavía no agregaste productos.', style: GoogleFonts.poppins(color: Colors.grey.shade500)),
+                              child: Text('Todavía no agregaste productos.', style: appFont(color: Colors.grey.shade500)),
                             )
                           : ListView.separated(
                               itemCount: carrito.items.length,
@@ -1964,10 +1964,10 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(etiqueta.toUpperCase(), style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w700, color: Colors.grey.shade500, letterSpacing: 0.3)),
+          Text(etiqueta.toUpperCase(), style: appFont(fontSize: 9, fontWeight: FontWeight.w700, color: Colors.grey.shade500, letterSpacing: 0.3)),
           Text(
             formatearMoneda(valor),
-            style: GoogleFonts.poppins(fontSize: destacado ? 15 : 12.5, fontWeight: FontWeight.w800, color: destacado ? const Color(0xFF0D2B4E) : const Color(0xFF1A1A1A)),
+            style: appFont(fontSize: destacado ? 15 : 12.5, fontWeight: FontWeight.w800, color: destacado ? const Color(0xFF0D2B4E) : const Color(0xFF1A1A1A)),
           ),
         ],
       );
@@ -1997,7 +1997,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
               style: FilledButton.styleFrom(backgroundColor: const Color(0xFF1A1A1A), padding: const EdgeInsets.symmetric(horizontal: 20), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
               child: _guardando
                   ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                  : Text(_textoBoton, style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w700, color: Colors.white)),
+                  : Text(_textoBoton, style: appFont(fontSize: 12.5, fontWeight: FontWeight.w700, color: Colors.white)),
             ),
           ),
         ],
@@ -2006,7 +2006,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
   }
 
   Widget _encabezadoTablaCarrito() {
-    final estilo = GoogleFonts.poppins(fontSize: 11.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600);
+    final estilo = appFont(fontSize: 11.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600);
     return Row(
       children: [
         Expanded(flex: 2, child: Text('Código', style: estilo)),
@@ -2109,11 +2109,11 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
       focusNode: focusNode,
       textAlign: TextAlign.center,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      style: GoogleFonts.poppins(fontSize: 13),
+      style: appFont(fontSize: 13),
       decoration: InputDecoration(
         suffixText: sufijo,
         prefixText: prefijo,
-        prefixStyle: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade600),
+        prefixStyle: appFont(fontSize: 13, color: Colors.grey.shade600),
         filled: true,
         fillColor: const Color(0xFFE8EAF0),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
@@ -2136,7 +2136,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(etiqueta, style: GoogleFonts.poppins(fontSize: 10, color: Colors.grey.shade500)),
+        Text(etiqueta, style: appFont(fontSize: 10, color: Colors.grey.shade500)),
         const SizedBox(height: 4),
         _campoInlineNumero(claveFoco, controlador, valorActual, alConfirmar, prefijo: prefijo, dosDecimales: dosDecimales),
       ],
@@ -2195,12 +2195,12 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
           // un TextField de varias líneas.
           maxLines: null,
           textInputAction: TextInputAction.done,
-          style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600),
+          style: appFont(fontSize: 13, fontWeight: FontWeight.w600),
           decoration: const InputDecoration(isDense: true, border: InputBorder.none, contentPadding: EdgeInsets.zero),
           onSubmitted: (_) => confirmar(),
           onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
         ),
-        if (item.reembasado as bool) Text('Reembasado', style: GoogleFonts.poppins(fontSize: 10.5, color: Colors.grey.shade400)),
+        if (item.reembasado as bool) Text('Reembasado', style: appFont(fontSize: 10.5, color: Colors.grey.shade400)),
       ],
     );
   }
@@ -2220,12 +2220,12 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Expanded(flex: 2, child: Text(producto?.codigo ?? '-', style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600))),
+          Expanded(flex: 2, child: Text(producto?.codigo ?? '-', style: appFont(fontSize: 12.5, color: Colors.grey.shade600))),
           Expanded(flex: 4, child: _campoDescripcion(index, item)),
           Expanded(flex: 2, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: _campoInlineNumero('cantidad_$index', ctrlCantidad, item.cantidad as double, (v) => _actualizarCantidad(index, v)))),
           Expanded(flex: 2, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: _campoInlineNumero('precio_$index', ctrlPrecio, precioMostrado, (v) => _actualizarPrecio(index, v), prefijo: 'L.', dosDecimales: true))),
           Expanded(flex: 2, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: _campoInlineNumero('descuento_$index', ctrlDescuento, item.descuentoPorcentaje as double, (v) => _actualizarDescuentoLinea(index, v), sufijo: '%'))),
-          Expanded(flex: 2, child: Text(formatearMoneda(importe), textAlign: TextAlign.right, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700))),
+          Expanded(flex: 2, child: Text(formatearMoneda(importe), textAlign: TextAlign.right, style: appFont(fontSize: 13, fontWeight: FontWeight.w700))),
           SizedBox(
             width: 40,
             child: IconButton(icon: const Icon(Icons.delete_outline, size: 18, color: Color(0xFF0D2B4E)), onPressed: () => _quitarItem(index)),
@@ -2259,7 +2259,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _campoDescripcion(index, item),
-                    Text(producto?.codigo ?? '-', style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500)),
+                    Text(producto?.codigo ?? '-', style: appFont(fontSize: 11, color: Colors.grey.shade500)),
                   ],
                 ),
               ),
@@ -2279,7 +2279,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
           const SizedBox(height: 10),
           Align(
             alignment: Alignment.centerRight,
-            child: Text('Importe (c/ISV): ${formatearMoneda(importe)}', style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w700)),
+            child: Text('Importe (c/ISV): ${formatearMoneda(importe)}', style: appFont(fontSize: 13.5, fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -2318,8 +2318,8 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('TOTAL A PAGAR', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white)),
-                Text(formatearMoneda(carrito.totalAPagar), style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.w800, color: Colors.white)),
+                Text('TOTAL A PAGAR', style: appFont(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white)),
+                Text(formatearMoneda(carrito.totalAPagar), style: appFont(fontSize: 24, fontWeight: FontWeight.w800, color: Colors.white)),
               ],
             ),
           ),
@@ -2331,7 +2331,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
               style: FilledButton.styleFrom(backgroundColor: const Color(0xFF1A1A1A), padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
               child: _guardando
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.2))
-                  : Text(_textoBoton, style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white)),
+                  : Text(_textoBoton, style: appFont(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white)),
             ),
           ),
         ],
@@ -2343,8 +2343,8 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(etiqueta.toUpperCase(), style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.grey.shade500, letterSpacing: 0.4)),
-        Text(formatearMoneda(valor), style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+        Text(etiqueta.toUpperCase(), style: appFont(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.grey.shade500, letterSpacing: 0.4)),
+        Text(formatearMoneda(valor), style: appFont(fontSize: 15, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
       ],
     );
   }
@@ -2353,8 +2353,8 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(etiqueta.toUpperCase(), style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.grey.shade500, letterSpacing: 0.4)),
-        Text('${_formatoCantidad(porcentaje)}%', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+        Text(etiqueta.toUpperCase(), style: appFont(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.grey.shade500, letterSpacing: 0.4)),
+        Text('${_formatoCantidad(porcentaje)}%', style: appFont(fontSize: 15, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
       ],
     );
   }

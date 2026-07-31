@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/utils/formato_moneda.dart';
 import '../../data/pago_detalle_model.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 /// Diálogo para repartir el total de una venta entre varios métodos de pago
 /// (por ejemplo, parte en Efectivo y el resto en Transferencia). Devuelve la
@@ -97,7 +97,7 @@ class _PagoMixtoDialogState extends State<PagoMixtoDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Pago mixto', style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700)),
+              Text('Pago mixto', style: appFont(fontSize: 17, fontWeight: FontWeight.w700)),
               const SizedBox(height: 16),
               Container(
                 width: double.infinity,
@@ -106,8 +106,8 @@ class _PagoMixtoDialogState extends State<PagoMixtoDialog> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('TOTAL A PAGAR', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w700, color: const Color(0xFF0D2B4E), letterSpacing: 0.5)),
-                    Text(formatearMoneda(widget.total), style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.w800, color: const Color(0xFF0D2B4E))),
+                    Text('TOTAL A PAGAR', style: appFont(fontSize: 11, fontWeight: FontWeight.w700, color: const Color(0xFF0D2B4E), letterSpacing: 0.5)),
+                    Text(formatearMoneda(widget.total), style: appFont(fontSize: 24, fontWeight: FontWeight.w800, color: const Color(0xFF0D2B4E))),
                   ],
                 ),
               ),
@@ -122,7 +122,7 @@ class _PagoMixtoDialogState extends State<PagoMixtoDialog> {
                         child: DropdownButtonFormField<String>(
                           initialValue: _renglones[i].metodo,
                           isExpanded: true,
-                          style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF1A1A1A)),
+                          style: appFont(fontSize: 13, color: const Color(0xFF1A1A1A)),
                           decoration: InputDecoration(
                             filled: true,
                             fillColor: const Color(0xFFE8EAF0),
@@ -142,11 +142,11 @@ class _PagoMixtoDialogState extends State<PagoMixtoDialog> {
                         child: TextField(
                           controller: _renglones[i].controller,
                           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600),
+                          style: appFont(fontSize: 14, fontWeight: FontWeight.w600),
                           onChanged: (_) => setState(() {}),
                           decoration: InputDecoration(
                             labelText: 'Monto',
-                            labelStyle: GoogleFonts.poppins(fontSize: 12),
+                            labelStyle: appFont(fontSize: 12),
                             filled: true,
                             fillColor: const Color(0xFFE8EAF0),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
@@ -166,7 +166,7 @@ class _PagoMixtoDialogState extends State<PagoMixtoDialog> {
               TextButton.icon(
                 onPressed: _agregarRenglon,
                 icon: const Icon(Icons.add, size: 18),
-                label: Text('Agregar método', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+                label: Text('Agregar método', style: appFont(fontSize: 13, fontWeight: FontWeight.w600)),
                 style: TextButton.styleFrom(foregroundColor: const Color(0xFF0D2B4E)),
               ),
               // Este diálogo no recalcula el recargo por tarjeta (eso vive en
@@ -180,7 +180,7 @@ class _PagoMixtoDialogState extends State<PagoMixtoDialog> {
                 const SizedBox(height: 4),
                 Text(
                   'Si aplica recargo de tarjeta, incluilo ya sumado en el monto de ese renglón.',
-                  style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade600, fontStyle: FontStyle.italic),
+                  style: appFont(fontSize: 11, color: Colors.grey.shade600, fontStyle: FontStyle.italic),
                 ),
               ],
               const SizedBox(height: 10),
@@ -190,26 +190,26 @@ class _PagoMixtoDialogState extends State<PagoMixtoDialog> {
                 decoration: BoxDecoration(color: const Color(0xFFEFF4FF), borderRadius: BorderRadius.circular(12)),
                 child: Row(
                   children: [
-                    Text(_falta.abs() <= 0.01 ? 'Completo' : (_falta > 0 ? 'Falta' : 'Sobra'), style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF3B82F6))),
+                    Text(_falta.abs() <= 0.01 ? 'Completo' : (_falta > 0 ? 'Falta' : 'Sobra'), style: appFont(fontSize: 13, color: const Color(0xFF3B82F6))),
                     const Spacer(),
-                    Text(formatearMoneda(_falta.abs()), style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: const Color(0xFF3B82F6))),
+                    Text(formatearMoneda(_falta.abs()), style: appFont(fontSize: 16, fontWeight: FontWeight.w700, color: const Color(0xFF3B82F6))),
                   ],
                 ),
               ),
               if (_error != null) ...[
                 const SizedBox(height: 12),
-                Text(_error!, style: GoogleFonts.poppins(fontSize: 12, color: Colors.red)),
+                Text(_error!, style: appFont(fontSize: 12, color: Colors.red)),
               ],
               const SizedBox(height: 20),
               Row(
                 children: [
                   const Spacer(),
-                  TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancelar', style: GoogleFonts.poppins(color: Colors.grey.shade700))),
+                  TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancelar', style: appFont(color: Colors.grey.shade700))),
                   const SizedBox(width: 10),
                   FilledButton(
                     onPressed: _confirmar,
                     style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E), padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                    child: Text('Confirmar', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.white)),
+                    child: Text('Confirmar', style: appFont(fontWeight: FontWeight.w600, color: Colors.white)),
                   ),
                 ],
               ),

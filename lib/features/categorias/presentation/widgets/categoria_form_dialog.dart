@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../data/categoria_model.dart';
 import '../../providers/categorias_provider.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 class CategoriaFormDialog extends ConsumerStatefulWidget {
   final CategoriaModel? categoria;
@@ -67,14 +67,14 @@ class _CategoriaFormDialogState extends ConsumerState<CategoriaFormDialog> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Eliminar categoría', style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
-        content: Text('¿Seguro que querés eliminar esta categoría?', style: GoogleFonts.poppins(fontSize: 13)),
+        title: Text('Eliminar categoría', style: appFont(fontWeight: FontWeight.w700)),
+        content: Text('¿Seguro que querés eliminar esta categoría?', style: appFont(fontSize: 13)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancelar', style: GoogleFonts.poppins())),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancelar', style: appFont())),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E)),
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Eliminar', style: GoogleFonts.poppins()),
+            child: Text('Eliminar', style: appFont()),
           ),
         ],
       ),
@@ -127,7 +127,7 @@ class _CategoriaFormDialogState extends ConsumerState<CategoriaFormDialog> {
                 Expanded(
                   child: Text(
                     editando ? 'Editar Categoría' : 'Nueva Categoría',
-                    style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A)),
+                    style: appFont(fontSize: 17, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A)),
                   ),
                 ),
                 IconButton(
@@ -140,10 +140,10 @@ class _CategoriaFormDialogState extends ConsumerState<CategoriaFormDialog> {
             TextField(
               controller: _descripcionController,
               autofocus: true,
-              style: GoogleFonts.poppins(fontSize: 14),
+              style: appFont(fontSize: 14),
               decoration: InputDecoration(
                 labelText: 'Descripción',
-                labelStyle: GoogleFonts.poppins(fontSize: 13),
+                labelStyle: appFont(fontSize: 13),
                 filled: true,
                 fillColor: const Color(0xFFE8EAF0),
                 border: OutlineInputBorder(
@@ -161,11 +161,11 @@ class _CategoriaFormDialogState extends ConsumerState<CategoriaFormDialog> {
               ),
               child: Row(
                 children: [
-                  Text('Estado', style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade700)),
+                  Text('Estado', style: appFont(fontSize: 13, color: Colors.grey.shade700)),
                   const Spacer(),
                   Text(
                     _activo ? 'Activo' : 'Inactivo',
-                    style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: _activo ? const Color(0xFF16A34A) : Colors.grey.shade500),
+                    style: appFont(fontSize: 13, fontWeight: FontWeight.w600, color: _activo ? const Color(0xFF16A34A) : Colors.grey.shade500),
                   ),
                   Switch(
                     value: _activo,
@@ -187,7 +187,7 @@ class _CategoriaFormDialogState extends ConsumerState<CategoriaFormDialog> {
                   Expanded(
                     child: Text(
                       'Controla existencia',
-                      style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade700),
+                      style: appFont(fontSize: 13, color: Colors.grey.shade700),
                     ),
                   ),
                   Switch(
@@ -203,7 +203,7 @@ class _CategoriaFormDialogState extends ConsumerState<CategoriaFormDialog> {
               _controlaStock
                   ? 'Al vender, se descuenta del inventario y se avisa si no hay existencia suficiente.'
                   : 'No se descuenta del inventario ni se bloquea la venta por existencia 0. Usalo para servicios o productos preparados al momento (ej. pintura preparada).',
-              style: GoogleFonts.poppins(fontSize: 11.5, color: Colors.grey.shade500),
+              style: appFont(fontSize: 11.5, color: Colors.grey.shade500),
             ),
             if (_error != null) ...[
               const SizedBox(height: 14),
@@ -215,7 +215,7 @@ class _CategoriaFormDialogState extends ConsumerState<CategoriaFormDialog> {
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: Colors.red.shade200),
                 ),
-                child: Text(_error!, style: GoogleFonts.poppins(color: Colors.red.shade700, fontSize: 12)),
+                child: Text(_error!, style: appFont(color: Colors.red.shade700, fontSize: 12)),
               ),
             ],
             const SizedBox(height: 24),
@@ -233,7 +233,7 @@ class _CategoriaFormDialogState extends ConsumerState<CategoriaFormDialog> {
                 const Spacer(),
                 TextButton(
                   onPressed: _guardando ? null : () => Navigator.pop(context),
-                  child: Text('Cancelar', style: GoogleFonts.poppins(color: Colors.grey.shade700)),
+                  child: Text('Cancelar', style: appFont(color: Colors.grey.shade700)),
                 ),
                 const SizedBox(width: 10),
                 FilledButton(
@@ -245,7 +245,7 @@ class _CategoriaFormDialogState extends ConsumerState<CategoriaFormDialog> {
                   ),
                   child: _guardando
                       ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.2))
-                      : Text('Guardar', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.white)),
+                      : Text('Guardar', style: appFont(fontWeight: FontWeight.w600, color: Colors.white)),
                 ),
               ],
             ),

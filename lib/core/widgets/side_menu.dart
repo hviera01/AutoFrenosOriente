@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../data/modulos_menu.dart';
 import '../models/tab_item.dart';
 import '../providers/actualizacion_provider.dart';
@@ -10,6 +9,7 @@ import '../utils/pantalla_builder.dart';
 import '../widgets/actualizacion_dialog.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../constants/roles.dart';
+import '../services/tipografia_service.dart';
 
 class SideMenu extends ConsumerWidget {
   final VoidCallback onCerrar;
@@ -77,7 +77,7 @@ class SideMenu extends ConsumerWidget {
                   children: [
                     Text(
                       'MENÚ',
-                      style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15, letterSpacing: 1),
+                      style: appFont(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15, letterSpacing: 1),
                     ),
                     const Spacer(),
                     IconButton(
@@ -97,7 +97,7 @@ class SideMenu extends ConsumerWidget {
                     if (disponibles.length == 1) {
                       return ListTile(
                         leading: Icon(modulo.icono, color: modulo.color, size: 22),
-                        title: Text(modulo.titulo, style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600)),
+                        title: Text(modulo.titulo, style: appFont(fontSize: 13.5, fontWeight: FontWeight.w600)),
                         onTap: () {
                           _abrirSubModulo(ref, disponibles.first);
                           onCerrar();
@@ -108,12 +108,12 @@ class SideMenu extends ConsumerWidget {
                       data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
                       child: ExpansionTile(
                         leading: Icon(modulo.icono, color: modulo.color, size: 22),
-                        title: Text(modulo.titulo, style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600)),
+                        title: Text(modulo.titulo, style: appFont(fontSize: 13.5, fontWeight: FontWeight.w600)),
                         children: disponibles.map((sub) {
                           return ListTile(
                             contentPadding: const EdgeInsets.only(left: 56, right: 16),
                             leading: Icon(sub.icono, size: 18, color: Colors.grey.shade600),
-                            title: Text(sub.titulo, style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade800)),
+                            title: Text(sub.titulo, style: appFont(fontSize: 13, color: Colors.grey.shade800)),
                             onTap: () {
                               _abrirSubModulo(ref, sub);
                               onCerrar();
@@ -138,9 +138,9 @@ class SideMenu extends ConsumerWidget {
                     ),
                     title: Text(
                       hayActualizacion ? 'Actualización disponible' : 'Buscar actualizaciones',
-                      style: GoogleFonts.poppins(fontSize: 13, fontWeight: hayActualizacion ? FontWeight.w700 : FontWeight.w400, color: hayActualizacion ? colorVerde : Colors.grey.shade700),
+                      style: appFont(fontSize: 13, fontWeight: hayActualizacion ? FontWeight.w700 : FontWeight.w400, color: hayActualizacion ? colorVerde : Colors.grey.shade700),
                     ),
-                    subtitle: hayActualizacion ? Text('v${actualizacion.version} · tocá para instalar', style: GoogleFonts.poppins(fontSize: 11, color: colorVerde)) : null,
+                    subtitle: hayActualizacion ? Text('v${actualizacion.version} · tocá para instalar', style: appFont(fontSize: 11, color: colorVerde)) : null,
                     onTap: () => hayActualizacion ? mostrarDialogoActualizacion(context, actualizacion) : _buscarActualizaciones(context, ref),
                   );
                 }),

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../data/reporte_financiero_model.dart';
 import '../../data/reporte_financiero_export_service.dart';
 import '../../providers/reportes_provider.dart';
 import '../../../../core/widgets/pdf_preview_dialog.dart';
 import '../widgets/reporte_financiero_secciones.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 typedef _SeccionBuilder = Widget Function(ReporteFinancieroData data, bool esMovil);
 
@@ -108,7 +108,7 @@ class _ReporteFinancieroScreenState extends ConsumerState<ReporteFinancieroScree
             children: [
               Padding(padding: EdgeInsets.all(esMovil ? 14 : 24), child: _encabezado(esMovil)),
               if (_cargando) const Expanded(child: Center(child: CircularProgressIndicator(color: Color(0xFF0D2B4E)))),
-              if (_error != null) Expanded(child: Center(child: Padding(padding: const EdgeInsets.all(20), child: Text(_error!, style: GoogleFonts.poppins(color: Colors.red))))),
+              if (_error != null) Expanded(child: Center(child: Padding(padding: const EdgeInsets.all(20), child: Text(_error!, style: appFont(color: Colors.red))))),
               if (!_cargando && _error == null && _data != null) Expanded(child: _tabsYContenido(_data!, esMovil)),
             ],
           );
@@ -129,8 +129,8 @@ class _ReporteFinancieroScreenState extends ConsumerState<ReporteFinancieroScree
               labelColor: const Color(0xFF0D2B4E),
               unselectedLabelColor: Colors.grey.shade600,
               indicatorColor: const Color(0xFF0D2B4E),
-              labelStyle: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600),
-              unselectedLabelStyle: GoogleFonts.poppins(fontSize: 13),
+              labelStyle: appFont(fontSize: 13, fontWeight: FontWeight.w600),
+              unselectedLabelStyle: appFont(fontSize: 13),
               tabs: [for (final t in _tabs) Tab(icon: Icon(t.$2, size: 18), text: t.$1)],
             ),
           ),
@@ -157,19 +157,19 @@ class _ReporteFinancieroScreenState extends ConsumerState<ReporteFinancieroScree
       spacing: 12,
       runSpacing: 10,
       children: [
-        Text('Reporte Financiero', style: GoogleFonts.poppins(fontSize: esMovil ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+        Text('Reporte Financiero', style: appFont(fontSize: esMovil ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
         _campoFecha('Desde', _fechaInicio, () => _seleccionarFecha(true), formato),
         _campoFecha('Hasta', _fechaFin, () => _seleccionarFecha(false), formato),
         OutlinedButton.icon(
           onPressed: _cargando ? null : _generar,
           icon: const Icon(Icons.refresh, size: 18),
-          label: Text('Generar', style: GoogleFonts.poppins(fontSize: 13)),
+          label: Text('Generar', style: appFont(fontSize: 13)),
           style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
         ),
         FilledButton.icon(
           onPressed: _data == null ? null : _descargarPdf,
           icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
-          label: Text('Descargar PDF completo', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+          label: Text('Descargar PDF completo', style: appFont(fontSize: 13, fontWeight: FontWeight.w600)),
           style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
         ),
       ],
@@ -188,7 +188,7 @@ class _ReporteFinancieroScreenState extends ConsumerState<ReporteFinancieroScree
           children: [
             Icon(Icons.calendar_today_outlined, size: 15, color: Colors.grey.shade500),
             const SizedBox(width: 8),
-            Text('$label: ${formato.format(fecha)}', style: GoogleFonts.poppins(fontSize: 12.5, color: const Color(0xFF1A1A1A))),
+            Text('$label: ${formato.format(fecha)}', style: appFont(fontSize: 12.5, color: const Color(0xFF1A1A1A))),
           ],
         ),
       ),

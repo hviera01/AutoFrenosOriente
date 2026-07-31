@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../data/abono_compra_model.dart';
 import '../../providers/compras_credito_provider.dart';
 import '../../../../core/utils/formato_moneda.dart';
 import '../../../proveedores/providers/proveedores_provider.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 class _FilaResumen {
   final DateTime? dia;
@@ -136,7 +136,7 @@ class _ResumenAbonosDialogState extends ConsumerState<ResumenAbonosDialog> {
             Row(
               children: [
                 Expanded(
-                  child: Text('Resumen de Abonos a Proveedores', style: GoogleFonts.poppins(fontSize: esMovil ? 16 : 18, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+                  child: Text('Resumen de Abonos a Proveedores', style: appFont(fontSize: esMovil ? 16 : 18, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
                 ),
                 IconButton(icon: const Icon(Icons.close, size: 22), onPressed: () => Navigator.pop(context)),
               ],
@@ -164,14 +164,14 @@ class _ResumenAbonosDialogState extends ConsumerState<ResumenAbonosDialog> {
                     FilledButton.icon(
                       onPressed: _cargando ? null : _buscar,
                       icon: const Icon(Icons.search, size: 18),
-                      label: Text('Buscar', style: GoogleFonts.poppins(fontSize: 13)),
+                      label: Text('Buscar', style: appFont(fontSize: 13)),
                       style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                     ),
                     const SizedBox(width: 10),
                     OutlinedButton.icon(
                       onPressed: _cargando ? null : _limpiar,
                       icon: const Icon(Icons.close, size: 18),
-                      label: Text('Limpiar', style: GoogleFonts.poppins(fontSize: 13)),
+                      label: Text('Limpiar', style: appFont(fontSize: 13)),
                       style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                     ),
                   ],
@@ -195,8 +195,8 @@ class _ResumenAbonosDialogState extends ConsumerState<ResumenAbonosDialog> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('TOTAL ABONADO', style: GoogleFonts.poppins(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.white.withOpacity(0.85), letterSpacing: 0.6)),
-                      Text(formatearMoneda(totalGeneral), style: GoogleFonts.poppins(fontSize: 21, fontWeight: FontWeight.w800, color: Colors.white)),
+                      Text('TOTAL ABONADO', style: appFont(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.white.withOpacity(0.85), letterSpacing: 0.6)),
+                      Text(formatearMoneda(totalGeneral), style: appFont(fontSize: 21, fontWeight: FontWeight.w800, color: Colors.white)),
                     ],
                   ),
                 ],
@@ -207,9 +207,9 @@ class _ResumenAbonosDialogState extends ConsumerState<ResumenAbonosDialog> {
               child: _cargando
                   ? const Center(child: CircularProgressIndicator(color: Color(0xFF0D2B4E)))
                   : _error != null
-                      ? Center(child: Text(_error!, style: GoogleFonts.poppins(color: Colors.red)))
+                      ? Center(child: Text(_error!, style: appFont(color: Colors.red)))
                       : filas.isEmpty
-                          ? Center(child: Text('No hay abonos en el rango seleccionado', style: GoogleFonts.poppins(color: Colors.grey.shade500)))
+                          ? Center(child: Text('No hay abonos en el rango seleccionado', style: appFont(color: Colors.grey.shade500)))
                           : _tabla(filas),
             ),
           ],
@@ -234,7 +234,7 @@ class _ResumenAbonosDialogState extends ConsumerState<ResumenAbonosDialog> {
               Icon(Icons.calendar_today_outlined, size: 15, color: Colors.grey.shade500),
               const SizedBox(width: 8),
               Flexible(
-                child: Text('$label: ${formato.format(fecha)}', overflow: TextOverflow.ellipsis, maxLines: 1, style: GoogleFonts.poppins(fontSize: 12.5, color: const Color(0xFF1A1A1A))),
+                child: Text('$label: ${formato.format(fecha)}', overflow: TextOverflow.ellipsis, maxLines: 1, style: appFont(fontSize: 12.5, color: const Color(0xFF1A1A1A))),
               ),
             ],
           ),
@@ -252,10 +252,10 @@ class _ResumenAbonosDialogState extends ConsumerState<ResumenAbonosDialog> {
         child: DropdownButton<String?>(
           value: _idProveedorFiltro,
           isExpanded: true,
-          hint: Text('Todos los proveedores', style: GoogleFonts.poppins(fontSize: 13)),
-          style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF1A1A1A)),
+          hint: Text('Todos los proveedores', style: appFont(fontSize: 13)),
+          style: appFont(fontSize: 13, color: const Color(0xFF1A1A1A)),
           items: [
-            DropdownMenuItem<String?>(value: null, child: Text('Todos los proveedores', style: GoogleFonts.poppins(fontSize: 13))),
+            DropdownMenuItem<String?>(value: null, child: Text('Todos los proveedores', style: appFont(fontSize: 13))),
             ...proveedores.map((p) => DropdownMenuItem<String?>(value: p.id as String, child: Text(p.razonSocial as String, overflow: TextOverflow.ellipsis))),
           ],
           onChanged: (v) => setState(() => _idProveedorFiltro = v),
@@ -273,7 +273,7 @@ class _ResumenAbonosDialogState extends ConsumerState<ResumenAbonosDialog> {
         child: DropdownButton<String>(
           value: _vista,
           isExpanded: true,
-          style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF1A1A1A)),
+          style: appFont(fontSize: 13, color: const Color(0xFF1A1A1A)),
           items: const [
             DropdownMenuItem(value: 'proveedor', child: Text('Por proveedor (total periodo)')),
             DropdownMenuItem(value: 'dia_proveedor', child: Text('Por día y proveedor')),
@@ -299,10 +299,10 @@ class _ResumenAbonosDialogState extends ConsumerState<ResumenAbonosDialog> {
             decoration: const BoxDecoration(color: Color(0xFFECEEF3), borderRadius: BorderRadius.vertical(top: Radius.circular(12))),
             child: Row(
               children: [
-                if (mostrarDia) Expanded(flex: 2, child: Text('FECHA', style: GoogleFonts.poppins(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600))),
-                Expanded(flex: 4, child: Text('PROVEEDOR', style: GoogleFonts.poppins(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600))),
-                Expanded(flex: 3, child: Text('TOTAL ABONADO', textAlign: TextAlign.right, style: GoogleFonts.poppins(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600))),
-                Expanded(flex: 2, child: Text('Nº ABONOS', textAlign: TextAlign.right, style: GoogleFonts.poppins(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600))),
+                if (mostrarDia) Expanded(flex: 2, child: Text('FECHA', style: appFont(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600))),
+                Expanded(flex: 4, child: Text('PROVEEDOR', style: appFont(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600))),
+                Expanded(flex: 3, child: Text('TOTAL ABONADO', textAlign: TextAlign.right, style: appFont(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600))),
+                Expanded(flex: 2, child: Text('Nº ABONOS', textAlign: TextAlign.right, style: appFont(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600))),
               ],
             ),
           ),
@@ -316,10 +316,10 @@ class _ResumenAbonosDialogState extends ConsumerState<ResumenAbonosDialog> {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   child: Row(
                     children: [
-                      if (mostrarDia) Expanded(flex: 2, child: Text(f.dia != null ? formatoFecha.format(f.dia!) : '-', style: GoogleFonts.poppins(fontSize: 12.5))),
-                      Expanded(flex: 4, child: Text(f.proveedor, style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis)),
-                      Expanded(flex: 3, child: Text(formatearMoneda(f.totalAbonado), textAlign: TextAlign.right, style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w700, color: const Color(0xFF16A34A)))),
-                      Expanded(flex: 2, child: Text(f.numeroAbonos.toString(), textAlign: TextAlign.right, style: GoogleFonts.poppins(fontSize: 12.5))),
+                      if (mostrarDia) Expanded(flex: 2, child: Text(f.dia != null ? formatoFecha.format(f.dia!) : '-', style: appFont(fontSize: 12.5))),
+                      Expanded(flex: 4, child: Text(f.proveedor, style: appFont(fontSize: 12.5, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis)),
+                      Expanded(flex: 3, child: Text(formatearMoneda(f.totalAbonado), textAlign: TextAlign.right, style: appFont(fontSize: 12.5, fontWeight: FontWeight.w700, color: const Color(0xFF16A34A)))),
+                      Expanded(flex: 2, child: Text(f.numeroAbonos.toString(), textAlign: TextAlign.right, style: appFont(fontSize: 12.5))),
                     ],
                   ),
                 );

@@ -59,6 +59,10 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    match /dispositivos/{idDispositivo} {
+      allow read, write: if true;
+    }
+
     match /traslados/{idTraslado} {
       allow read, write: if true;
 

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
 import '../../data/cierre_caja_model.dart';
@@ -10,6 +9,7 @@ import '../../../auth/providers/auth_provider.dart';
 import '../../../negocio/providers/negocio_provider.dart';
 import '../../../../core/utils/formato_moneda.dart';
 import '../../../../core/widgets/pdf_preview_dialog.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 class CierreCajaScreen extends ConsumerStatefulWidget {
   const CierreCajaScreen({super.key});
@@ -215,11 +215,11 @@ class _CierreCajaScreenState extends ConsumerState<CierreCajaScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Cierre de Caja', style: GoogleFonts.poppins(fontSize: esMovil ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+                      Text('Cierre de Caja', style: appFont(fontSize: esMovil ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
                       const SizedBox(height: 6),
                       Text(
                         'Periodo: ${formatoFecha.format(_fechaInicio)}  →  ${formatoFecha.format(_fechaFin)}',
-                        style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600),
+                        style: appFont(fontSize: 12.5, color: Colors.grey.shade600),
                       ),
                       const SizedBox(height: 20),
                       Wrap(
@@ -246,7 +246,7 @@ class _CierreCajaScreenState extends ConsumerState<CierreCajaScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Resumen del periodo', style: GoogleFonts.poppins(fontSize: 14.5, fontWeight: FontWeight.w700)),
+          Text('Resumen del periodo', style: appFont(fontSize: 14.5, fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
           _filaMonto('Monto inicial efectivo', _montoInicial),
           _filaMonto('Ingreso efectivo', _totales.ingresosEfectivo),
@@ -264,7 +264,7 @@ class _CierreCajaScreenState extends ConsumerState<CierreCajaScreen> {
             child: OutlinedButton.icon(
               onPressed: _guardando ? null : _guardarMontoInicial,
               icon: const Icon(Icons.savings_outlined, size: 18),
-              label: Text('Guardar monto inicial (sin cerrar)', style: GoogleFonts.poppins(fontSize: 12.5)),
+              label: Text('Guardar monto inicial (sin cerrar)', style: appFont(fontSize: 12.5)),
               style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
             ),
           ),
@@ -281,14 +281,14 @@ class _CierreCajaScreenState extends ConsumerState<CierreCajaScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Cerrar caja', style: GoogleFonts.poppins(fontSize: 14.5, fontWeight: FontWeight.w700)),
+          Text('Cerrar caja', style: appFont(fontSize: 14.5, fontWeight: FontWeight.w700)),
           const SizedBox(height: 14),
-          Text('Total real efectivo', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600)),
+          Text('Total real efectivo', style: appFont(fontSize: 12, color: Colors.grey.shade600)),
           const SizedBox(height: 6),
           TextField(
             controller: _totalRealController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600),
+            style: appFont(fontSize: 15, fontWeight: FontWeight.w600),
             onChanged: (_) => setState(() {}),
             decoration: InputDecoration(
               hintText: '0.00',
@@ -307,21 +307,21 @@ class _CierreCajaScreenState extends ConsumerState<CierreCajaScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Diferencia', style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade700)),
+                Text('Diferencia', style: appFont(fontSize: 12.5, color: Colors.grey.shade700)),
                 Text(
                   formatearMoneda(_diferencia),
-                  style: GoogleFonts.poppins(fontSize: 14.5, fontWeight: FontWeight.w700, color: _diferencia == 0 ? const Color(0xFF16A34A) : const Color(0xFF0D2B4E)),
+                  style: appFont(fontSize: 14.5, fontWeight: FontWeight.w700, color: _diferencia == 0 ? const Color(0xFF16A34A) : const Color(0xFF0D2B4E)),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 14),
-          Text('Observaciones', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600)),
+          Text('Observaciones', style: appFont(fontSize: 12, color: Colors.grey.shade600)),
           const SizedBox(height: 6),
           TextField(
             controller: _observacionesController,
             maxLines: 3,
-            style: GoogleFonts.poppins(fontSize: 13),
+            style: appFont(fontSize: 13),
             decoration: InputDecoration(
               hintText: 'Observaciones del cierre (opcional)',
               filled: true,
@@ -338,7 +338,7 @@ class _CierreCajaScreenState extends ConsumerState<CierreCajaScreen> {
               icon: _guardando
                   ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                   : const Icon(Icons.lock_outline, size: 18),
-              label: Text(_guardando ? 'Cerrando...' : 'Cerrar Caja', style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600)),
+              label: Text(_guardando ? 'Cerrando...' : 'Cerrar Caja', style: appFont(fontSize: 13.5, fontWeight: FontWeight.w600)),
               style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E), padding: const EdgeInsets.symmetric(vertical: 15), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
             ),
           ),
@@ -353,10 +353,10 @@ class _CierreCajaScreenState extends ConsumerState<CierreCajaScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(etiqueta, style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade700)),
+          Text(etiqueta, style: appFont(fontSize: 12.5, color: Colors.grey.shade700)),
           Text(
             formatearMoneda(valor),
-            style: GoogleFonts.poppins(fontSize: 13, fontWeight: negrita ? FontWeight.w700 : FontWeight.w500, color: color ?? const Color(0xFF1A1A1A)),
+            style: appFont(fontSize: 13, fontWeight: negrita ? FontWeight.w700 : FontWeight.w500, color: color ?? const Color(0xFF1A1A1A)),
           ),
         ],
       ),

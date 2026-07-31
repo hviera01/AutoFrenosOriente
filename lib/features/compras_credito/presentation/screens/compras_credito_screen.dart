@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
 import '../../data/compra_credito_model.dart';
@@ -19,6 +18,7 @@ import '../widgets/historial_abonos_compra_dialog.dart';
 import '../widgets/abono_general_dialog.dart';
 import '../widgets/resumen_abonos_dialog.dart';
 import '../widgets/importar_creditos_compra_dialog.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 class ComprasCreditoScreen extends ConsumerStatefulWidget {
   const ComprasCreditoScreen({super.key});
@@ -108,14 +108,14 @@ class _ComprasCreditoScreenState extends ConsumerState<ComprasCreditoScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Eliminar crédito', style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
-        content: Text('¿Seguro que querés eliminar este crédito de compra? Esta acción no se puede deshacer.', style: GoogleFonts.poppins(fontSize: 13)),
+        title: Text('Eliminar crédito', style: appFont(fontWeight: FontWeight.w700)),
+        content: Text('¿Seguro que querés eliminar este crédito de compra? Esta acción no se puede deshacer.', style: appFont(fontSize: 13)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancelar', style: GoogleFonts.poppins())),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancelar', style: appFont())),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E)),
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Eliminar', style: GoogleFonts.poppins()),
+            child: Text('Eliminar', style: appFont()),
           ),
         ],
       ),
@@ -155,7 +155,7 @@ class _ComprasCreditoScreenState extends ConsumerState<ComprasCreditoScreen> {
     return PopupMenuItem<String>(
       value: valor,
       height: 42,
-      child: Row(children: [Icon(icono, size: 18, color: const Color(0xFF4B4F58)), const SizedBox(width: 10), Text(texto, style: GoogleFonts.poppins(fontSize: 12.5, color: const Color(0xFF25272B)))]),
+      child: Row(children: [Icon(icono, size: 18, color: const Color(0xFF4B4F58)), const SizedBox(width: 10), Text(texto, style: appFont(fontSize: 12.5, color: const Color(0xFF25272B)))]),
     );
   }
 
@@ -215,7 +215,7 @@ class _ComprasCreditoScreenState extends ConsumerState<ComprasCreditoScreen> {
                     spacing: 12,
                     runSpacing: 10,
                     children: [
-                      Text('Compras a Crédito', style: GoogleFonts.poppins(fontSize: esMovil ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+                      Text('Compras a Crédito', style: appFont(fontSize: esMovil ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
                       if (listaFiltrada != null) _statTotalPendiente(listaFiltrada),
                     ],
                   ),
@@ -231,43 +231,43 @@ class _ComprasCreditoScreenState extends ConsumerState<ComprasCreditoScreen> {
                       OutlinedButton.icon(
                         onPressed: () => ref.invalidate(comprasCreditoStreamProvider),
                         icon: const Icon(Icons.refresh, size: 18),
-                        label: Text('Refrescar', style: GoogleFonts.poppins(fontSize: 13)),
+                        label: Text('Refrescar', style: appFont(fontSize: 13)),
                         style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                       ),
                       OutlinedButton.icon(
                         onPressed: _abrirImportar,
                         icon: const Icon(Icons.upload_file_outlined, size: 18),
-                        label: Text('Importar', style: GoogleFonts.poppins(fontSize: 13)),
+                        label: Text('Importar', style: appFont(fontSize: 13)),
                         style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                       ),
                       OutlinedButton.icon(
                         onPressed: _exportarExcel,
                         icon: const Icon(Icons.grid_on_outlined, size: 18),
-                        label: Text('Descargar Excel', style: GoogleFonts.poppins(fontSize: 13)),
+                        label: Text('Descargar Excel', style: appFont(fontSize: 13)),
                         style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                       ),
                       OutlinedButton.icon(
                         onPressed: _exportarPdf,
                         icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
-                        label: Text('Descargar PDF', style: GoogleFonts.poppins(fontSize: 13)),
+                        label: Text('Descargar PDF', style: appFont(fontSize: 13)),
                         style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                       ),
                       OutlinedButton.icon(
                         onPressed: _abrirResumenAbonos,
                         icon: const Icon(Icons.summarize_outlined, size: 18),
-                        label: Text('Resumen de abonos', style: GoogleFonts.poppins(fontSize: 13)),
+                        label: Text('Resumen de abonos', style: appFont(fontSize: 13)),
                         style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                       ),
                       OutlinedButton.icon(
                         onPressed: _abrirAbonoGeneral,
                         icon: const Icon(Icons.call_split_outlined, size: 18),
-                        label: Text('Abono General', style: GoogleFonts.poppins(fontSize: 13)),
+                        label: Text('Abono General', style: appFont(fontSize: 13)),
                         style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                       ),
                       FilledButton.icon(
                         onPressed: _abrirRegistrarCredito,
                         icon: const Icon(Icons.add, size: 18),
-                        label: Text('Registrar Crédito', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+                        label: Text('Registrar Crédito', style: appFont(fontSize: 13, fontWeight: FontWeight.w600)),
                         style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E), padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                       ),
                     ],
@@ -292,7 +292,7 @@ class _ComprasCreditoScreenState extends ConsumerState<ComprasCreditoScreen> {
                               children: [
                                 Icon(Icons.credit_score_outlined, size: 56, color: Colors.grey.shade300),
                                 const SizedBox(height: 12),
-                                Text('No hay créditos para mostrar', textAlign: TextAlign.center, style: GoogleFonts.poppins(color: Colors.grey.shade500)),
+                                Text('No hay créditos para mostrar', textAlign: TextAlign.center, style: appFont(color: Colors.grey.shade500)),
                               ],
                             ),
                           );
@@ -300,7 +300,7 @@ class _ComprasCreditoScreenState extends ConsumerState<ComprasCreditoScreen> {
                         return esMovil ? _tarjetas(lista) : _tabla(lista);
                       },
                       loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF0D2B4E))),
-                      error: (e, st) => Center(child: Text('Error: $e', style: GoogleFonts.poppins(color: Colors.red))),
+                      error: (e, st) => Center(child: Text('Error: $e', style: appFont(color: Colors.red))),
                     ),
                   ),
             ),
@@ -328,8 +328,8 @@ class _ComprasCreditoScreenState extends ConsumerState<ComprasCreditoScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('TOTAL PENDIENTE', style: GoogleFonts.poppins(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.white.withOpacity(0.85), letterSpacing: 0.6)),
-              Text(formatearMoneda(total), style: GoogleFonts.poppins(fontSize: 21, fontWeight: FontWeight.w800, color: Colors.white)),
+              Text('TOTAL PENDIENTE', style: appFont(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.white.withOpacity(0.85), letterSpacing: 0.6)),
+              Text(formatearMoneda(total), style: appFont(fontSize: 21, fontWeight: FontWeight.w800, color: Colors.white)),
             ],
           ),
         ],
@@ -346,7 +346,7 @@ class _ComprasCreditoScreenState extends ConsumerState<ComprasCreditoScreen> {
         child: DropdownButton<String>(
           value: vista,
           isExpanded: true,
-          style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF1A1A1A)),
+          style: appFont(fontSize: 13, color: const Color(0xFF1A1A1A)),
           items: const [
             DropdownMenuItem(value: 'debe', child: Text('Deudas')),
             DropdownMenuItem(value: 'liquidada', child: Text('Liquidadas')),
@@ -373,10 +373,10 @@ class _ComprasCreditoScreenState extends ConsumerState<ComprasCreditoScreen> {
           Expanded(
             child: TextField(
               controller: _busquedaController,
-              style: GoogleFonts.poppins(fontSize: 13),
+              style: appFont(fontSize: 13),
               decoration: InputDecoration(
                 hintText: 'Buscar por documento, factura o proveedor...',
-                hintStyle: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade400),
+                hintStyle: appFont(fontSize: 12.5, color: Colors.grey.shade400),
                 border: InputBorder.none,
                 isDense: true,
               ),
@@ -395,7 +395,7 @@ class _ComprasCreditoScreenState extends ConsumerState<ComprasCreditoScreen> {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(color: const Color(0xFFE8F8EE), borderRadius: BorderRadius.circular(8)),
-        child: Text('Liquidada', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF16A34A))),
+        child: Text('Liquidada', style: appFont(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF16A34A))),
       );
     }
     return Wrap(
@@ -405,13 +405,13 @@ class _ComprasCreditoScreenState extends ConsumerState<ComprasCreditoScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(color: const Color(0xFFEFF4FF), borderRadius: BorderRadius.circular(8)),
-          child: Text('Deuda', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF3B82F6))),
+          child: Text('Deuda', style: appFont(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF3B82F6))),
         ),
         if (c.vencida)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(color: const Color(0xFFFCE4E4), borderRadius: BorderRadius.circular(8)),
-            child: Text('Vencida', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF0D2B4E))),
+            child: Text('Vencida', style: appFont(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF0D2B4E))),
           ),
       ],
     );
@@ -485,7 +485,7 @@ class _ComprasCreditoScreenState extends ConsumerState<ComprasCreditoScreen> {
   Widget _celdaHeader(String texto, int flex) {
     return Expanded(
       flex: flex,
-      child: Text(texto, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w700, color: const Color(0xFF666A72), letterSpacing: 0.3)),
+      child: Text(texto, maxLines: 1, overflow: TextOverflow.ellipsis, style: appFont(fontSize: 10, fontWeight: FontWeight.w700, color: const Color(0xFF666A72), letterSpacing: 0.3)),
     );
   }
 
@@ -498,7 +498,7 @@ class _ComprasCreditoScreenState extends ConsumerState<ComprasCreditoScreen> {
           texto,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: peso, color: gris ? Colors.grey.shade600 : const Color(0xFF1A1A1A)),
+          style: appFont(fontSize: 12.5, fontWeight: peso, color: gris ? Colors.grey.shade600 : const Color(0xFF1A1A1A)),
         ),
       ),
     );
@@ -546,8 +546,8 @@ class _ComprasCreditoScreenState extends ConsumerState<ComprasCreditoScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(compra.nombreProveedor, style: GoogleFonts.poppins(fontSize: 14.5, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
-                          Text('Factura ${compra.noFactura}', style: GoogleFonts.poppins(fontSize: 11.5, color: Colors.grey.shade500)),
+                          Text(compra.nombreProveedor, style: appFont(fontSize: 14.5, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+                          Text('Factura ${compra.noFactura}', style: appFont(fontSize: 11.5, color: Colors.grey.shade500)),
                         ],
                       ),
                     ),
@@ -577,7 +577,7 @@ class _ComprasCreditoScreenState extends ConsumerState<ComprasCreditoScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(color: const Color(0xFFE8EAF0), borderRadius: BorderRadius.circular(8)),
-      child: Text('$label: $valor', style: GoogleFonts.poppins(fontSize: 11.5, color: const Color(0xFF3F434A))),
+      child: Text('$label: $valor', style: appFont(fontSize: 11.5, color: const Color(0xFF3F434A))),
     );
   }
 }

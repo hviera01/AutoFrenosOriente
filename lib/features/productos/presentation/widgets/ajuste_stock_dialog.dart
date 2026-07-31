@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../data/producto_model.dart';
 import '../../providers/productos_provider.dart';
 import '../../../auth/providers/auth_provider.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 class AjusteStockDialog extends ConsumerStatefulWidget {
   final ProductoModel producto;
@@ -86,19 +86,19 @@ class _AjusteStockDialogState extends ConsumerState<AjusteStockDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Ajustar Existencia', style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+            Text('Ajustar Existencia', style: appFont(fontSize: 17, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
             const SizedBox(height: 6),
-            Text('Existencia actual: ${widget.producto.stock}', style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600)),
+            Text('Existencia actual: ${widget.producto.stock}', style: appFont(fontSize: 12.5, color: Colors.grey.shade600)),
             const SizedBox(height: 20),
             TextField(
               controller: _stockController,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               autofocus: true,
               onChanged: (_) => setState(() {}),
-              style: GoogleFonts.poppins(fontSize: 14),
+              style: appFont(fontSize: 14),
               decoration: InputDecoration(
                 labelText: 'Nueva existencia',
-                labelStyle: GoogleFonts.poppins(fontSize: 13),
+                labelStyle: appFont(fontSize: 13),
                 filled: true,
                 fillColor: const Color(0xFFE8EAF0),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -109,27 +109,27 @@ class _AjusteStockDialogState extends ConsumerState<AjusteStockDialog> {
               TextField(
                 controller: _costoController,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                style: GoogleFonts.poppins(fontSize: 14),
+                style: appFont(fontSize: 14),
                 decoration: InputDecoration(
                   labelText: 'Costo unitario (opcional)',
                   hintText: 'Ej: 0 si te lo regalaron',
-                  labelStyle: GoogleFonts.poppins(fontSize: 13),
+                  labelStyle: appFont(fontSize: 13),
                   filled: true,
                   fillColor: const Color(0xFFE8EAF0),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                 ),
               ),
               const SizedBox(height: 4),
-              Text('Si lo dejás vacío, se usa el costo actual del producto.', style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500)),
+              Text('Si lo dejás vacío, se usa el costo actual del producto.', style: appFont(fontSize: 11, color: Colors.grey.shade500)),
             ],
             const SizedBox(height: 14),
             TextField(
               controller: _motivoController,
               maxLines: 2,
-              style: GoogleFonts.poppins(fontSize: 14),
+              style: appFont(fontSize: 14),
               decoration: InputDecoration(
                 labelText: 'Motivo (opcional)',
-                labelStyle: GoogleFonts.poppins(fontSize: 13),
+                labelStyle: appFont(fontSize: 13),
                 filled: true,
                 fillColor: const Color(0xFFE8EAF0),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -137,20 +137,20 @@ class _AjusteStockDialogState extends ConsumerState<AjusteStockDialog> {
             ),
             if (_error != null) ...[
               const SizedBox(height: 14),
-              Text(_error!, style: GoogleFonts.poppins(color: Colors.red, fontSize: 12)),
+              Text(_error!, style: appFont(color: Colors.red, fontSize: 12)),
             ],
             const SizedBox(height: 22),
             Row(
               children: [
                 const Spacer(),
-                TextButton(onPressed: _guardando ? null : () => Navigator.pop(context), child: Text('Cancelar', style: GoogleFonts.poppins(color: Colors.grey.shade700))),
+                TextButton(onPressed: _guardando ? null : () => Navigator.pop(context), child: Text('Cancelar', style: appFont(color: Colors.grey.shade700))),
                 const SizedBox(width: 10),
                 FilledButton(
                   onPressed: _guardando ? null : _guardar,
                   style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E), padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                   child: _guardando
                       ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.2))
-                      : Text('Guardar', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.white)),
+                      : Text('Guardar', style: appFont(fontWeight: FontWeight.w600, color: Colors.white)),
                 ),
               ],
             ),

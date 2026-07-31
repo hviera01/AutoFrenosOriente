@@ -47,3 +47,7 @@ app.*.map.json
 # Archivos de ejemplo/reales subidos para probar el importador — nunca deben
 # subirse al repo (datos reales del negocio: inventario, precios, clientes).
 /excel_importar/
+
+# Instalador de Windows compilado (ver windows/installer/autofrenos_oriente.iss
+# para generarlo de nuevo) — el .iss sí se versiona, el .exe resultante no.
+/windows/installer/Output/

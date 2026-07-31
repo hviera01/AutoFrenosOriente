@@ -11,6 +11,8 @@ import '../services/actualizacion_service.dart';
 import '../widgets/actualizacion_dialog.dart';
 import '../widgets/side_menu.dart';
 import '../../features/auth/providers/auth_provider.dart';
+import '../../features/dispositivos/providers/dispositivos_provider.dart';
+import '../version_app.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/negocio/providers/negocio_provider.dart';
 import '../../features/productos/providers/productos_provider.dart';
@@ -20,6 +22,7 @@ import '../../features/traslados/providers/traslados_provider.dart';
 import '../../features/ventas/data/impresion_en_vivo_service.dart';
 import '../../features/ventas/data/venta_model.dart';
 import '../../features/ventas/providers/ventas_provider.dart';
+import '../services/tipografia_service.dart';
 
 class AppShell extends ConsumerStatefulWidget {
   const AppShell({super.key});
@@ -38,6 +41,8 @@ class _AppShellState extends ConsumerState<AppShell> {
   // solicitudes de impresión en vivo, ver PresenciaImpresionRepository.
   final bool _esPcPrincipal = !kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
   Timer? _latidoTimer;
+  Timer? _actualizacionTimer;
+  bool _dialogoActualizacionAbierto = false;
   final _servicioImpresionEnVivo = ImpresionEnVivoService();
   final _servicioImpresionEnVivoTraslado = ImpresionEnVivoTrasladoService();
   final _idsSolicitudEnProceso = <String>{};
@@ -67,21 +72,37 @@ class _AppShellState extends ConsumerState<AppShell> {
       _latidoTimer = Timer.periodic(const Duration(seconds: 25), (_) => presencia.enviarLatido());
     }
 
+    // Reporta este equipo (versión instalada + quién inició sesión) al
+    // módulo de Dispositivos. Silencioso: ver DispositivoRepository.reportar.
+    final usuario = ref.read(authProvider).usuario;
+    ref.read(dispositivoRepositoryProvider).reportar(versionApp: versionApp, usuario: usuario?.nombreCompleto ?? '');
+
     // Solo en Windows/Android: ver ActualizacionService. No bloquea el
     // arranque -si no hay internet o GitHub no responde a tiempo, sigue de
-    // largo sin avisar nada-.
+    // largo sin avisar nada-. Además de una vez al abrir la app, se repite
+    // cada 10 minutos mientras quede abierta: así, si alguien deja la app
+    // abierta todo el día y se publica una versión nueva mientras tanto, el
+    // aviso igual le llega sin que tenga que cerrar y volver a abrir.
     if (ActualizacionService.aplica) {
-      ActualizacionService.buscarActualizacion().then((actualizacion) {
-        if (actualizacion == null || !mounted) return;
-        ref.read(actualizacionDisponibleProvider.notifier).establecer(actualizacion);
-        mostrarDialogoActualizacion(context, actualizacion);
-      });
+      _chequearActualizacion();
+      _actualizacionTimer = Timer.periodic(const Duration(minutes: 10), (_) => _chequearActualizacion());
     }
+  }
+
+  Future<void> _chequearActualizacion() async {
+    if (_dialogoActualizacionAbierto) return;
+    final actualizacion = await ActualizacionService.buscarActualizacion();
+    if (actualizacion == null || !mounted) return;
+    ref.read(actualizacionDisponibleProvider.notifier).establecer(actualizacion);
+    _dialogoActualizacionAbierto = true;
+    await mostrarDialogoActualizacion(context, actualizacion);
+    _dialogoActualizacionAbierto = false;
   }
 
   @override
   void dispose() {
     _latidoTimer?.cancel();
+    _actualizacionTimer?.cancel();
     super.dispose();
   }
 
@@ -263,7 +284,7 @@ class _AppShellState extends ConsumerState<AppShell> {
                         const SizedBox(width: 12),
                         Text(
                           'AUTO FRENOS ORIENTE',
-                          style: GoogleFonts.poppins(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: 1),
+                          style: appFont(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: 1),
                         ),
                       ],
                     ],
@@ -278,7 +299,7 @@ class _AppShellState extends ConsumerState<AppShell> {
                         backgroundColor: Colors.white.withOpacity(0.2),
                         child: Text(
                           usuario.nombreCompleto.isNotEmpty ? usuario.nombreCompleto[0].toUpperCase() : '?',
-                          style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600),
+                          style: appFont(color: Colors.white, fontWeight: FontWeight.w600),
                         ),
                       ),
                       if (!esAngosto) ...[
@@ -294,19 +315,45 @@ class _AppShellState extends ConsumerState<AppShell> {
                                 usuario.nombreCompleto,
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
-                                style: GoogleFonts.poppins(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                                style: appFont(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
                               ),
                               Text(
                                 usuario.rol,
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
-                                style: GoogleFonts.poppins(color: Colors.white.withOpacity(0.75), fontSize: 11),
+                                style: appFont(color: Colors.white.withOpacity(0.75), fontSize: 11),
                               ),
                             ],
                           ),
                         ),
                       ],
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 4),
+                      PopupMenuButton<String>(
+                        tooltip: 'Tipografía',
+                        icon: const Icon(Icons.font_download_outlined, color: Colors.white, size: 20),
+                        onSelected: (fuente) => ref.read(tipografiaProvider.notifier).establecer(fuente),
+                        itemBuilder: (context) {
+                          final actual = ref.read(tipografiaProvider);
+                          return tipografiasDisponibles.entries.map((e) {
+                            final seleccionada = e.key == actual;
+                            return PopupMenuItem<String>(
+                              value: e.key,
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    seleccionada ? Icons.check_circle : Icons.circle_outlined,
+                                    size: 16,
+                                    color: seleccionada ? const Color(0xFF0D2B4E) : Colors.grey.shade400,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text(e.value, style: GoogleFonts.getFont(e.key, fontSize: 13.5)),
+                                ],
+                              ),
+                            );
+                          }).toList();
+                        },
+                      ),
+                      const SizedBox(width: 4),
                       IconButton(
                         icon: const Icon(Icons.logout, color: Colors.white, size: 20),
                         tooltip: 'Cerrar sesión',
@@ -350,7 +397,7 @@ class _AppShellState extends ConsumerState<AppShell> {
                   const SizedBox(width: 8),
                   Text(
                     tab.titulo,
-                    style: GoogleFonts.poppins(
+                    style: appFont(
                       fontSize: 12.5,
                       color: activo ? const Color(0xFF0D2B4E) : Colors.grey.shade600,
                       fontWeight: activo ? FontWeight.w600 : FontWeight.w400,

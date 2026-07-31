@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../clientes/providers/clientes_provider.dart';
 import '../../../../core/utils/texto_utils.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 class BuscarClienteDialog extends ConsumerStatefulWidget {
   const BuscarClienteDialog({super.key});
@@ -62,12 +62,12 @@ class _BuscarClienteDialogState extends ConsumerState<BuscarClienteDialog> {
           children: [
             Row(
               children: [
-                Expanded(child: Text('Buscar Cliente', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700))),
+                Expanded(child: Text('Buscar Cliente', style: appFont(fontSize: 16, fontWeight: FontWeight.w700))),
                 IconButton(icon: const Icon(Icons.close, size: 20), onPressed: () => Navigator.pop(context)),
               ],
             ),
             const SizedBox(height: 4),
-            Text('Elegí un cliente registrado o cerrá esto y escribí los datos a mano.', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600)),
+            Text('Elegí un cliente registrado o cerrá esto y escribí los datos a mano.', style: appFont(fontSize: 12, color: Colors.grey.shade600)),
             const SizedBox(height: 12),
             Container(
               height: 46,
@@ -81,10 +81,10 @@ class _BuscarClienteDialogState extends ConsumerState<BuscarClienteDialog> {
                     child: TextField(
                       controller: _busquedaController,
                       autofocus: true,
-                      style: GoogleFonts.poppins(fontSize: 13),
+                      style: appFont(fontSize: 13),
                       decoration: InputDecoration(
                         hintText: 'Buscar por DNI o nombre...',
-                        hintStyle: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade400),
+                        hintStyle: appFont(fontSize: 12.5, color: Colors.grey.shade400),
                         border: InputBorder.none,
                         isDense: true,
                       ),
@@ -107,7 +107,7 @@ class _BuscarClienteDialogState extends ConsumerState<BuscarClienteDialog> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text('No se encontraron clientes', style: GoogleFonts.poppins(color: Colors.grey.shade500)),
+                          Text('No se encontraron clientes', style: appFont(color: Colors.grey.shade500)),
                           if (_busqueda.isNotEmpty) ...[
                             const SizedBox(height: 14),
                             _botonCrearRapido(),
@@ -137,8 +137,8 @@ class _BuscarClienteDialogState extends ConsumerState<BuscarClienteDialog> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(c.nombreCompleto, style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600)),
-                              if (c.dni.isNotEmpty) Text('DNI: ${c.dni}', style: GoogleFonts.poppins(fontSize: 11.5, color: Colors.grey.shade500)),
+                              Text(c.nombreCompleto, style: appFont(fontSize: 13.5, fontWeight: FontWeight.w600)),
+                              if (c.dni.isNotEmpty) Text('DNI: ${c.dni}', style: appFont(fontSize: 11.5, color: Colors.grey.shade500)),
                             ],
                           ),
                         ),
@@ -147,7 +147,7 @@ class _BuscarClienteDialogState extends ConsumerState<BuscarClienteDialog> {
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF0D2B4E))),
-                error: (e, st) => Center(child: Text('Error: $e', style: GoogleFonts.poppins(color: Colors.red))),
+                error: (e, st) => Center(child: Text('Error: $e', style: appFont(color: Colors.red))),
               ),
             ),
           ],
@@ -162,7 +162,7 @@ class _BuscarClienteDialogState extends ConsumerState<BuscarClienteDialog> {
       icon: _creando
           ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
           : const Icon(Icons.person_add_alt_1_outlined, size: 18),
-      label: Text('Crear cliente "$_busqueda"', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+      label: Text('Crear cliente "$_busqueda"', style: appFont(fontSize: 13, fontWeight: FontWeight.w600)),
       style: OutlinedButton.styleFrom(
         foregroundColor: const Color(0xFF0D2B4E),
         side: const BorderSide(color: Color(0xFF0D2B4E)),

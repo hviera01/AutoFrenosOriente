@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../data/compra_credito_model.dart';
 import '../../data/abono_compra_model.dart';
 import '../../providers/compras_credito_provider.dart';
 import '../../../../core/utils/formato_moneda.dart';
 import '../../../auth/providers/auth_provider.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 class RegistrarAbonoCompraDialog extends ConsumerStatefulWidget {
   final CompraCreditoModel compra;
@@ -96,7 +96,7 @@ class _RegistrarAbonoCompraDialogState extends ConsumerState<RegistrarAbonoCompr
   InputDecoration _decoracion(String label) {
     return InputDecoration(
       labelText: label,
-      labelStyle: GoogleFonts.poppins(fontSize: 13),
+      labelStyle: appFont(fontSize: 13),
       filled: true,
       fillColor: const Color(0xFFE8EAF0),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -110,9 +110,9 @@ class _RegistrarAbonoCompraDialogState extends ConsumerState<RegistrarAbonoCompr
       decoration: BoxDecoration(color: const Color(0xFFE8EAF0), borderRadius: BorderRadius.circular(12)),
       child: Row(
         children: [
-          Text(etiqueta, style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade600)),
+          Text(etiqueta, style: appFont(fontSize: 13, color: Colors.grey.shade600)),
           const Spacer(),
-          Text(valor, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+          Text(valor, style: appFont(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
         ],
       ),
     );
@@ -147,7 +147,7 @@ class _RegistrarAbonoCompraDialogState extends ConsumerState<RegistrarAbonoCompr
                   Expanded(
                     child: Text(
                       'Registrar Abono · ${widget.compra.noFactura}',
-                      style: GoogleFonts.poppins(fontSize: 15.5, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A)),
+                      style: appFont(fontSize: 15.5, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A)),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -159,7 +159,7 @@ class _RegistrarAbonoCompraDialogState extends ConsumerState<RegistrarAbonoCompr
               padding: const EdgeInsets.fromLTRB(28, 4, 28, 0),
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: Text(widget.compra.nombreProveedor, style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600)),
+                child: Text(widget.compra.nombreProveedor, style: appFont(fontSize: 12.5, color: Colors.grey.shade600)),
               ),
             ),
             Flexible(
@@ -172,7 +172,7 @@ class _RegistrarAbonoCompraDialogState extends ConsumerState<RegistrarAbonoCompr
                       controller: _montoAbonadoController,
                       autofocus: true,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      style: GoogleFonts.poppins(fontSize: 14),
+                      style: appFont(fontSize: 14),
                       decoration: _decoracion('Monto abonado'),
                       onChanged: (_) => setState(() {}),
                     ),
@@ -182,7 +182,7 @@ class _RegistrarAbonoCompraDialogState extends ConsumerState<RegistrarAbonoCompr
                     TextField(
                       controller: _interesController,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      style: GoogleFonts.poppins(fontSize: 14),
+                      style: appFont(fontSize: 14),
                       decoration: _decoracion('Interés (opcional)'),
                       onChanged: (_) => setState(() {}),
                     ),
@@ -192,7 +192,7 @@ class _RegistrarAbonoCompraDialogState extends ConsumerState<RegistrarAbonoCompr
                     DropdownButtonFormField<String>(
                       initialValue: _metodoPago,
                       decoration: _decoracion('Método de pago'),
-                      style: GoogleFonts.poppins(fontSize: 14, color: const Color(0xFF1A1A1A)),
+                      style: appFont(fontSize: 14, color: const Color(0xFF1A1A1A)),
                       items: _metodosPago.map((m) => DropdownMenuItem(value: m, child: Text(m))).toList(),
                       onChanged: (v) {
                         if (v == null) return;
@@ -203,7 +203,7 @@ class _RegistrarAbonoCompraDialogState extends ConsumerState<RegistrarAbonoCompr
                       const SizedBox(height: 14),
                       TextField(
                         controller: _numeroReciboController,
-                        style: GoogleFonts.poppins(fontSize: 14),
+                        style: appFont(fontSize: 14),
                         decoration: _decoracion('No. de recibo (opcional)'),
                       ),
                     ],
@@ -217,7 +217,7 @@ class _RegistrarAbonoCompraDialogState extends ConsumerState<RegistrarAbonoCompr
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: Colors.red.shade200),
                         ),
-                        child: Text(_error!, style: GoogleFonts.poppins(color: Colors.red.shade700, fontSize: 12)),
+                        child: Text(_error!, style: appFont(color: Colors.red.shade700, fontSize: 12)),
                       ),
                     ],
                     const SizedBox(height: 8),
@@ -232,7 +232,7 @@ class _RegistrarAbonoCompraDialogState extends ConsumerState<RegistrarAbonoCompr
                   const Spacer(),
                   TextButton(
                     onPressed: _guardando ? null : () => Navigator.pop(context),
-                    child: Text('Cancelar', style: GoogleFonts.poppins(color: Colors.grey.shade700)),
+                    child: Text('Cancelar', style: appFont(color: Colors.grey.shade700)),
                   ),
                   const SizedBox(width: 10),
                   FilledButton(
@@ -244,7 +244,7 @@ class _RegistrarAbonoCompraDialogState extends ConsumerState<RegistrarAbonoCompr
                     ),
                     child: _guardando
                         ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.2))
-                        : Text('Registrar Abono', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.white)),
+                        : Text('Registrar Abono', style: appFont(fontWeight: FontWeight.w600, color: Colors.white)),
                   ),
                 ],
               ),

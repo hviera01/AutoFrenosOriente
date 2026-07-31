@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
+import '../services/tipografia_service.dart';
 
 class PdfPreviewDialog extends StatefulWidget {
   final String titulo;
@@ -63,7 +63,7 @@ class _PdfPreviewDialogState extends State<PdfPreviewDialog> {
           children: [
             Row(
               children: [
-                Expanded(child: Text(widget.titulo, style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700))),
+                Expanded(child: Text(widget.titulo, style: appFont(fontSize: 15, fontWeight: FontWeight.w700))),
                 IconButton(icon: const Icon(Icons.close, size: 20), onPressed: () => Navigator.pop(context)),
               ],
             ),
@@ -78,7 +78,7 @@ class _PdfPreviewDialogState extends State<PdfPreviewDialog> {
                       : const Icon(Icons.print_outlined, size: 18),
                   label: Text(
                     _imprimiendo ? 'Imprimiendo...' : 'Imprimir en ${widget.impresora!.name}',
-                    style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
+                    style: appFont(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
                   ),
                   style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E), padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                 ),
@@ -126,7 +126,7 @@ class _PdfPreviewDialogState extends State<PdfPreviewDialog> {
       children: [
         Icon(Icons.picture_as_pdf_outlined, size: 44, color: Colors.grey.shade400),
         const SizedBox(height: 10),
-        Text('El documento está listo', style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade600)),
+        Text('El documento está listo', style: appFont(fontSize: 13, color: Colors.grey.shade600)),
         const SizedBox(height: 16),
         SizedBox(
           width: double.infinity,
@@ -136,7 +136,7 @@ class _PdfPreviewDialogState extends State<PdfPreviewDialog> {
               await Printing.sharePdf(bytes: bytes, filename: widget.nombreArchivo);
             },
             icon: const Icon(Icons.download_outlined, size: 18),
-            label: Text('Descargar PDF', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white)),
+            label: Text('Descargar PDF', style: appFont(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white)),
             style: FilledButton.styleFrom(backgroundColor: const Color(0xFF1A1A1A), padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
           ),
         ),
@@ -146,7 +146,7 @@ class _PdfPreviewDialogState extends State<PdfPreviewDialog> {
           child: OutlinedButton.icon(
             onPressed: () => Printing.layoutPdf(onLayout: (format) => widget.generarPdf(), name: widget.nombreArchivo),
             icon: const Icon(Icons.print_outlined, size: 18),
-            label: Text('Ver / imprimir', style: GoogleFonts.poppins(fontSize: 13)),
+            label: Text('Ver / imprimir', style: appFont(fontSize: 13)),
             style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
           ),
         ),

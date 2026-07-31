@@ -1,12 +1,12 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../data/compra_credito_import_service.dart';
 import '../../data/compra_credito_repository.dart';
 import '../../providers/compras_credito_provider.dart';
 import '../../../proveedores/providers/proveedores_provider.dart';
 import '../../../../core/utils/formato_moneda.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 class ImportarCreditosCompraDialog extends ConsumerStatefulWidget {
   const ImportarCreditosCompraDialog({super.key});
@@ -103,7 +103,7 @@ class _ImportarCreditosCompraDialogState extends ConsumerState<ImportarCreditosC
                   ),
                   const SizedBox(width: 14),
                   Expanded(
-                    child: Text('Importar Compras a Crédito desde Excel', style: GoogleFonts.poppins(fontSize: 16.5, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+                    child: Text('Importar Compras a Crédito desde Excel', style: appFont(fontSize: 16.5, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
                   ),
                   IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
                 ],
@@ -131,7 +131,7 @@ class _ImportarCreditosCompraDialogState extends ConsumerState<ImportarCreditosC
       children: [
         Text(
           'El archivo debe tener columnas: Número de Documento, Número de Factura, Proveedor, Monto Total, Saldo Pendiente, Fecha de Registro y Fecha de Vencimiento (el formato que exporta el sistema anterior funciona directo). Si un proveedor no existe todavía se crea solo. Sin fecha de vencimiento, se usa fecha de registro + 30 días.',
-          style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600),
+          style: appFont(fontSize: 12.5, color: Colors.grey.shade600),
         ),
         const SizedBox(height: 16),
         OutlinedButton.icon(
@@ -139,19 +139,19 @@ class _ImportarCreditosCompraDialogState extends ConsumerState<ImportarCreditosC
           icon: _cargando
               ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
               : const Icon(Icons.description_outlined, size: 18),
-          label: Text(_cargando ? 'Leyendo...' : (_nombreArchivo == null ? 'Elegir archivo .xlsx' : 'Elegir otro archivo'), style: GoogleFonts.poppins(fontSize: 13)),
+          label: Text(_cargando ? 'Leyendo...' : (_nombreArchivo == null ? 'Elegir archivo .xlsx' : 'Elegir otro archivo'), style: appFont(fontSize: 13)),
           style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
         ),
         if (_nombreArchivo != null && !_cargando) ...[
           const SizedBox(height: 8),
-          Text(_nombreArchivo!, style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade500)),
+          Text(_nombreArchivo!, style: appFont(fontSize: 12, color: Colors.grey.shade500)),
         ],
         if (_error != null) ...[
           const SizedBox(height: 14),
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(color: const Color(0xFFE6E9F2), borderRadius: BorderRadius.circular(10)),
-            child: Text(_error!, style: GoogleFonts.poppins(fontSize: 12.5, color: const Color(0xFF0D2B4E))),
+            child: Text(_error!, style: appFont(fontSize: 12.5, color: const Color(0xFF0D2B4E))),
           ),
         ],
         if (_filas != null) ...[
@@ -175,7 +175,7 @@ class _ImportarCreditosCompraDialogState extends ConsumerState<ImportarCreditosC
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
-      child: Text(texto, style: GoogleFonts.poppins(fontSize: 11.5, fontWeight: FontWeight.w600, color: color)),
+      child: Text(texto, style: appFont(fontSize: 11.5, fontWeight: FontWeight.w600, color: color)),
     );
   }
 
@@ -202,13 +202,13 @@ class _ImportarCreditosCompraDialogState extends ConsumerState<ImportarCreditosC
                       children: [
                         Text(
                           'Fila ${f.numeroFila} · ${f.nombreProveedor.isEmpty ? '(sin proveedor)' : f.nombreProveedor}',
-                          style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600, color: color),
+                          style: appFont(fontSize: 12.5, fontWeight: FontWeight.w600, color: color),
                         ),
                         Text(
                           f.valido
                               ? 'Factura: ${f.noFactura.isEmpty ? '-' : f.noFactura} · Total: ${formatearMoneda(f.montoTotal)} · Saldo: ${formatearMoneda(f.saldoPendiente)}'
                               : f.error!,
-                          style: GoogleFonts.poppins(fontSize: 11.5, color: f.valido ? Colors.grey.shade600 : const Color(0xFF0D2B4E)),
+                          style: appFont(fontSize: 11.5, color: f.valido ? Colors.grey.shade600 : const Color(0xFF0D2B4E)),
                         ),
                       ],
                     ),
@@ -231,7 +231,7 @@ class _ImportarCreditosCompraDialogState extends ConsumerState<ImportarCreditosC
           children: [
             const Icon(Icons.check_circle, color: Color(0xFF16A34A), size: 26),
             const SizedBox(width: 10),
-            Expanded(child: Text('Importación completada', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700))),
+            Expanded(child: Text('Importación completada', style: appFont(fontSize: 15, fontWeight: FontWeight.w700))),
           ],
         ),
         const SizedBox(height: 16),
@@ -247,8 +247,8 @@ class _ImportarCreditosCompraDialogState extends ConsumerState<ImportarCreditosC
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(etiqueta, style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade700)),
-          Text('$valor', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700)),
+          Text(etiqueta, style: appFont(fontSize: 13, color: Colors.grey.shade700)),
+          Text('$valor', style: appFont(fontSize: 13, fontWeight: FontWeight.w700)),
         ],
       ),
     );
@@ -261,7 +261,7 @@ class _ImportarCreditosCompraDialogState extends ConsumerState<ImportarCreditosC
         child: FilledButton(
           onPressed: () => Navigator.pop(context),
           style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E), padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-          child: Text('Cerrar', style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600)),
+          child: Text('Cerrar', style: appFont(fontSize: 13.5, fontWeight: FontWeight.w600)),
         ),
       );
     }
@@ -271,7 +271,7 @@ class _ImportarCreditosCompraDialogState extends ConsumerState<ImportarCreditosC
           child: OutlinedButton(
             onPressed: _importando ? null : () => Navigator.pop(context),
             style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-            child: Text('Cancelar', style: GoogleFonts.poppins(fontSize: 13.5)),
+            child: Text('Cancelar', style: appFont(fontSize: 13.5)),
           ),
         ),
         const SizedBox(width: 12),
@@ -281,7 +281,7 @@ class _ImportarCreditosCompraDialogState extends ConsumerState<ImportarCreditosC
             style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E), padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
             child: _importando
                 ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : Text('Importar (${_validas.length})', style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600)),
+                : Text('Importar (${_validas.length})', style: appFont(fontSize: 13.5, fontWeight: FontWeight.w600)),
           ),
         ),
       ],

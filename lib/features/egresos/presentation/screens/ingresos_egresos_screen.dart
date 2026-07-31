@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../data/egreso_model.dart';
 import '../../data/egreso_export_service.dart';
@@ -10,6 +9,7 @@ import '../../../../core/utils/formato_moneda.dart';
 import '../../../../core/utils/texto_utils.dart';
 import '../../../../core/utils/exportador.dart';
 import '../../../../core/widgets/pdf_preview_dialog.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 class IngresosEgresosScreen extends ConsumerStatefulWidget {
   const IngresosEgresosScreen({super.key});
@@ -294,17 +294,17 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
       spacing: 12,
       runSpacing: 10,
       children: [
-        Text('Ingresos y Egresos', style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+        Text('Ingresos y Egresos', style: appFont(fontSize: 22, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
         OutlinedButton.icon(
           onPressed: _exportarExcel,
           icon: const Icon(Icons.grid_on_outlined, size: 18),
-          label: Text('Excel', style: GoogleFonts.poppins(fontSize: 13)),
+          label: Text('Excel', style: appFont(fontSize: 13)),
           style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
         ),
         OutlinedButton.icon(
           onPressed: _exportarPdf,
           icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
-          label: Text('PDF', style: GoogleFonts.poppins(fontSize: 13)),
+          label: Text('PDF', style: appFont(fontSize: 13)),
           style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
         ),
       ],
@@ -319,7 +319,7 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(_idEditando.isEmpty ? 'Registrar egreso manual' : 'Editar egreso', style: GoogleFonts.poppins(fontSize: 14.5, fontWeight: FontWeight.w700)),
+          Text(_idEditando.isEmpty ? 'Registrar egreso manual' : 'Editar egreso', style: appFont(fontSize: 14.5, fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
           _campoTexto('Monto', _montoController, teclado: const TextInputType.numberWithOptions(decimal: true)),
           const SizedBox(height: 10),
@@ -341,7 +341,7 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
           Row(
             children: [
               Checkbox(value: _esPagado, onChanged: (v) => setState(() => _esPagado = v ?? true)),
-              Text('Pagado', style: GoogleFonts.poppins(fontSize: 12.5)),
+              Text('Pagado', style: appFont(fontSize: 12.5)),
             ],
           ),
           const SizedBox(height: 6),
@@ -351,7 +351,7 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
                 child: OutlinedButton.icon(
                   onPressed: _eliminarEgreso,
                   icon: const Icon(Icons.delete_outline, size: 16),
-                  label: Text('Eliminar', style: GoogleFonts.poppins(fontSize: 12.5)),
+                  label: Text('Eliminar', style: appFont(fontSize: 12.5)),
                   style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF0D2B4E), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(vertical: 13), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                 ),
               ),
@@ -360,7 +360,7 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
                 child: FilledButton.icon(
                   onPressed: _registrarEgreso,
                   icon: Icon(_idEditando.isEmpty ? Icons.add : Icons.save_outlined, size: 16),
-                  label: Text(_idEditando.isEmpty ? 'Registrar' : 'Guardar', style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600)),
+                  label: Text(_idEditando.isEmpty ? 'Registrar' : 'Guardar', style: appFont(fontSize: 12.5, fontWeight: FontWeight.w600)),
                   style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E), padding: const EdgeInsets.symmetric(vertical: 13), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                 ),
               ),
@@ -414,8 +414,8 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(etiqueta.toUpperCase(), style: GoogleFonts.poppins(fontSize: 9.5, fontWeight: FontWeight.w700, color: Colors.grey.shade500, letterSpacing: 0.4)),
-          Text(formatearMoneda(valor), style: GoogleFonts.poppins(fontSize: 14.5, fontWeight: FontWeight.w800, color: color)),
+          Text(etiqueta.toUpperCase(), style: appFont(fontSize: 9.5, fontWeight: FontWeight.w700, color: Colors.grey.shade500, letterSpacing: 0.4)),
+          Text(formatearMoneda(valor), style: appFont(fontSize: 14.5, fontWeight: FontWeight.w800, color: color)),
         ],
       ),
     );
@@ -430,7 +430,7 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
           children: [
             Icon(Icons.swap_vert_outlined, size: 56, color: Colors.grey.shade300),
             const SizedBox(height: 12),
-            Text('No se encontraron movimientos', style: GoogleFonts.poppins(color: Colors.grey.shade500)),
+            Text('No se encontraron movimientos', style: appFont(color: Colors.grey.shade500)),
           ],
         ),
       );
@@ -453,12 +453,12 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               child: Row(
                 children: [
-                  Expanded(flex: 2, child: Text(formatoFecha.format(m.fecha), style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600))),
-                  Expanded(flex: 2, child: Text(m.tipoMovimiento, style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600))),
-                  Expanded(flex: 3, child: Text(m.descripcion, style: GoogleFonts.poppins(fontSize: 12), overflow: TextOverflow.ellipsis)),
-                  Expanded(flex: 2, child: Text(m.ingreso == 0 ? '' : formatearMoneda(m.ingreso), style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF16A34A), fontWeight: FontWeight.w600))),
-                  Expanded(flex: 2, child: Text(m.egreso == 0 ? '' : formatearMoneda(m.egreso), style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF0D2B4E), fontWeight: FontWeight.w600))),
-                  Expanded(flex: 2, child: Text(m.metodoPago, style: GoogleFonts.poppins(fontSize: 11.5, color: Colors.grey.shade600))),
+                  Expanded(flex: 2, child: Text(formatoFecha.format(m.fecha), style: appFont(fontSize: 12, color: Colors.grey.shade600))),
+                  Expanded(flex: 2, child: Text(m.tipoMovimiento, style: appFont(fontSize: 12, fontWeight: FontWeight.w600))),
+                  Expanded(flex: 3, child: Text(m.descripcion, style: appFont(fontSize: 12), overflow: TextOverflow.ellipsis)),
+                  Expanded(flex: 2, child: Text(m.ingreso == 0 ? '' : formatearMoneda(m.ingreso), style: appFont(fontSize: 12, color: const Color(0xFF16A34A), fontWeight: FontWeight.w600))),
+                  Expanded(flex: 2, child: Text(m.egreso == 0 ? '' : formatearMoneda(m.egreso), style: appFont(fontSize: 12, color: const Color(0xFF0D2B4E), fontWeight: FontWeight.w600))),
+                  Expanded(flex: 2, child: Text(m.metodoPago, style: appFont(fontSize: 11.5, color: Colors.grey.shade600))),
                 ],
               ),
             ),
@@ -499,27 +499,27 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
               children: [
                 Row(
                   children: [
-                    Expanded(child: Text(m.tipoMovimiento, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700))),
-                    Text(formatoFecha.format(m.fecha), style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500)),
+                    Expanded(child: Text(m.tipoMovimiento, style: appFont(fontSize: 13, fontWeight: FontWeight.w700))),
+                    Text(formatoFecha.format(m.fecha), style: appFont(fontSize: 11, color: Colors.grey.shade500)),
                   ],
                 ),
                 const SizedBox(height: 6),
-                Text(m.descripcion, style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade700)),
+                Text(m.descripcion, style: appFont(fontSize: 12.5, color: Colors.grey.shade700)),
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     if (m.ingreso != 0) ...[
                       Icon(Icons.arrow_downward, size: 13, color: const Color(0xFF16A34A)),
                       const SizedBox(width: 3),
-                      Text(formatearMoneda(m.ingreso), style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF16A34A), fontWeight: FontWeight.w700)),
+                      Text(formatearMoneda(m.ingreso), style: appFont(fontSize: 13, color: const Color(0xFF16A34A), fontWeight: FontWeight.w700)),
                     ],
                     if (m.egreso != 0) ...[
                       Icon(Icons.arrow_upward, size: 13, color: const Color(0xFF0D2B4E)),
                       const SizedBox(width: 3),
-                      Text(formatearMoneda(m.egreso), style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF0D2B4E), fontWeight: FontWeight.w700)),
+                      Text(formatearMoneda(m.egreso), style: appFont(fontSize: 13, color: const Color(0xFF0D2B4E), fontWeight: FontWeight.w700)),
                     ],
                     const Spacer(),
-                    Text(m.metodoPago, style: GoogleFonts.poppins(fontSize: 11.5, color: Colors.grey.shade600)),
+                    Text(m.metodoPago, style: appFont(fontSize: 11.5, color: Colors.grey.shade600)),
                   ],
                 ),
               ],
@@ -534,10 +534,10 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
     return TextField(
       controller: controller,
       keyboardType: teclado,
-      style: GoogleFonts.poppins(fontSize: 13),
+      style: appFont(fontSize: 13),
       decoration: InputDecoration(
         labelText: etiqueta,
-        labelStyle: GoogleFonts.poppins(fontSize: 12),
+        labelStyle: appFont(fontSize: 12),
         filled: true,
         fillColor: const Color(0xFFE8EAF0),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -555,7 +555,7 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
         children: [
           Icon(Icons.calendar_today_outlined, size: 14, color: Colors.grey.shade500),
           const SizedBox(width: 8),
-          Text('$etiqueta: $valor', style: GoogleFonts.poppins(fontSize: 12.5)),
+          Text('$etiqueta: $valor', style: appFont(fontSize: 12.5)),
         ],
       ),
     );
@@ -569,7 +569,7 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
         child: DropdownButton<String>(
           value: valor,
           isExpanded: true,
-          style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF1A1A1A)),
+          style: appFont(fontSize: 13, color: const Color(0xFF1A1A1A)),
           items: opciones.map((o) => DropdownMenuItem(value: o, child: Text(o))).toList(),
           onChanged: onChanged,
         ),
@@ -590,7 +590,7 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
           children: [
             Icon(Icons.calendar_today_outlined, size: 15, color: Colors.grey.shade500),
             const SizedBox(width: 8),
-            Text('$label: ${formato.format(fecha)}', style: GoogleFonts.poppins(fontSize: 12.5, color: const Color(0xFF1A1A1A))),
+            Text('$label: ${formato.format(fecha)}', style: appFont(fontSize: 12.5, color: const Color(0xFF1A1A1A))),
           ],
         ),
       ),
@@ -606,10 +606,10 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
         child: DropdownButton<String?>(
           value: valor,
           isExpanded: true,
-          hint: Text(etiqueta, style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade500)),
-          style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF1A1A1A)),
+          hint: Text(etiqueta, style: appFont(fontSize: 13, color: Colors.grey.shade500)),
+          style: appFont(fontSize: 13, color: const Color(0xFF1A1A1A)),
           items: [
-            DropdownMenuItem<String?>(value: null, child: Text('$etiqueta: Todos', style: GoogleFonts.poppins(fontSize: 13))),
+            DropdownMenuItem<String?>(value: null, child: Text('$etiqueta: Todos', style: appFont(fontSize: 13))),
             ...opciones.map((o) => DropdownMenuItem<String?>(value: o, child: Text(o, overflow: TextOverflow.ellipsis))),
           ],
           onChanged: onChanged,
@@ -630,8 +630,8 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
           Expanded(
             child: TextField(
               controller: _busquedaController,
-              style: GoogleFonts.poppins(fontSize: 13),
-              decoration: InputDecoration(hintText: 'Buscar...', hintStyle: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade400), border: InputBorder.none, isDense: true),
+              style: appFont(fontSize: 13),
+              decoration: InputDecoration(hintText: 'Buscar...', hintStyle: appFont(fontSize: 12.5, color: Colors.grey.shade400), border: InputBorder.none, isDense: true),
               onChanged: (v) => setState(() => _busqueda = v.trim()),
             ),
           ),

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../data/negocio_repository.dart';
 import '../../providers/negocio_provider.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 /// Si el permiso [permisoKey] está activado y hay una clave especial configurada,
 /// pide la clave antes de continuar. Si no está activado (o no hay clave configurada),
@@ -101,22 +101,22 @@ class _ClaveEspecialDialogState extends State<_ClaveEspecialDialog> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text('Acceso especial requerido', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+                  child: Text('Acceso especial requerido', style: appFont(fontSize: 15, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            Text('Esta acción está protegida. Ingresá la clave especial para continuar.', style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600)),
+            Text('Esta acción está protegida. Ingresá la clave especial para continuar.', style: appFont(fontSize: 12.5, color: Colors.grey.shade600)),
             const SizedBox(height: 18),
             TextField(
               controller: _controller,
               autofocus: true,
               obscureText: true,
               onSubmitted: (_) => _confirmar(),
-              style: GoogleFonts.poppins(fontSize: 14),
+              style: appFont(fontSize: 14),
               decoration: InputDecoration(
                 hintText: 'Clave especial',
-                hintStyle: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade400),
+                hintStyle: appFont(fontSize: 13, color: Colors.grey.shade400),
                 errorText: _error,
                 filled: true,
                 fillColor: const Color(0xFFE8EAF0),
@@ -131,7 +131,7 @@ class _ClaveEspecialDialogState extends State<_ClaveEspecialDialog> {
                   child: OutlinedButton(
                     onPressed: () => Navigator.pop(context, false),
                     style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                    child: Text('Cancelar', style: GoogleFonts.poppins(fontSize: 13.5)),
+                    child: Text('Cancelar', style: appFont(fontSize: 13.5)),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -139,7 +139,7 @@ class _ClaveEspecialDialogState extends State<_ClaveEspecialDialog> {
                   child: FilledButton(
                     onPressed: _confirmar,
                     style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E), padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                    child: Text('Confirmar', style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600)),
+                    child: Text('Confirmar', style: appFont(fontSize: 13.5, fontWeight: FontWeight.w600)),
                   ),
                 ),
               ],

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
 import '../../data/traslado_export_service.dart';
@@ -11,6 +10,7 @@ import '../../../sucursales/providers/sucursales_provider.dart';
 import '../../../negocio/providers/negocio_provider.dart';
 import '../../../../core/widgets/pdf_preview_dialog.dart';
 import 'detalle_traslado_screen.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 class ReporteTrasladosScreen extends ConsumerStatefulWidget {
   const ReporteTrasladosScreen({super.key});
@@ -113,7 +113,7 @@ class _ReporteTrasladosScreenState extends ConsumerState<ReporteTrasladosScreen>
   InputDecoration _decoracion(String label) {
     return InputDecoration(
       labelText: label,
-      labelStyle: GoogleFonts.poppins(fontSize: 12.5),
+      labelStyle: appFont(fontSize: 12.5),
       filled: true,
       fillColor: const Color(0xFFE8EAF0),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -128,7 +128,7 @@ class _ReporteTrasladosScreenState extends ConsumerState<ReporteTrasladosScreen>
       borderRadius: BorderRadius.circular(12),
       child: InputDecorator(
         decoration: _decoracion(label),
-        child: Text(DateFormat('dd/MM/yyyy').format(valor), style: GoogleFonts.poppins(fontSize: 13)),
+        child: Text(DateFormat('dd/MM/yyyy').format(valor), style: appFont(fontSize: 13)),
       ),
     );
   }
@@ -147,7 +147,7 @@ class _ReporteTrasladosScreenState extends ConsumerState<ReporteTrasladosScreen>
             child: NestedScrollView(
               headerSliverBuilder: (context, innerBoxIsScrolled) => [
                 SliverToBoxAdapter(
-                  child: Text('Reporte de Traslados', style: GoogleFonts.poppins(fontSize: esMovil ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+                  child: Text('Reporte de Traslados', style: appFont(fontSize: esMovil ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
                 ),
                 SliverToBoxAdapter(child: const SizedBox(height: 16)),
                 SliverToBoxAdapter(
@@ -162,7 +162,7 @@ class _ReporteTrasladosScreenState extends ConsumerState<ReporteTrasladosScreen>
                         child: DropdownButtonFormField<String>(
                           initialValue: _estadoFiltro,
                           decoration: _decoracion('Estado (todos)'),
-                          style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF1A1A1A)),
+                          style: appFont(fontSize: 13, color: const Color(0xFF1A1A1A)),
                           items: _estados.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
                           onChanged: (v) => setState(() => _estadoFiltro = v),
                         ),
@@ -173,7 +173,7 @@ class _ReporteTrasladosScreenState extends ConsumerState<ReporteTrasladosScreen>
                           child: DropdownButtonFormField<String>(
                             initialValue: _sucursalFiltro,
                             decoration: _decoracion('Sucursal (todas)'),
-                            style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF1A1A1A)),
+                            style: appFont(fontSize: 13, color: const Color(0xFF1A1A1A)),
                             items: sucursales.map((s) => DropdownMenuItem(value: s.id, child: Text(s.nombre, overflow: TextOverflow.ellipsis))).toList(),
                             onChanged: (v) => setState(() => _sucursalFiltro = v),
                           ),
@@ -186,7 +186,7 @@ class _ReporteTrasladosScreenState extends ConsumerState<ReporteTrasladosScreen>
                         child: FilledButton.icon(
                           onPressed: _cargando ? null : _buscar,
                           icon: _cargando ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.search, size: 18),
-                          label: Text('Buscar', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+                          label: Text('Buscar', style: appFont(fontSize: 13, fontWeight: FontWeight.w600)),
                           style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E), padding: const EdgeInsets.symmetric(horizontal: 20), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                         ),
                       ),
@@ -199,11 +199,11 @@ class _ReporteTrasladosScreenState extends ConsumerState<ReporteTrasladosScreen>
                 width: double.infinity,
                 decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFB6BCC7), width: 1.2), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.13), blurRadius: 24, offset: const Offset(0, 10))]),
                 child: _error != null
-                    ? Center(child: Text(_error!, style: GoogleFonts.poppins(color: Colors.red)))
+                    ? Center(child: Text(_error!, style: appFont(color: Colors.red)))
                     : (_traslados == null
                         ? const Center(child: CircularProgressIndicator(color: Color(0xFF0D2B4E)))
                         : _traslados!.isEmpty
-                            ? Center(child: Text('No hay traslados en este rango', style: GoogleFonts.poppins(color: Colors.grey.shade500)))
+                            ? Center(child: Text('No hay traslados en este rango', style: appFont(color: Colors.grey.shade500)))
                             : ListView.separated(
                                 padding: const EdgeInsets.all(14),
                                 itemCount: _traslados!.length,
@@ -222,16 +222,16 @@ class _ReporteTrasladosScreenState extends ConsumerState<ReporteTrasladosScreen>
                                           child: Column(
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
-                                              Text('${t.numero}  ·  ${t.nombreSucursalOrigen} → ${t.nombreSucursalDestino}', style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+                                              Text('${t.numero}  ·  ${t.nombreSucursalOrigen} → ${t.nombreSucursalDestino}', style: appFont(fontSize: 13.5, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
                                               const SizedBox(height: 4),
-                                              Text('${t.fecha != null ? _formatoFecha.format(t.fecha!) : '-'} · ${t.totalItems.toStringAsFixed(0)} unidades · por ${t.usuarioCrea}', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600)),
+                                              Text('${t.fecha != null ? _formatoFecha.format(t.fecha!) : '-'} · ${t.totalItems.toStringAsFixed(0)} unidades · por ${t.usuarioCrea}', style: appFont(fontSize: 12, color: Colors.grey.shade600)),
                                             ],
                                           ),
                                         ),
                                         Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                                           decoration: BoxDecoration(color: _colorEstado(t.estado).withOpacity(0.12), borderRadius: BorderRadius.circular(8)),
-                                          child: Text(t.estado, style: GoogleFonts.poppins(fontSize: 11.5, fontWeight: FontWeight.w700, color: _colorEstado(t.estado))),
+                                          child: Text(t.estado, style: appFont(fontSize: 11.5, fontWeight: FontWeight.w700, color: _colorEstado(t.estado))),
                                         ),
                                         const SizedBox(width: 8),
                                         IconButton(

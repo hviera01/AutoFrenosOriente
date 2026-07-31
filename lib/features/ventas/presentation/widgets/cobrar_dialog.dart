@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/utils/formato_moneda.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 class CobrarResultado {
   final double pagoCon;
@@ -58,7 +58,7 @@ class _CobrarDialogState extends State<CobrarDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Cobrar Factura', style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700)),
+            Text('Cobrar Factura', style: appFont(fontSize: 17, fontWeight: FontWeight.w700)),
             const SizedBox(height: 16),
             Container(
               width: double.infinity,
@@ -67,8 +67,8 @@ class _CobrarDialogState extends State<CobrarDialog> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('TOTAL A PAGAR', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w700, color: const Color(0xFF0D2B4E), letterSpacing: 0.5)),
-                  Text(formatearMoneda(widget.total), style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.w800, color: const Color(0xFF0D2B4E))),
+                  Text('TOTAL A PAGAR', style: appFont(fontSize: 11, fontWeight: FontWeight.w700, color: const Color(0xFF0D2B4E), letterSpacing: 0.5)),
+                  Text(formatearMoneda(widget.total), style: appFont(fontSize: 24, fontWeight: FontWeight.w800, color: const Color(0xFF0D2B4E))),
                 ],
               ),
             ),
@@ -77,12 +77,12 @@ class _CobrarDialogState extends State<CobrarDialog> {
               controller: _pagoController,
               autofocus: true,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
+              style: appFont(fontSize: 16, fontWeight: FontWeight.w600),
               onChanged: (_) => setState(() {}),
               onSubmitted: (_) => _confirmar(),
               decoration: InputDecoration(
                 labelText: 'Paga con',
-                labelStyle: GoogleFonts.poppins(fontSize: 13),
+                labelStyle: appFont(fontSize: 13),
                 filled: true,
                 fillColor: const Color(0xFFE8EAF0),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -95,26 +95,26 @@ class _CobrarDialogState extends State<CobrarDialog> {
               decoration: BoxDecoration(color: const Color(0xFFEFF4FF), borderRadius: BorderRadius.circular(12)),
               child: Row(
                 children: [
-                  Text('Cambio', style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF3B82F6))),
+                  Text('Cambio', style: appFont(fontSize: 13, color: const Color(0xFF3B82F6))),
                   const Spacer(),
-                  Text(formatearMoneda(_cambio), style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: const Color(0xFF3B82F6))),
+                  Text(formatearMoneda(_cambio), style: appFont(fontSize: 16, fontWeight: FontWeight.w700, color: const Color(0xFF3B82F6))),
                 ],
               ),
             ),
             if (_error != null) ...[
               const SizedBox(height: 12),
-              Text(_error!, style: GoogleFonts.poppins(fontSize: 12, color: Colors.red)),
+              Text(_error!, style: appFont(fontSize: 12, color: Colors.red)),
             ],
             const SizedBox(height: 20),
             Row(
               children: [
                 const Spacer(),
-                TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancelar', style: GoogleFonts.poppins(color: Colors.grey.shade700))),
+                TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancelar', style: appFont(color: Colors.grey.shade700))),
                 const SizedBox(width: 10),
                 FilledButton(
                   onPressed: _confirmar,
                   style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E), padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                  child: Text('Confirmar', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.white)),
+                  child: Text('Confirmar', style: appFont(fontWeight: FontWeight.w600, color: Colors.white)),
                 ),
               ],
             ),

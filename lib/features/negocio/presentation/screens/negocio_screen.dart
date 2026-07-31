@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/services/impresora_red_service.dart';
 import '../../../../core/services/ip_publica_service.dart';
@@ -10,6 +9,7 @@ import '../../data/negocio_model.dart';
 import '../../providers/negocio_provider.dart';
 import '../widgets/negocio_logo_picker.dart';
 import '../widgets/selector_impresora.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 class NegocioScreen extends ConsumerWidget {
   const NegocioScreen({super.key});
@@ -22,7 +22,7 @@ class NegocioScreen extends ConsumerWidget {
       child: negocioAsync.when(
         data: (modelo) => _NegocioForm(modelo: modelo),
         loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF0D2B4E))),
-        error: (e, st) => Center(child: Text('Error: $e', style: GoogleFonts.poppins(color: Colors.red))),
+        error: (e, st) => Center(child: Text('Error: $e', style: appFont(color: Colors.red))),
       ),
     );
   }
@@ -300,12 +300,12 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
                 child: Row(
                   children: [
                     Expanded(
-                      child: Text('Negocio', style: GoogleFonts.poppins(fontSize: esMovil ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+                      child: Text('Negocio', style: appFont(fontSize: esMovil ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
                     ),
                     OutlinedButton.icon(
                       onPressed: () => ref.invalidate(negocioStreamProvider),
                       icon: const Icon(Icons.refresh, size: 18),
-                      label: Text('Refrescar', style: GoogleFonts.poppins(fontSize: 13)),
+                      label: Text('Refrescar', style: appFont(fontSize: 13)),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: const Color(0xFF1A1A1A),
                         side: const BorderSide(color: Color(0xFFB6BCC7)),
@@ -353,7 +353,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
       children: [
         Icon(icono, size: 19, color: const Color(0xFF0D2B4E)),
         const SizedBox(width: 8),
-        Text(texto, style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+        Text(texto, style: appFont(fontSize: 15, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
       ],
     );
   }
@@ -361,7 +361,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
   InputDecoration _decoracion(String label) {
     return InputDecoration(
       labelText: label,
-      labelStyle: GoogleFonts.poppins(fontSize: 12.5),
+      labelStyle: appFont(fontSize: 12.5),
       filled: true,
       fillColor: const Color(0xFFE8EAF0),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -374,7 +374,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
       width: ancho,
       child: TextField(
         controller: controller,
-        style: GoogleFonts.poppins(fontSize: 13.5),
+        style: appFont(fontSize: 13.5),
         decoration: _decoracion(label),
       ),
     );
@@ -418,7 +418,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
           ),
           const SizedBox(height: 20),
           if (_error != null) ...[
-            Text(_error!, style: GoogleFonts.poppins(fontSize: 12.5, color: const Color(0xFF0D2B4E))),
+            Text(_error!, style: appFont(fontSize: 12.5, color: const Color(0xFF0D2B4E))),
             const SizedBox(height: 12),
           ],
           SizedBox(
@@ -428,7 +428,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
               icon: _guardando
                   ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                   : const Icon(Icons.save_outlined, size: 18),
-              label: Text(_guardando ? 'Guardando...' : 'Guardar cambios', style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600)),
+              label: Text(_guardando ? 'Guardando...' : 'Guardar cambios', style: appFont(fontSize: 13.5, fontWeight: FontWeight.w600)),
               style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E), padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
             ),
           ),
@@ -443,17 +443,17 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Rango autorizado', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600)),
+          Text('Rango autorizado', style: appFont(fontSize: 12, color: Colors.grey.shade600)),
           const SizedBox(height: 6),
           Row(
             children: [
-              Expanded(flex: 3, child: TextField(controller: _rangoPrefijoController, style: GoogleFonts.poppins(fontSize: 13), decoration: _decoracion('Prefijo'))),
+              Expanded(flex: 3, child: TextField(controller: _rangoPrefijoController, style: appFont(fontSize: 13), decoration: _decoracion('Prefijo'))),
               const SizedBox(width: 8),
-              Expanded(flex: 3, child: TextField(controller: _rangoDesdeController, keyboardType: TextInputType.number, style: GoogleFonts.poppins(fontSize: 13), decoration: _decoracion('Desde'))),
+              Expanded(flex: 3, child: TextField(controller: _rangoDesdeController, keyboardType: TextInputType.number, style: appFont(fontSize: 13), decoration: _decoracion('Desde'))),
               const SizedBox(width: 8),
-              Text('AL', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey.shade600)),
+              Text('AL', style: appFont(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey.shade600)),
               const SizedBox(width: 8),
-              Expanded(flex: 3, child: TextField(controller: _rangoHastaController, keyboardType: TextInputType.number, style: GoogleFonts.poppins(fontSize: 13), decoration: _decoracion('Hasta'))),
+              Expanded(flex: 3, child: TextField(controller: _rangoHastaController, keyboardType: TextInputType.number, style: appFont(fontSize: 13), decoration: _decoracion('Hasta'))),
             ],
           ),
         ],
@@ -466,7 +466,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Fecha límite de emisión', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600)),
+        Text('Fecha límite de emisión', style: appFont(fontSize: 12, color: Colors.grey.shade600)),
         const SizedBox(height: 6),
         InkWell(
           onTap: _seleccionarFecha,
@@ -478,7 +478,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
               children: [
                 Icon(Icons.calendar_today_outlined, size: 16, color: Colors.grey.shade500),
                 const SizedBox(width: 10),
-                Flexible(child: Text(_fechaLimite != null ? formato.format(_fechaLimite!) : 'Sin definir', overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 13.5, color: const Color(0xFF1A1A1A)))),
+                Flexible(child: Text(_fechaLimite != null ? formato.format(_fechaLimite!) : 'Sin definir', overflow: TextOverflow.ellipsis, style: appFont(fontSize: 13.5, color: const Color(0xFF1A1A1A)))),
               ],
             ),
           ),
@@ -496,7 +496,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
           const SizedBox(height: 6),
           Text(
             'Definí una clave que se pedirá antes de realizar ciertas acciones sensibles. Es opcional: activá solo lo que necesites.',
-            style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600),
+            style: appFont(fontSize: 12.5, color: Colors.grey.shade600),
           ),
           const SizedBox(height: 18),
           Wrap(
@@ -509,7 +509,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
                 child: TextField(
                   controller: _claveController,
                   obscureText: true,
-                  style: GoogleFonts.poppins(fontSize: 13.5),
+                  style: appFont(fontSize: 13.5),
                   decoration: _decoracion(tieneClave ? 'Nueva clave especial' : 'Definir clave especial'),
                 ),
               ),
@@ -518,7 +518,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
                 child: FilledButton(
                   onPressed: _guardandoClave ? null : _guardarClave,
                   style: FilledButton.styleFrom(backgroundColor: const Color(0xFF1A1A1A), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                  child: Text('Guardar clave', style: GoogleFonts.poppins(fontSize: 13, color: Colors.white)),
+                  child: Text('Guardar clave', style: appFont(fontSize: 13, color: Colors.white)),
                 ),
               ),
               if (tieneClave)
@@ -527,7 +527,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
                   child: OutlinedButton(
                     onPressed: _guardandoClave ? null : _quitarClave,
                     style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF0D2B4E), side: const BorderSide(color: Color(0xFFF3B9B9)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                    child: Text('Quitar clave', style: GoogleFonts.poppins(fontSize: 13)),
+                    child: Text('Quitar clave', style: appFont(fontSize: 13)),
                   ),
                 ),
             ],
@@ -539,14 +539,14 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
               const SizedBox(width: 6),
               Text(
                 tieneClave ? 'Clave especial activa' : 'No hay clave especial configurada',
-                style: GoogleFonts.poppins(fontSize: 12, color: tieneClave ? const Color(0xFF16A34A) : Colors.grey.shade500),
+                style: appFont(fontSize: 12, color: tieneClave ? const Color(0xFF16A34A) : Colors.grey.shade500),
               ),
             ],
           ),
           const SizedBox(height: 20),
           Divider(color: Colors.grey.shade200),
           const SizedBox(height: 12),
-          Text('¿Dónde pedir la clave?', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+          Text('¿Dónde pedir la clave?', style: appFont(fontSize: 13, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
           const SizedBox(height: 6),
           ...PermisosEspeciales.etiquetas.entries.map(
             (entrada) => _filaPermiso(entrada.key, entrada.value, PermisosEspeciales.descripciones[entrada.key] ?? '', tieneClave),
@@ -566,12 +566,12 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
           const SizedBox(height: 6),
           Text(
             'Un usuario con el rol "Empleado encargado" solo va a poder iniciar sesión conectado a estas redes (IP pública). Dejalo vacío para no restringir por red. Presioná "Usar mi IP actual" estando conectado a la red del negocio.',
-            style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600),
+            style: appFont(fontSize: 12.5, color: Colors.grey.shade600),
           ),
           const SizedBox(height: 18),
           TextField(
             controller: _ipsPermitidasController,
-            style: GoogleFonts.poppins(fontSize: 13.5),
+            style: appFont(fontSize: 13.5),
             decoration: _decoracion('IPs permitidas (separadas por coma)'),
             onChanged: (_) => setState(() {}),
           ),
@@ -585,13 +585,13 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
                 icon: _buscandoIpActual
                     ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
                     : const Icon(Icons.my_location, size: 18),
-                label: Text('Usar mi IP actual', style: GoogleFonts.poppins(fontSize: 13)),
+                label: Text('Usar mi IP actual', style: appFont(fontSize: 13)),
                 style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
               ),
               FilledButton(
                 onPressed: _guardandoIps ? null : _guardarIpsPermitidas,
                 style: FilledButton.styleFrom(backgroundColor: const Color(0xFF1A1A1A), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                child: Text('Guardar', style: GoogleFonts.poppins(fontSize: 13, color: Colors.white)),
+                child: Text('Guardar', style: appFont(fontSize: 13, color: Colors.white)),
               ),
             ],
           ),
@@ -602,7 +602,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
               const SizedBox(width: 6),
               Text(
                 tieneRestriccion ? 'Restricción de red activa' : 'Sin restricción de red configurada',
-                style: GoogleFonts.poppins(fontSize: 12, color: tieneRestriccion ? const Color(0xFF16A34A) : Colors.grey.shade500),
+                style: appFont(fontSize: 12, color: tieneRestriccion ? const Color(0xFF16A34A) : Colors.grey.shade500),
               ),
             ],
           ),
@@ -620,7 +620,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
           const SizedBox(height: 6),
           Text(
             'Elegí qué impresora usar para los recibos térmicos y para las etiquetas de productos. Se usarán en todo el sistema.',
-            style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600),
+            style: appFont(fontSize: 12.5, color: Colors.grey.shade600),
           ),
           const SizedBox(height: 18),
           Flex(
@@ -649,11 +649,11 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
           const SizedBox(height: 20),
           Divider(color: Colors.grey.shade200),
           const SizedBox(height: 14),
-          Text('Ancho del rollo térmico', style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A))),
+          Text('Ancho del rollo térmico', style: appFont(fontSize: 13.5, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A))),
           const SizedBox(height: 4),
           Text(
             'El driver de Windows no siempre reporta bien el ancho configurado de la impresora: si el ticket sale descentrado o recortado a los lados, elegí acá el ancho real del papel que tiene cargado la impresora.',
-            style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600),
+            style: appFont(fontSize: 12, color: Colors.grey.shade600),
           ),
           const SizedBox(height: 10),
           Row(
@@ -676,15 +676,15 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
           const SizedBox(height: 20),
           Divider(color: Colors.grey.shade200),
           const SizedBox(height: 14),
-          Text('Impresora térmica de red (para celular)', style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A))),
+          Text('Impresora térmica de red (para celular)', style: appFont(fontSize: 13.5, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A))),
           const SizedBox(height: 4),
           Text(
             'En el celular no se pueden listar las impresoras del sistema. Si tu impresora térmica está conectada a la misma red WiFi, ingresá su IP acá: la venta se manda a imprimir directo por esa dirección.',
-            style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600),
+            style: appFont(fontSize: 12, color: Colors.grey.shade600),
           ),
           const SizedBox(height: 12),
           if (kIsWeb)
-            Text('No disponible en la versión web (el navegador no permite esta conexión directa).', style: GoogleFonts.poppins(fontSize: 11.5, color: Colors.grey.shade500))
+            Text('No disponible en la versión web (el navegador no permite esta conexión directa).', style: appFont(fontSize: 11.5, color: Colors.grey.shade500))
           else
             Flex(
               direction: esMovil ? Axis.vertical : Axis.horizontal,
@@ -694,7 +694,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
                   flex: 3,
                   child: TextField(
                     controller: _ipRedController,
-                    style: GoogleFonts.poppins(fontSize: 13),
+                    style: appFont(fontSize: 13),
                     decoration: InputDecoration(
                       labelText: 'IP de la impresora',
                       hintText: '192.168.1.50',
@@ -709,7 +709,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
                   child: TextField(
                     controller: _puertoRedController,
                     keyboardType: TextInputType.number,
-                    style: GoogleFonts.poppins(fontSize: 13),
+                    style: appFont(fontSize: 13),
                     decoration: InputDecoration(
                       labelText: 'Puerto',
                       filled: true,
@@ -726,7 +726,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
                     style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                     child: _probandoRed
                         ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                        : Text('Probar', style: GoogleFonts.poppins(fontSize: 13)),
+                        : Text('Probar', style: appFont(fontSize: 13)),
                   ),
                 ),
                 SizedBox(width: esMovil ? 0 : 12, height: esMovil ? 12 : 0),
@@ -737,7 +737,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
                     style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E), padding: const EdgeInsets.symmetric(horizontal: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                     child: _guardandoRed
                         ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : Text('Guardar', style: GoogleFonts.poppins(fontSize: 13, color: Colors.white)),
+                        : Text('Guardar', style: appFont(fontSize: 13, color: Colors.white)),
                   ),
                 ),
               ],
@@ -756,7 +756,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
           const SizedBox(height: 6),
           Text(
             'Configuración de lo que se imprime en el ticket de venta.',
-            style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600),
+            style: appFont(fontSize: 12.5, color: Colors.grey.shade600),
           ),
           const SizedBox(height: 14),
           _filaSwitchFactura(
@@ -773,11 +773,11 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
             onChanged: (v) => ref.read(negocioRepositoryProvider).establecerFacturaPreciosConIsv(v),
           ),
           Divider(color: Colors.grey.shade200, height: 28),
-          Text('Numeración de facturas', style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A))),
+          Text('Numeración de facturas', style: appFont(fontSize: 13.5, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A))),
           const SizedBox(height: 3),
           Text(
             'El número que le va a tocar a la próxima Factura o Boleta que registrés. Sirve para continuar la numeración de un talonario físico en vez de arrancar siempre desde 1 (por ejemplo, después de vaciar los datos de prueba).',
-            style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600),
+            style: appFont(fontSize: 12, color: Colors.grey.shade600),
           ),
           const SizedBox(height: 12),
           if (_cargandoProximoFactura)
@@ -790,12 +790,12 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
                   child: TextField(
                     controller: _ctrlProximoFactura,
                     keyboardType: TextInputType.number,
-                    style: GoogleFonts.poppins(fontSize: 14),
+                    style: appFont(fontSize: 14),
                     decoration: InputDecoration(
                       labelText: 'Próximo número de factura',
-                      labelStyle: GoogleFonts.poppins(fontSize: 13),
+                      labelStyle: appFont(fontSize: 13),
                       helperText: _proximoFacturaActual != null ? 'Actual: ${_formatoFactura(_proximoFacturaActual!)}' : null,
-                      helperStyle: GoogleFonts.poppins(fontSize: 11.5, color: Colors.grey.shade500),
+                      helperStyle: appFont(fontSize: 11.5, color: Colors.grey.shade500),
                       filled: true,
                       fillColor: const Color(0xFFE8EAF0),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -810,7 +810,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
                     style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E), padding: const EdgeInsets.symmetric(horizontal: 20), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                     child: _guardandoProximoFactura
                         ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : Text('Guardar', style: GoogleFonts.poppins(fontSize: 13, color: Colors.white)),
+                        : Text('Guardar', style: appFont(fontSize: 13, color: Colors.white)),
                   ),
                 ),
               ],
@@ -835,7 +835,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
           child: Text(
             etiqueta,
             textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600, color: activo ? Colors.white : const Color(0xFF3F434A)),
+            style: appFont(fontSize: 12.5, fontWeight: FontWeight.w600, color: activo ? Colors.white : const Color(0xFF3F434A)),
           ),
         ),
       ),
@@ -855,9 +855,9 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(titulo, style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A))),
+              Text(titulo, style: appFont(fontSize: 13.5, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A))),
               const SizedBox(height: 3),
-              Text(descripcion, style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600)),
+              Text(descripcion, style: appFont(fontSize: 12, color: Colors.grey.shade600)),
             ],
           ),
         ),
@@ -878,9 +878,9 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(titulo, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A))),
+                Text(titulo, style: appFont(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A))),
                 const SizedBox(height: 2),
-                Text(descripcion, style: GoogleFonts.poppins(fontSize: 11.5, color: Colors.grey.shade500)),
+                Text(descripcion, style: appFont(fontSize: 11.5, color: Colors.grey.shade500)),
               ],
             ),
           ),

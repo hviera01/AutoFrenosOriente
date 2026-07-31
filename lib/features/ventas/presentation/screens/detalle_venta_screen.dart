@@ -2,7 +2,6 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
 import '../../data/venta_model.dart';
@@ -26,6 +25,7 @@ import '../../../ventas_credito/data/abono_model.dart';
 import '../../../ventas_credito/data/venta_credito_export_service.dart';
 import '../../../ventas_credito/providers/ventas_credito_provider.dart';
 import '../../../ventas_credito/presentation/widgets/registrar_abono_dialog.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 /// Pantalla de consulta de una venta ya registrada: buscá por número de
 /// documento (o abrila directo desde Reportes / Ventas a Crédito pasando
@@ -149,7 +149,7 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Hay más de una venta con ese número', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 15)),
+        title: Text('Hay más de una venta con ese número', style: appFont(fontWeight: FontWeight.w700, fontSize: 15)),
         content: SizedBox(
           width: 380,
           child: ListView.separated(
@@ -160,17 +160,17 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
               final v = ventas[i];
               return ListTile(
                 contentPadding: EdgeInsets.zero,
-                title: Text('${tiposDocumento[v.tipoDocumento] ?? v.tipoDocumento} · ${v.numeroDocumento}', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+                title: Text('${tiposDocumento[v.tipoDocumento] ?? v.tipoDocumento} · ${v.numeroDocumento}', style: appFont(fontSize: 13, fontWeight: FontWeight.w600)),
                 subtitle: Text(
                   '${v.nombreCliente.isEmpty ? 'Sin cliente' : v.nombreCliente}${v.fechaRegistro != null ? ' · ${formatoFecha.format(v.fechaRegistro!)}' : ''}',
-                  style: GoogleFonts.poppins(fontSize: 11.5),
+                  style: appFont(fontSize: 11.5),
                 ),
                 onTap: () => Navigator.pop(context, v),
               );
             },
           ),
         ),
-        actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancelar', style: GoogleFonts.poppins()))],
+        actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancelar', style: appFont()))],
       ),
     );
   }
@@ -192,15 +192,15 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Reimprimir', style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
-        content: Text('¿La hoja reimpresa debe decir "ORIGINAL" o "COPIA"?', style: GoogleFonts.poppins(fontSize: 13)),
+        title: Text('Reimprimir', style: appFont(fontWeight: FontWeight.w700)),
+        content: Text('¿La hoja reimpresa debe decir "ORIGINAL" o "COPIA"?', style: appFont(fontSize: 13)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancelar', style: GoogleFonts.poppins())),
-          OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text('Original', style: GoogleFonts.poppins())),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancelar', style: appFont())),
+          OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text('Original', style: appFont())),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E)),
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Copia', style: GoogleFonts.poppins()),
+            child: Text('Copia', style: appFont()),
           ),
         ],
       ),
@@ -382,22 +382,22 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Anular venta ${venta.numeroDocumento}', style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
+        title: Text('Anular venta ${venta.numeroDocumento}', style: appFont(fontWeight: FontWeight.w700)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Esta acción repone al inventario el stock de los productos de esta venta y no se puede deshacer.',
-              style: GoogleFonts.poppins(fontSize: 13),
+              style: appFont(fontSize: 13),
             ),
             const SizedBox(height: 14),
             TextField(
               controller: motivoController,
-              style: GoogleFonts.poppins(fontSize: 13),
+              style: appFont(fontSize: 13),
               decoration: InputDecoration(
                 labelText: 'Motivo (opcional)',
-                labelStyle: GoogleFonts.poppins(fontSize: 12.5),
+                labelStyle: appFont(fontSize: 12.5),
                 filled: true,
                 fillColor: const Color(0xFFE8EAF0),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -406,11 +406,11 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancelar', style: GoogleFonts.poppins())),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancelar', style: appFont())),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E)),
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Anular', style: GoogleFonts.poppins()),
+            child: Text('Anular', style: appFont()),
           ),
         ],
       ),
@@ -450,10 +450,10 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
                       children: [
                         IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
                         const SizedBox(width: 6),
-                        Text('Detalle de Venta', style: GoogleFonts.poppins(fontSize: esMovil ? 18 : 21, fontWeight: FontWeight.w700)),
+                        Text('Detalle de Venta', style: appFont(fontSize: esMovil ? 18 : 21, fontWeight: FontWeight.w700)),
                       ],
                     )
-                  : Text('Detalle de Venta', style: GoogleFonts.poppins(fontSize: esMovil ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+                  : Text('Detalle de Venta', style: appFont(fontSize: esMovil ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
               const SizedBox(height: 16),
               Wrap(
                 spacing: 10,
@@ -469,10 +469,10 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
                       child: TextField(
                         controller: _busquedaController,
                         autofocus: widget.ventaIdInicial == null,
-                        style: GoogleFonts.poppins(fontSize: 14),
+                        style: appFont(fontSize: 14),
                         decoration: InputDecoration(
                           hintText: 'Número de documento...',
-                          hintStyle: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade400),
+                          hintStyle: appFont(fontSize: 13, color: Colors.grey.shade400),
                           border: InputBorder.none,
                           isDense: true,
                         ),
@@ -490,10 +490,10 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
                         child: DropdownButton<String?>(
                           value: _tipoDocumentoFiltro,
                           isExpanded: true,
-                          hint: Text('Tipo (todos)', style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade500)),
-                          style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF1A1A1A)),
+                          hint: Text('Tipo (todos)', style: appFont(fontSize: 13, color: Colors.grey.shade500)),
+                          style: appFont(fontSize: 13, color: const Color(0xFF1A1A1A)),
                           items: [
-                            DropdownMenuItem<String?>(value: null, child: Text('Tipo (todos)', style: GoogleFonts.poppins(fontSize: 13))),
+                            DropdownMenuItem<String?>(value: null, child: Text('Tipo (todos)', style: appFont(fontSize: 13))),
                             ...tiposDocumento.entries.map((e) => DropdownMenuItem<String?>(value: e.key, child: Text(e.value, overflow: TextOverflow.ellipsis))),
                           ],
                           onChanged: (v) => setState(() => _tipoDocumentoFiltro = v),
@@ -504,13 +504,13 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
                   OutlinedButton.icon(
                     onPressed: _cargando ? null : _buscarPorNumero,
                     icon: const Icon(Icons.search, size: 18),
-                    label: Text('Buscar', style: GoogleFonts.poppins(fontSize: 13)),
+                    label: Text('Buscar', style: appFont(fontSize: 13)),
                     style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                   ),
                   OutlinedButton.icon(
                     onPressed: _cargando ? null : _limpiar,
                     icon: const Icon(Icons.close, size: 18),
-                    label: Text('Limpiar', style: GoogleFonts.poppins(fontSize: 13)),
+                    label: Text('Limpiar', style: appFont(fontSize: 13)),
                     style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                   ),
                 ],
@@ -520,7 +520,7 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
                 child: _cargando
                     ? const Center(child: CircularProgressIndicator(color: Color(0xFF0D2B4E)))
                     : _error != null
-                        ? Center(child: Text(_error!, style: GoogleFonts.poppins(color: Colors.red)))
+                        ? Center(child: Text(_error!, style: appFont(color: Colors.red)))
                         : _venta == null
                             ? Center(
                                 child: Column(
@@ -528,7 +528,7 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
                                   children: [
                                     Icon(Icons.receipt_long_outlined, size: 56, color: Colors.grey.shade300),
                                     const SizedBox(height: 12),
-                                    Text('Buscá una venta por su número de documento', style: GoogleFonts.poppins(color: Colors.grey.shade500)),
+                                    Text('Buscá una venta por su número de documento', style: appFont(color: Colors.grey.shade500)),
                                   ],
                                 ),
                               )
@@ -590,7 +590,7 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
         const SizedBox(height: 16),
         Row(
           children: [
-            Text('Productos', style: GoogleFonts.poppins(fontSize: 14.5, fontWeight: FontWeight.w700)),
+            Text('Productos', style: appFont(fontSize: 14.5, fontWeight: FontWeight.w700)),
           ],
         ),
         const SizedBox(height: 10),
@@ -607,7 +607,7 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
               icon: _procesandoPdf
                   ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF1A1A1A)))
                   : const Icon(Icons.print_outlined, size: 18),
-              label: Text('Reimprimir', style: GoogleFonts.poppins(fontSize: 13)),
+              label: Text('Reimprimir', style: appFont(fontSize: 13)),
               style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
             ),
             OutlinedButton.icon(
@@ -615,27 +615,27 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
               icon: _procesandoPdf
                   ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF1A1A1A)))
                   : const Icon(Icons.picture_as_pdf_outlined, size: 18),
-              label: Text('Descargar PDF', style: GoogleFonts.poppins(fontSize: 13)),
+              label: Text('Descargar PDF', style: appFont(fontSize: 13)),
               style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
             ),
             if (esCredito && !venta.estaAnulada)
               OutlinedButton.icon(
                 onPressed: _abrirRegistrarAbono,
                 icon: const Icon(Icons.payments_outlined, size: 18),
-                label: Text('Registrar Abono', style: GoogleFonts.poppins(fontSize: 13)),
+                label: Text('Registrar Abono', style: appFont(fontSize: 13)),
                 style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF16A34A), side: const BorderSide(color: Color(0xFFBEE9CE)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
               ),
             OutlinedButton.icon(
               onPressed: () => _duplicarVenta(venta),
               icon: const Icon(Icons.content_copy_outlined, size: 18),
-              label: Text('Duplicar venta', style: GoogleFonts.poppins(fontSize: 13)),
+              label: Text('Duplicar venta', style: appFont(fontSize: 13)),
               style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
             ),
             if (esCotizacion && !venta.estaAnulada)
               FilledButton.icon(
                 onPressed: () => _duplicarVenta(venta, forzarFactura: true),
                 icon: const Icon(Icons.point_of_sale_outlined, size: 18),
-                label: Text('Convertir a venta', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+                label: Text('Convertir a venta', style: appFont(fontSize: 13, fontWeight: FontWeight.w600)),
                 style: FilledButton.styleFrom(backgroundColor: const Color(0xFF16A34A), padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
               ),
             if (!esCotizacion && !venta.estaAnulada)
@@ -644,7 +644,7 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
                 icon: _anulando
                     ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                     : const Icon(Icons.block_outlined, size: 18),
-                label: Text(_anulando ? 'Anulando...' : 'Anular Venta', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+                label: Text(_anulando ? 'Anulando...' : 'Anular Venta', style: appFont(fontSize: 13, fontWeight: FontWeight.w600)),
                 style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E), padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
               ),
           ],
@@ -667,15 +667,15 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Esta venta está anulada', style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w700, color: const Color(0xFF0D2B4E))),
-                if (venta.motivoAnulacion.isNotEmpty) Text('Motivo: ${venta.motivoAnulacion}', style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF7A1F1F))),
+                Text('Esta venta está anulada', style: appFont(fontSize: 13.5, fontWeight: FontWeight.w700, color: const Color(0xFF0D2B4E))),
+                if (venta.motivoAnulacion.isNotEmpty) Text('Motivo: ${venta.motivoAnulacion}', style: appFont(fontSize: 12, color: const Color(0xFF7A1F1F))),
                 if (venta.usuarioAnulacion.isNotEmpty || venta.fechaAnulacion != null)
                   Text(
                     [
                       if (venta.usuarioAnulacion.isNotEmpty) 'Por ${venta.usuarioAnulacion}',
                       if (venta.fechaAnulacion != null) 'el ${formatoDia.format(venta.fechaAnulacion!)}',
                     ].join(' '),
-                    style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF7A1F1F)),
+                    style: appFont(fontSize: 12, color: const Color(0xFF7A1F1F)),
                   ),
               ],
             ),
@@ -698,13 +698,13 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
           Expanded(
             child: Text(
               'Esta venta se guardó sin imprimir (probablemente desde el celular, sin la impresora a mano). Usá "Reimprimir" cuando tengas la impresora disponible.',
-              style: GoogleFonts.poppins(fontSize: 12.5, color: const Color(0xFF9A6B0F)),
+              style: appFont(fontSize: 12.5, color: const Color(0xFF9A6B0F)),
             ),
           ),
           const SizedBox(width: 12),
           TextButton(
             onPressed: _marcarComoImpresa,
-            child: Text('Marcar como impresa', style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w600, color: const Color(0xFF9A6B0F))),
+            child: Text('Marcar como impresa', style: appFont(fontSize: 12.5, fontWeight: FontWeight.w600, color: const Color(0xFF9A6B0F))),
           ),
         ],
       ),
@@ -730,9 +730,9 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(etiqueta.toUpperCase(), style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.grey.shade500, letterSpacing: 0.4)),
+          Text(etiqueta.toUpperCase(), style: appFont(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.grey.shade500, letterSpacing: 0.4)),
           const SizedBox(height: 3),
-          Text(valor, style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF1A1A1A))),
+          Text(valor, style: appFont(fontSize: 13, color: const Color(0xFF1A1A1A))),
         ],
       ),
     );
@@ -746,7 +746,7 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
   }
 
   Widget _tablaItems(VentaModel venta, Map<String, String> codigos) {
-    final estiloEncabezado = GoogleFonts.poppins(fontSize: 11.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600);
+    final estiloEncabezado = appFont(fontSize: 11.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -766,22 +766,22 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Expanded(flex: 2, child: Text(codigos[item.idProducto] ?? '-', style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600))),
-                Expanded(flex: 2, child: Text(_formatoCantidad(item.cantidad), textAlign: TextAlign.center, style: GoogleFonts.poppins(fontSize: 13))),
+                Expanded(flex: 2, child: Text(codigos[item.idProducto] ?? '-', style: appFont(fontSize: 12.5, color: Colors.grey.shade600))),
+                Expanded(flex: 2, child: Text(_formatoCantidad(item.cantidad), textAlign: TextAlign.center, style: appFont(fontSize: 13))),
                 Expanded(
                   flex: 5,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(item.nombreProducto, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
-                      if (item.reembasado) Text('Reembasado', style: GoogleFonts.poppins(fontSize: 10.5, color: Colors.grey.shade400)),
-                      if (item.descuentoPorcentaje > 0) Text('Descuento ${_formatoCantidad(item.descuentoPorcentaje)}%', style: GoogleFonts.poppins(fontSize: 10.5, color: Colors.grey.shade400)),
+                      Text(item.nombreProducto, style: appFont(fontSize: 13, fontWeight: FontWeight.w600)),
+                      if (item.reembasado) Text('Reembasado', style: appFont(fontSize: 10.5, color: Colors.grey.shade400)),
+                      if (item.descuentoPorcentaje > 0) Text('Descuento ${_formatoCantidad(item.descuentoPorcentaje)}%', style: appFont(fontSize: 10.5, color: Colors.grey.shade400)),
                     ],
                   ),
                 ),
-                Expanded(flex: 2, child: Text(formatearMoneda(_precioMostrado(item)), textAlign: TextAlign.right, style: GoogleFonts.poppins(fontSize: 13))),
-                Expanded(flex: 2, child: Text(formatearMoneda(_importeMostrado(item)), textAlign: TextAlign.right, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700))),
+                Expanded(flex: 2, child: Text(formatearMoneda(_precioMostrado(item)), textAlign: TextAlign.right, style: appFont(fontSize: 13))),
+                Expanded(flex: 2, child: Text(formatearMoneda(_importeMostrado(item)), textAlign: TextAlign.right, style: appFont(fontSize: 13, fontWeight: FontWeight.w700))),
               ],
             ),
           ),
@@ -801,19 +801,19 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item.nombreProducto, style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600)),
+                Text(item.nombreProducto, style: appFont(fontSize: 13.5, fontWeight: FontWeight.w600)),
                 Text(
                   [
                     if ((codigos[item.idProducto] ?? '').isNotEmpty) codigos[item.idProducto]!,
                     if (item.reembasado) 'Reembasado',
                     if (item.descuentoPorcentaje > 0) 'Descuento ${_formatoCantidad(item.descuentoPorcentaje)}%',
                   ].join(' · '),
-                  style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500),
+                  style: appFont(fontSize: 11, color: Colors.grey.shade500),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   '${_formatoCantidad(item.cantidad)} x ${formatearMoneda(_precioMostrado(item))} = ${formatearMoneda(_importeMostrado(item))}',
-                  style: GoogleFonts.poppins(fontSize: 12.5, color: const Color(0xFF3F434A)),
+                  style: appFont(fontSize: 12.5, color: const Color(0xFF3F434A)),
                 ),
               ],
             ),
@@ -860,8 +860,8 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('TOTAL A PAGAR', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white)),
-                Text(formatearMoneda(venta.totalAPagar), style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.w800, color: Colors.white)),
+                Text('TOTAL A PAGAR', style: appFont(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white)),
+                Text(formatearMoneda(venta.totalAPagar), style: appFont(fontSize: 24, fontWeight: FontWeight.w800, color: Colors.white)),
               ],
             ),
           ),
@@ -874,8 +874,8 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(etiqueta.toUpperCase(), style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.grey.shade500, letterSpacing: 0.4)),
-        Text(formatearMoneda(valor), style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+        Text(etiqueta.toUpperCase(), style: appFont(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.grey.shade500, letterSpacing: 0.4)),
+        Text(formatearMoneda(valor), style: appFont(fontSize: 15, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
       ],
     );
   }
@@ -884,8 +884,8 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(etiqueta.toUpperCase(), style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.grey.shade500, letterSpacing: 0.4)),
-        Text('${_formatoCantidad(porcentaje)}%', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+        Text(etiqueta.toUpperCase(), style: appFont(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.grey.shade500, letterSpacing: 0.4)),
+        Text('${_formatoCantidad(porcentaje)}%', style: appFont(fontSize: 15, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
       ],
     );
   }

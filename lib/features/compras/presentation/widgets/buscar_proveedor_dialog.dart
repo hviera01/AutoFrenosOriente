@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../proveedores/data/proveedor_model.dart';
 import '../../../proveedores/providers/proveedores_provider.dart';
 import '../../../../core/utils/texto_utils.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 /// Buscador de proveedores para Registrar Compra: con 30+ proveedores un
 /// dropdown simple se vuelve incómodo de recorrer, igual que pasaba con
@@ -46,12 +46,12 @@ class _BuscarProveedorDialogState extends ConsumerState<BuscarProveedorDialog> {
           children: [
             Row(
               children: [
-                Expanded(child: Text('Buscar Proveedor', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700))),
+                Expanded(child: Text('Buscar Proveedor', style: appFont(fontSize: 16, fontWeight: FontWeight.w700))),
                 IconButton(icon: const Icon(Icons.close, size: 20), onPressed: () => Navigator.pop(context)),
               ],
             ),
             const SizedBox(height: 4),
-            Text('Elegí un proveedor registrado.', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600)),
+            Text('Elegí un proveedor registrado.', style: appFont(fontSize: 12, color: Colors.grey.shade600)),
             const SizedBox(height: 12),
             Container(
               height: 46,
@@ -65,10 +65,10 @@ class _BuscarProveedorDialogState extends ConsumerState<BuscarProveedorDialog> {
                     child: TextField(
                       controller: _busquedaController,
                       autofocus: true,
-                      style: GoogleFonts.poppins(fontSize: 13),
+                      style: appFont(fontSize: 13),
                       decoration: InputDecoration(
                         hintText: 'Buscar por RTN o razón social...',
-                        hintStyle: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade400),
+                        hintStyle: appFont(fontSize: 12.5, color: Colors.grey.shade400),
                         border: InputBorder.none,
                         isDense: true,
                       ),
@@ -87,7 +87,7 @@ class _BuscarProveedorDialogState extends ConsumerState<BuscarProveedorDialog> {
                     lista = lista.where((p) => coincideFuzzy(p.textoBusqueda, _busqueda)).toList();
                   }
                   if (lista.isEmpty) {
-                    return Center(child: Text('No se encontraron proveedores', style: GoogleFonts.poppins(color: Colors.grey.shade500)));
+                    return Center(child: Text('No se encontraron proveedores', style: appFont(color: Colors.grey.shade500)));
                   }
                   return ListView.separated(
                     itemCount: lista.length,
@@ -101,8 +101,8 @@ class _BuscarProveedorDialogState extends ConsumerState<BuscarProveedorDialog> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(p.razonSocial, style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600)),
-                              if (p.rtn.isNotEmpty) Text('RTN: ${p.rtn}', style: GoogleFonts.poppins(fontSize: 11.5, color: Colors.grey.shade500)),
+                              Text(p.razonSocial, style: appFont(fontSize: 13.5, fontWeight: FontWeight.w600)),
+                              if (p.rtn.isNotEmpty) Text('RTN: ${p.rtn}', style: appFont(fontSize: 11.5, color: Colors.grey.shade500)),
                             ],
                           ),
                         ),
@@ -111,7 +111,7 @@ class _BuscarProveedorDialogState extends ConsumerState<BuscarProveedorDialog> {
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF0D2B4E))),
-                error: (e, st) => Center(child: Text('Error: $e', style: GoogleFonts.poppins(color: Colors.red))),
+                error: (e, st) => Center(child: Text('Error: $e', style: appFont(color: Colors.red))),
               ),
             ),
           ],

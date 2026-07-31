@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 class TicketOpcionesDialog extends StatefulWidget {
   const TicketOpcionesDialog({super.key});
@@ -36,9 +36,9 @@ class _TicketOpcionesDialogState extends State<TicketOpcionesDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Imprimir Ticket', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700)),
+            Text('Imprimir Ticket', style: appFont(fontSize: 16, fontWeight: FontWeight.w700)),
             const SizedBox(height: 4),
-            Text('Elegí qué información incluir', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600)),
+            Text('Elegí qué información incluir', style: appFont(fontSize: 12, color: Colors.grey.shade600)),
             const SizedBox(height: 12),
             ..._opciones.map((op) {
               final key = op['key']!;
@@ -48,7 +48,7 @@ class _TicketOpcionesDialogState extends State<TicketOpcionesDialog> {
                 contentPadding: EdgeInsets.zero,
                 controlAffinity: ListTileControlAffinity.leading,
                 activeColor: const Color(0xFF0D2B4E),
-                title: Text(op['label']!, style: GoogleFonts.poppins(fontSize: 13)),
+                title: Text(op['label']!, style: appFont(fontSize: 13)),
                 onChanged: (v) {
                   setState(() {
                     if (v == true) {
@@ -64,12 +64,12 @@ class _TicketOpcionesDialogState extends State<TicketOpcionesDialog> {
             Row(
               children: [
                 const Spacer(),
-                TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancelar', style: GoogleFonts.poppins(color: Colors.grey.shade700))),
+                TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancelar', style: appFont(color: Colors.grey.shade700))),
                 const SizedBox(width: 10),
                 FilledButton(
                   onPressed: () => Navigator.pop(context, _seleccionados),
                   style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E), padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                  child: Text('Continuar', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.white)),
+                  child: Text('Continuar', style: appFont(fontWeight: FontWeight.w600, color: Colors.white)),
                 ),
               ],
             ),

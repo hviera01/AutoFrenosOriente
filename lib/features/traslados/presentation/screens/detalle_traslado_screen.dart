@@ -2,7 +2,6 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
 import '../../data/traslado_export_service.dart';
@@ -13,6 +12,7 @@ import '../../../negocio/providers/negocio_provider.dart';
 import '../../../productos/providers/productos_provider.dart';
 import '../../../ventas/providers/ventas_provider.dart' show presenciaImpresionRepositoryProvider;
 import '../../../../core/widgets/pdf_preview_dialog.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 /// Pantalla de consulta de un traslado ya registrado: buscá por número (o
 /// abrila directo desde el Reporte de Traslados pasando [trasladoIdInicial])
@@ -119,14 +119,14 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(titulo, style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
-        content: Text(mensaje, style: GoogleFonts.poppins(fontSize: 13)),
+        title: Text(titulo, style: appFont(fontWeight: FontWeight.w700)),
+        content: Text(mensaje, style: appFont(fontSize: 13)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancelar', style: GoogleFonts.poppins())),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancelar', style: appFont())),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E)),
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Confirmar', style: GoogleFonts.poppins()),
+            child: Text('Confirmar', style: appFont()),
           ),
         ],
       ),
@@ -275,10 +275,10 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
                   children: [
                     IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
                     const SizedBox(width: 6),
-                    Text('Detalle de Traslado', style: GoogleFonts.poppins(fontSize: esMovil ? 18 : 21, fontWeight: FontWeight.w700)),
+                    Text('Detalle de Traslado', style: appFont(fontSize: esMovil ? 18 : 21, fontWeight: FontWeight.w700)),
                   ],
                 )
-              : Text('Detalle de Traslado', style: GoogleFonts.poppins(fontSize: esMovil ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+              : Text('Detalle de Traslado', style: appFont(fontSize: esMovil ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
           const SizedBox(height: 16),
           Wrap(
             spacing: 10,
@@ -294,10 +294,10 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
                   child: TextField(
                     controller: _busquedaController,
                     autofocus: widget.trasladoIdInicial == null,
-                    style: GoogleFonts.poppins(fontSize: 14),
+                    style: appFont(fontSize: 14),
                     decoration: InputDecoration(
                       hintText: 'Número de traslado...',
-                      hintStyle: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade400),
+                      hintStyle: appFont(fontSize: 13, color: Colors.grey.shade400),
                       border: InputBorder.none,
                       isDense: true,
                     ),
@@ -308,13 +308,13 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
               OutlinedButton.icon(
                 onPressed: _cargando ? null : _buscarPorNumero,
                 icon: const Icon(Icons.search, size: 18),
-                label: Text('Buscar', style: GoogleFonts.poppins(fontSize: 13)),
+                label: Text('Buscar', style: appFont(fontSize: 13)),
                 style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
               ),
               OutlinedButton.icon(
                 onPressed: _cargando ? null : _limpiar,
                 icon: const Icon(Icons.close, size: 18),
-                label: Text('Limpiar', style: GoogleFonts.poppins(fontSize: 13)),
+                label: Text('Limpiar', style: appFont(fontSize: 13)),
                 style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
               ),
             ],
@@ -324,7 +324,7 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
             child: _cargando
                 ? const Center(child: CircularProgressIndicator(color: Color(0xFF0D2B4E)))
                 : _error != null
-                    ? Center(child: Text(_error!, style: GoogleFonts.poppins(color: Colors.red)))
+                    ? Center(child: Text(_error!, style: appFont(color: Colors.red)))
                     : _traslado == null
                         ? Center(
                             child: Column(
@@ -332,7 +332,7 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
                               children: [
                                 Icon(Icons.sync_alt_outlined, size: 56, color: Colors.grey.shade300),
                                 const SizedBox(height: 12),
-                                Text('Buscá un traslado por su número', style: GoogleFonts.poppins(color: Colors.grey.shade500)),
+                                Text('Buscá un traslado por su número', style: appFont(color: Colors.grey.shade500)),
                               ],
                             ),
                           )
@@ -373,7 +373,7 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                 decoration: BoxDecoration(color: _colorEstado(t.estado).withOpacity(0.12), borderRadius: BorderRadius.circular(10)),
-                child: Text(t.estado, style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: FontWeight.w700, color: _colorEstado(t.estado))),
+                child: Text(t.estado, style: appFont(fontSize: 12.5, fontWeight: FontWeight.w700, color: _colorEstado(t.estado))),
               ),
               _campoInfo('Sucursal origen', t.nombreSucursalOrigen),
               _campoInfo('Sucursal destino', t.nombreSucursalDestino),
@@ -385,7 +385,7 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        Text('Productos', style: GoogleFonts.poppins(fontSize: 14.5, fontWeight: FontWeight.w700)),
+        Text('Productos', style: appFont(fontSize: 14.5, fontWeight: FontWeight.w700)),
         const SizedBox(height: 10),
         _tarjeta(child: esMovil ? _tarjetasItems(t, codigos) : _tablaItems(t, codigos)),
         const SizedBox(height: 20),
@@ -396,21 +396,21 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
             OutlinedButton.icon(
               onPressed: _actuando ? null : _reimprimir,
               icon: const Icon(Icons.print_outlined, size: 18),
-              label: Text('Reimprimir (copia)', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+              label: Text('Reimprimir (copia)', style: appFont(fontSize: 13, fontWeight: FontWeight.w600)),
               style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF0D2B4E), side: const BorderSide(color: Color(0xFF0D2B4E)), padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
             ),
             if (t.estado == 'Pendiente')
               FilledButton.icon(
                 onPressed: _actuando ? null : _enviar,
                 icon: const Icon(Icons.local_shipping_outlined, size: 18),
-                label: Text('Marcar Enviado', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+                label: Text('Marcar Enviado', style: appFont(fontSize: 13, fontWeight: FontWeight.w600)),
                 style: FilledButton.styleFrom(backgroundColor: const Color(0xFF3B82F6), padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
               ),
             if (t.estado == 'Enviado')
               FilledButton.icon(
                 onPressed: _actuando ? null : _recepcionar,
                 icon: const Icon(Icons.check_circle_outline, size: 18),
-                label: Text('Confirmar Recepción', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+                label: Text('Confirmar Recepción', style: appFont(fontSize: 13, fontWeight: FontWeight.w600)),
                 style: FilledButton.styleFrom(backgroundColor: const Color(0xFF16A34A), padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
               ),
             // Se puede anular en cualquier estado (incluido Entregado): el
@@ -420,7 +420,7 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
               OutlinedButton.icon(
                 onPressed: _actuando ? null : _anular,
                 icon: const Icon(Icons.block_outlined, size: 18),
-                label: Text('Anular', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+                label: Text('Anular', style: appFont(fontSize: 13, fontWeight: FontWeight.w600)),
                 style: OutlinedButton.styleFrom(foregroundColor: Colors.red.shade600, side: BorderSide(color: Colors.red.shade300), padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
               ),
           ],
@@ -448,18 +448,18 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(etiqueta.toUpperCase(), style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.grey.shade500, letterSpacing: 0.4)),
+          Text(etiqueta.toUpperCase(), style: appFont(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.grey.shade500, letterSpacing: 0.4)),
           const SizedBox(height: 3),
           // Sin límite de líneas: si el nombre de la sucursal o la
           // observación es larga, se envuelve, nunca se recorta.
-          Text(valor, style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF1A1A1A))),
+          Text(valor, style: appFont(fontSize: 13, color: const Color(0xFF1A1A1A))),
         ],
       ),
     );
   }
 
   Widget _tablaItems(TrasladoModel t, Map<String, String> codigos) {
-    final estiloEncabezado = GoogleFonts.poppins(fontSize: 11.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600);
+    final estiloEncabezado = appFont(fontSize: 11.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -477,20 +477,20 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(flex: 2, child: Text(codigos[item.idProducto] ?? '-', style: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade600))),
+                Expanded(flex: 2, child: Text(codigos[item.idProducto] ?? '-', style: appFont(fontSize: 12.5, color: Colors.grey.shade600))),
                 Expanded(
                   flex: 5,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(item.nombreProducto, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+                      Text(item.nombreProducto, style: appFont(fontSize: 13, fontWeight: FontWeight.w600)),
                       if (item.ubicacion.trim().isNotEmpty)
-                        Text('Ubicación: ${item.ubicacion}', style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey.shade500)),
+                        Text('Ubicación: ${item.ubicacion}', style: appFont(fontSize: 11, color: Colors.grey.shade500)),
                     ],
                   ),
                 ),
-                Expanded(flex: 2, child: Text(_formatoCantidad(item.cantidad), textAlign: TextAlign.right, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700))),
+                Expanded(flex: 2, child: Text(_formatoCantidad(item.cantidad), textAlign: TextAlign.right, style: appFont(fontSize: 13, fontWeight: FontWeight.w700))),
               ],
             ),
           ),
@@ -513,15 +513,15 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(item.nombreProducto, style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600)),
+                      Text(item.nombreProducto, style: appFont(fontSize: 13.5, fontWeight: FontWeight.w600)),
                       Text(
                         [if ((codigos[item.idProducto] ?? '').isNotEmpty) codigos[item.idProducto]!, if (item.ubicacion.trim().isNotEmpty) 'Ubicación: ${item.ubicacion}'].join(' · '),
-                        style: GoogleFonts.poppins(fontSize: 11.5, color: Colors.grey.shade500),
+                        style: appFont(fontSize: 11.5, color: Colors.grey.shade500),
                       ),
                     ],
                   ),
                 ),
-                Text(_formatoCantidad(item.cantidad), style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w700)),
+                Text(_formatoCantidad(item.cantidad), style: appFont(fontSize: 13.5, fontWeight: FontWeight.w700)),
               ],
             ),
           ),

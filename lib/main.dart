@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'core/services/tipografia_service.dart';
 import 'firebase_options.dart';
 import 'features/auth/providers/auth_provider.dart';
 import 'features/auth/presentation/screens/login_screen.dart';
@@ -31,6 +33,10 @@ Future<void> main() async {
   // intermitente) — si la variante no está en caché local, cae al font del
   // sistema en vez de bloquear la navegación esperando la descarga.
   GoogleFonts.config.allowRuntimeFetching = false;
+  // Se lee acá (antes de runApp) para que la primera pantalla ya nazca con
+  // la fuente guardada, sin parpadeo entre la predeterminada y la elegida.
+  final prefs = await SharedPreferences.getInstance();
+  TipografiaApp.actual = prefs.getString('fuente_app') ?? 'Poppins';
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -41,11 +47,11 @@ Future<void> main() async {
   runApp(const ProviderScope(child: SistemaVentasApp()));
 }
 
-class SistemaVentasApp extends StatelessWidget {
+class SistemaVentasApp extends ConsumerWidget {
   const SistemaVentasApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     // El QR que muestra la PC para usar el celular como lector de código de
     // barras (ver EscanearRemotoDialog) apunta a esta misma URL con
     // "?escanear=CODIGO". Si viene ese parámetro, se salta el login por
@@ -53,12 +59,19 @@ class SistemaVentasApp extends StatelessWidget {
     // poder ayudar a escanear sin necesitar una cuenta en el sistema.
     final codigoEscaneo = Uri.base.queryParameters['escanear'];
 
+    // Escuchar acá (la raíz del árbol) alcanza para que TODA la app se
+    // reconstruya cuando el usuario cambia de tipografía (ver
+    // TipografiaNotifier/appFont en core/services/tipografia_service.dart) -
+    // no hace falta que cada pantalla lo escuche por separado.
+    final fuente = ref.watch(tipografiaProvider);
+
     return MaterialApp(
       title: 'Sistema Ventas',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorSchemeSeed: const Color(0xFF0D2B4E),
         useMaterial3: true,
+        textTheme: GoogleFonts.getTextTheme(fuente),
       ),
       locale: const Locale('es'),
       supportedLocales: const [Locale('es')],

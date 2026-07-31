@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../data/impresion_pendiente_service.dart';
 import '../../data/venta_model.dart';
@@ -8,6 +7,7 @@ import '../../providers/ventas_provider.dart';
 import '../../../../core/utils/formato_moneda.dart';
 import '../../../negocio/providers/negocio_provider.dart';
 import '../screens/detalle_venta_screen.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 /// Lista de ventas guardadas pero sin imprimir (típicamente hechas desde el
 /// celular sin la impresora térmica a mano). Tocar una abre su detalle,
@@ -75,7 +75,7 @@ class _VentasPendientesImpresionDialogState extends ConsumerState<VentasPendient
           children: [
             Row(
               children: [
-                Expanded(child: Text('Pendientes de Impresión', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700))),
+                Expanded(child: Text('Pendientes de Impresión', style: appFont(fontSize: 16, fontWeight: FontWeight.w700))),
                 IconButton(icon: const Icon(Icons.close, size: 20), onPressed: () => Navigator.pop(context)),
               ],
             ),
@@ -90,7 +90,7 @@ class _VentasPendientesImpresionDialogState extends ConsumerState<VentasPendient
                         children: [
                           Icon(Icons.print_outlined, size: 48, color: Colors.grey.shade300),
                           const SizedBox(height: 10),
-                          Text('No hay ventas pendientes de impresión', style: GoogleFonts.poppins(color: Colors.grey.shade500)),
+                          Text('No hay ventas pendientes de impresión', style: appFont(color: Colors.grey.shade500)),
                         ],
                       ),
                     );
@@ -122,16 +122,16 @@ class _VentasPendientesImpresionDialogState extends ConsumerState<VentasPendient
                                   children: [
                                     Text(
                                       venta.nombreCliente.isEmpty ? 'Sin cliente' : venta.nombreCliente,
-                                      style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w700),
+                                      style: appFont(fontSize: 13.5, fontWeight: FontWeight.w700),
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
                                       '${venta.tipoDocumento} · ${venta.numeroDocumento} · ${formatearMoneda(venta.totalAPagar)}',
-                                      style: GoogleFonts.poppins(fontSize: 11.5, color: Colors.grey.shade600),
+                                      style: appFont(fontSize: 11.5, color: Colors.grey.shade600),
                                     ),
                                     if (venta.fechaRegistro != null) ...[
                                       const SizedBox(height: 2),
-                                      Text(formatoFecha.format(venta.fechaRegistro!), style: GoogleFonts.poppins(fontSize: 10.5, color: Colors.grey.shade400)),
+                                      Text(formatoFecha.format(venta.fechaRegistro!), style: appFont(fontSize: 10.5, color: Colors.grey.shade400)),
                                     ],
                                   ],
                                 ),
@@ -155,7 +155,7 @@ class _VentasPendientesImpresionDialogState extends ConsumerState<VentasPendient
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF0D2B4E))),
-                error: (e, st) => Center(child: Text('Error: $e', style: GoogleFonts.poppins(color: Colors.red))),
+                error: (e, st) => Center(child: Text('Error: $e', style: appFont(color: Colors.red))),
               ),
             ),
           ],

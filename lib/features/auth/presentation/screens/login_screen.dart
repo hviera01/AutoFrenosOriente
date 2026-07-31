@@ -1,9 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../providers/auth_provider.dart';
 import '../../../negocio/presentation/widgets/acceso_especial.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -138,7 +138,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           const SizedBox(height: 26),
                           Text(
                             'Bienvenido',
-                            style: GoogleFonts.poppins(
+                            style: appFont(
                               fontSize: 28,
                               fontWeight: FontWeight.w700,
                               color: const Color(0xFF0D2B4E),
@@ -147,7 +147,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           const SizedBox(height: 6),
                           Text(
                             'Ingresá con tu código de acceso',
-                            style: GoogleFonts.poppins(
+                            style: appFont(
                               fontSize: 13,
                               color: Colors.grey.shade600,
                             ),
@@ -155,10 +155,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           const SizedBox(height: 34),
                           TextField(
                             controller: _codigoController,
-                            style: GoogleFonts.poppins(fontSize: 14),
+                            style: appFont(fontSize: 14),
                             decoration: InputDecoration(
                               labelText: 'Código de acceso',
-                              labelStyle: GoogleFonts.poppins(fontSize: 13),
+                              labelStyle: appFont(fontSize: 13),
                               prefixIcon: const Icon(Icons.badge_outlined, size: 20),
                               filled: true,
                               fillColor: const Color(0xFFE8EAF0),
@@ -172,11 +172,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           TextField(
                             controller: _claveController,
                             obscureText: _ocultarClave,
-                            style: GoogleFonts.poppins(fontSize: 14),
+                            style: appFont(fontSize: 14),
                             onSubmitted: (_) => _iniciarSesion(),
                             decoration: InputDecoration(
                               labelText: 'Contraseña',
-                              labelStyle: GoogleFonts.poppins(fontSize: 13),
+                              labelStyle: appFont(fontSize: 13),
                               prefixIcon: const Icon(Icons.lock_outline, size: 20),
                               suffixIcon: IconButton(
                                 icon: Icon(
@@ -210,7 +210,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   Expanded(
                                     child: Text(
                                       authState.error!,
-                                      style: GoogleFonts.poppins(color: Colors.red.shade700, fontSize: 12),
+                                      style: appFont(color: Colors.red.shade700, fontSize: 12),
                                     ),
                                   ),
                                 ],
@@ -236,14 +236,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     )
                                   : Text(
                                       'Ingresar',
-                                      style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white),
+                                      style: appFont(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white),
                                     ),
                             ),
                           ),
                           const SizedBox(height: 20),
                           Text(
                             'AUTO FRENOS ORIENTE · Frenos y Repuestos',
-                            style: GoogleFonts.poppins(
+                            style: appFont(
                               fontSize: 11,
                               color: Colors.grey.shade500,
                               letterSpacing: 0.6,

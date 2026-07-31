@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../data/cliente_model.dart';
 import '../../../vehiculos/data/vehiculo_model.dart';
 import '../../../vehiculos/providers/vehiculos_provider.dart';
 import '../../../vehiculos/presentation/widgets/vehiculo_form_dialog.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 /// Vehículos de un cliente puntual — igual que "Registrar Vehículo" en el
 /// sistema viejo (frmRegistrarVehiculo): requiere un cliente ya elegido,
@@ -66,7 +66,7 @@ class _ClienteVehiculosDialogState extends ConsumerState<ClienteVehiculosDialog>
                   Expanded(
                     child: Text(
                       'Vehículos de ${widget.cliente.nombreCompleto}',
-                      style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A)),
+                      style: appFont(fontSize: 16, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A)),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -77,13 +77,13 @@ class _ClienteVehiculosDialogState extends ConsumerState<ClienteVehiculosDialog>
             const SizedBox(height: 8),
             Flexible(
               child: _error != null
-                  ? Padding(padding: const EdgeInsets.all(24), child: Text(_error!, style: GoogleFonts.poppins(color: Colors.red)))
+                  ? Padding(padding: const EdgeInsets.all(24), child: Text(_error!, style: appFont(color: Colors.red)))
                   : _vehiculos == null
                       ? const Padding(padding: EdgeInsets.all(30), child: Center(child: CircularProgressIndicator(color: Color(0xFF0D2B4E))))
                       : _vehiculos!.isEmpty
                           ? Padding(
                               padding: const EdgeInsets.symmetric(vertical: 30),
-                              child: Center(child: Text('Este cliente no tiene vehículos registrados', style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade500))),
+                              child: Center(child: Text('Este cliente no tiene vehículos registrados', style: appFont(fontSize: 13, color: Colors.grey.shade500))),
                             )
                           : ListView.separated(
                               shrinkWrap: true,
@@ -95,10 +95,10 @@ class _ClienteVehiculosDialogState extends ConsumerState<ClienteVehiculosDialog>
                                 return ListTile(
                                   contentPadding: EdgeInsets.zero,
                                   leading: const Icon(Icons.directions_car_filled_outlined, color: Color(0xFF0D2B4E)),
-                                  title: Text('${v.marca} ${v.modelo}'.trim(), style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w600)),
+                                  title: Text('${v.marca} ${v.modelo}'.trim(), style: appFont(fontSize: 13.5, fontWeight: FontWeight.w600)),
                                   subtitle: Text(
                                     [if (v.anio.isNotEmpty) v.anio, if (v.placa.isNotEmpty) 'Placa ${v.placa}'].join(' · '),
-                                    style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600),
+                                    style: appFont(fontSize: 12, color: Colors.grey.shade600),
                                   ),
                                   trailing: const Icon(Icons.edit_outlined, size: 18, color: Color(0xFF9AA0AC)),
                                   onTap: () async {
@@ -119,7 +119,7 @@ class _ClienteVehiculosDialogState extends ConsumerState<ClienteVehiculosDialog>
                     _cargar();
                   },
                   icon: const Icon(Icons.add, size: 18),
-                  label: Text('Registrar Vehículo', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white)),
+                  label: Text('Registrar Vehículo', style: appFont(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white)),
                   style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E), padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                 ),
               ),

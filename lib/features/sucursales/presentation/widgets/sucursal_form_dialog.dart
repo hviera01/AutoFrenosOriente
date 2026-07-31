@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../data/sucursal_model.dart';
 import '../../providers/sucursales_provider.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 class SucursalFormDialog extends ConsumerStatefulWidget {
   final SucursalModel? sucursal;
@@ -69,14 +69,14 @@ class _SucursalFormDialogState extends ConsumerState<SucursalFormDialog> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Eliminar sucursal', style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
-        content: Text('¿Seguro que querés eliminar esta sucursal?', style: GoogleFonts.poppins(fontSize: 13)),
+        title: Text('Eliminar sucursal', style: appFont(fontWeight: FontWeight.w700)),
+        content: Text('¿Seguro que querés eliminar esta sucursal?', style: appFont(fontSize: 13)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancelar', style: GoogleFonts.poppins())),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancelar', style: appFont())),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E)),
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Eliminar', style: GoogleFonts.poppins()),
+            child: Text('Eliminar', style: appFont()),
           ),
         ],
       ),
@@ -97,7 +97,7 @@ class _SucursalFormDialogState extends ConsumerState<SucursalFormDialog> {
   InputDecoration _decoracion(String label) {
     return InputDecoration(
       labelText: label,
-      labelStyle: GoogleFonts.poppins(fontSize: 13),
+      labelStyle: appFont(fontSize: 13),
       filled: true,
       fillColor: const Color(0xFFE8EAF0),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -134,7 +134,7 @@ class _SucursalFormDialogState extends ConsumerState<SucursalFormDialog> {
                   Expanded(
                     child: Text(
                       editando ? 'Editar Sucursal' : 'Nueva Sucursal',
-                      style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A)),
+                      style: appFont(fontSize: 17, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A)),
                     ),
                   ),
                   IconButton(icon: const Icon(Icons.close, size: 20), onPressed: () => Navigator.pop(context)),
@@ -150,13 +150,13 @@ class _SucursalFormDialogState extends ConsumerState<SucursalFormDialog> {
                     TextField(
                       controller: _nombreController,
                       autofocus: true,
-                      style: GoogleFonts.poppins(fontSize: 14),
+                      style: appFont(fontSize: 14),
                       decoration: _decoracion('Nombre'),
                     ),
                     const SizedBox(height: 14),
                     TextField(
                       controller: _direccionController,
-                      style: GoogleFonts.poppins(fontSize: 14),
+                      style: appFont(fontSize: 14),
                       decoration: _decoracion('Dirección (opcional)'),
                     ),
                     const SizedBox(height: 18),
@@ -165,11 +165,11 @@ class _SucursalFormDialogState extends ConsumerState<SucursalFormDialog> {
                       decoration: BoxDecoration(color: const Color(0xFFE8EAF0), borderRadius: BorderRadius.circular(12)),
                       child: Row(
                         children: [
-                          Text('Estado', style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade700)),
+                          Text('Estado', style: appFont(fontSize: 13, color: Colors.grey.shade700)),
                           const Spacer(),
                           Text(
                             _activo ? 'Activo' : 'Inactivo',
-                            style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: _activo ? const Color(0xFF16A34A) : Colors.grey.shade500),
+                            style: appFont(fontSize: 13, fontWeight: FontWeight.w600, color: _activo ? const Color(0xFF16A34A) : Colors.grey.shade500),
                           ),
                           Switch(value: _activo, activeThumbColor: const Color(0xFF16A34A), onChanged: (v) => setState(() => _activo = v)),
                         ],
@@ -181,7 +181,7 @@ class _SucursalFormDialogState extends ConsumerState<SucursalFormDialog> {
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                         decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.red.shade200)),
-                        child: Text(_error!, style: GoogleFonts.poppins(color: Colors.red.shade700, fontSize: 12)),
+                        child: Text(_error!, style: appFont(color: Colors.red.shade700, fontSize: 12)),
                       ),
                     ],
                     const SizedBox(height: 8),
@@ -200,14 +200,14 @@ class _SucursalFormDialogState extends ConsumerState<SucursalFormDialog> {
                       style: IconButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E).withOpacity(0.08), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                     ),
                   const Spacer(),
-                  TextButton(onPressed: _guardando ? null : () => Navigator.pop(context), child: Text('Cancelar', style: GoogleFonts.poppins(color: Colors.grey.shade700))),
+                  TextButton(onPressed: _guardando ? null : () => Navigator.pop(context), child: Text('Cancelar', style: appFont(color: Colors.grey.shade700))),
                   const SizedBox(width: 10),
                   FilledButton(
                     onPressed: _guardando ? null : _guardar,
                     style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E), padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                     child: _guardando
                         ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.2))
-                        : Text('Guardar', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.white)),
+                        : Text('Guardar', style: appFont(fontWeight: FontWeight.w600, color: Colors.white)),
                   ),
                 ],
               ),

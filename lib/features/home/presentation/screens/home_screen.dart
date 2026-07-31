@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../../core/providers/tabs_provider.dart';
 import '../../../../core/models/tab_item.dart';
 import '../../../../core/data/modulos_menu.dart';
 import '../../../../core/utils/pantalla_builder.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -47,12 +47,12 @@ class HomeScreen extends ConsumerWidget {
                   decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(10)),
                 ),
                 const SizedBox(height: 16),
-                Text(modulo.titulo, style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: const Color(0xFF0D2B4E))),
+                Text(modulo.titulo, style: appFont(fontSize: 16, fontWeight: FontWeight.w700, color: const Color(0xFF0D2B4E))),
                 const SizedBox(height: 8),
                 ...disponibles.map((sub) {
                   return ListTile(
                     leading: Icon(sub.icono, color: modulo.color),
-                    title: Text(sub.titulo, style: GoogleFonts.poppins(fontSize: 14)),
+                    title: Text(sub.titulo, style: appFont(fontSize: 14)),
                     onTap: () {
                       Navigator.pop(context);
                       _abrirSubModulo(ref, sub);
@@ -90,10 +90,10 @@ class HomeScreen extends ConsumerWidget {
                 children: [
                   Text(
                     'Hola, ${usuario?.nombreCompleto ?? ''}',
-                    style: GoogleFonts.poppins(fontSize: esMovil ? 20 : 24, fontWeight: FontWeight.w700, color: const Color(0xFF0D2B4E)),
+                    style: appFont(fontSize: esMovil ? 20 : 24, fontWeight: FontWeight.w700, color: const Color(0xFF0D2B4E)),
                   ),
                   const SizedBox(height: 4),
-                  Text('Seleccioná una opción para comenzar', style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade600)),
+                  Text('Seleccioná una opción para comenzar', style: appFont(fontSize: 13, color: Colors.grey.shade600)),
                   const SizedBox(height: 24),
                   GridView.builder(
                     shrinkWrap: true,
@@ -148,12 +148,12 @@ class HomeScreen extends ConsumerWidget {
                 modulo.titulo,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.poppins(fontSize: esMovil ? 13 : 15.5, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A)),
+                style: appFont(fontSize: esMovil ? 13 : 15.5, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A)),
               ),
               const SizedBox(height: 4),
               Text(
                 '${modulo.subModulos.where((s) => esAdmin || !s.soloAdmin).length} opciones',
-                style: GoogleFonts.poppins(fontSize: 10.5, color: Colors.grey.shade500),
+                style: appFont(fontSize: 10.5, color: Colors.grey.shade500),
               ),
             ],
           ),

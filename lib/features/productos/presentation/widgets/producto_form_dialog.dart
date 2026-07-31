@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../data/producto_model.dart';
 import '../../providers/productos_provider.dart';
 import '../../../categorias/providers/categorias_provider.dart';
 import '../../../../core/widgets/barcode_scanner_screen.dart';
 import '../../../../core/widgets/reintentar_dialog.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 class ProductoFormDialog extends ConsumerStatefulWidget {
   final ProductoModel? producto;
@@ -158,14 +158,14 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Eliminar producto', style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
-        content: Text('¿Seguro que querés eliminar este producto?', style: GoogleFonts.poppins(fontSize: 13)),
+        title: Text('Eliminar producto', style: appFont(fontWeight: FontWeight.w700)),
+        content: Text('¿Seguro que querés eliminar este producto?', style: appFont(fontSize: 13)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancelar', style: GoogleFonts.poppins())),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancelar', style: appFont())),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E)),
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Eliminar', style: GoogleFonts.poppins()),
+            child: Text('Eliminar', style: appFont()),
           ),
         ],
       ),
@@ -187,7 +187,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
   InputDecoration _decoracion(String label) {
     return InputDecoration(
       labelText: label,
-      labelStyle: GoogleFonts.poppins(fontSize: 13),
+      labelStyle: appFont(fontSize: 13),
       filled: true,
       fillColor: const Color(0xFFE8EAF0),
       border: OutlineInputBorder(
@@ -235,7 +235,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
                   Expanded(
                     child: Text(
                       editando ? 'Editar Producto' : 'Nuevo Producto',
-                      style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A)),
+                      style: appFont(fontSize: 17, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A)),
                     ),
                   ),
                   IconButton(icon: const Icon(Icons.close, size: 20), onPressed: () => Navigator.pop(context)),
@@ -253,7 +253,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
                         Expanded(
                           child: TextField(
                             controller: _codigoController,
-                            style: GoogleFonts.poppins(fontSize: 14),
+                            style: appFont(fontSize: 14),
                             decoration: _decoracion('Código (opcional)'),
                           ),
                         ),
@@ -261,7 +261,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
                         Expanded(
                           child: TextField(
                             controller: _codigoBarrasController,
-                            style: GoogleFonts.poppins(fontSize: 14),
+                            style: appFont(fontSize: 14),
                             decoration: _decoracion('Código de barras').copyWith(
                               suffixIcon: IconButton(
                                 tooltip: 'Escanear',
@@ -281,14 +281,14 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
                     TextField(
                       controller: _nombreController,
                       autofocus: true,
-                      style: GoogleFonts.poppins(fontSize: 14),
+                      style: appFont(fontSize: 14),
                       decoration: _decoracion('Nombre'),
                     ),
                     const SizedBox(height: 14),
                     TextField(
                       controller: _descripcionController,
                       maxLines: 2,
-                      style: GoogleFonts.poppins(fontSize: 14),
+                      style: appFont(fontSize: 14),
                       decoration: _decoracion('Ubicación (opcional)'),
                     ),
                     const SizedBox(height: 14),
@@ -298,7 +298,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
                           return DropdownButtonFormField<String>(
                             value: _idCategoria,
                             decoration: _decoracion('Categoría'),
-                            style: GoogleFonts.poppins(fontSize: 14, color: const Color(0xFF1A1A1A)),
+                            style: appFont(fontSize: 14, color: const Color(0xFF1A1A1A)),
                             items: categorias.map((c) {
                               return DropdownMenuItem(value: c.id, child: Text(c.descripcion));
                             }).toList(),
@@ -306,7 +306,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
                           );
                         },
                         loading: () => const LinearProgressIndicator(),
-                        error: (e, st) => Text('Error cargando categorías', style: GoogleFonts.poppins(color: Colors.red, fontSize: 12)),
+                        error: (e, st) => Text('Error cargando categorías', style: appFont(color: Colors.red, fontSize: 12)),
                       ),
                       const SizedBox(height: 14),
                       Container(
@@ -317,7 +317,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
                             Icon(Icons.content_cut_outlined, size: 18, color: Colors.grey.shade700),
                             const SizedBox(width: 10),
                             Expanded(
-                              child: Text('Es un servicio (no lleva stock)', style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade700)),
+                              child: Text('Es un servicio (no lleva stock)', style: appFont(fontSize: 13, color: Colors.grey.shade700)),
                             ),
                             Switch(
                               value: _esServicio,
@@ -336,7 +336,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
                                 controller: _stockController,
                                 enabled: !editando,
                                 keyboardType: TextInputType.number,
-                                style: GoogleFonts.poppins(fontSize: 14),
+                                style: appFont(fontSize: 14),
                                 decoration: _decoracion(editando ? 'Existencia (ajustar abajo)' : 'Existencia inicial'),
                               ),
                             ),
@@ -346,7 +346,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
                             child: TextField(
                               controller: _precioCompraController,
                               keyboardType: TextInputType.number,
-                              style: GoogleFonts.poppins(fontSize: 14),
+                              style: appFont(fontSize: 14),
                               decoration: _decoracion('Precio Compra'),
                             ),
                           ),
@@ -356,7 +356,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
                       TextField(
                         controller: _precioVentaController,
                         keyboardType: TextInputType.number,
-                        style: GoogleFonts.poppins(fontSize: 14),
+                        style: appFont(fontSize: 14),
                         decoration: _decoracion('Precio Venta'),
                       ),
                       const SizedBox(height: 8),
@@ -366,7 +366,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
                           children: [
                             Icon(_mostrarNivelesExtra ? Icons.remove_circle_outline : Icons.add_circle_outline, size: 18, color: const Color(0xFF0D2B4E)),
                             const SizedBox(width: 8),
-                            Text('Niveles de precio adicionales', style: GoogleFonts.poppins(fontSize: 12.5, color: const Color(0xFF0D2B4E), fontWeight: FontWeight.w600)),
+                            Text('Niveles de precio adicionales', style: appFont(fontSize: 12.5, color: const Color(0xFF0D2B4E), fontWeight: FontWeight.w600)),
                           ],
                         ),
                       ),
@@ -378,7 +378,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
                               child: TextField(
                                 controller: _precioVenta2Controller,
                                 keyboardType: TextInputType.number,
-                                style: GoogleFonts.poppins(fontSize: 14),
+                                style: appFont(fontSize: 14),
                                 decoration: _decoracion('Precio Venta 2'),
                               ),
                             ),
@@ -387,7 +387,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
                               child: TextField(
                                 controller: _precioVenta3Controller,
                                 keyboardType: TextInputType.number,
-                                style: GoogleFonts.poppins(fontSize: 14),
+                                style: appFont(fontSize: 14),
                                 decoration: _decoracion('Precio Venta 3'),
                               ),
                             ),
@@ -403,11 +403,11 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
                         ),
                         child: Row(
                           children: [
-                            Text('Estado', style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade700)),
+                            Text('Estado', style: appFont(fontSize: 13, color: Colors.grey.shade700)),
                             const Spacer(),
                             Text(
                               _activo ? 'Activo' : 'Inactivo',
-                              style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: _activo ? const Color(0xFF16A34A) : Colors.grey.shade500),
+                              style: appFont(fontSize: 13, fontWeight: FontWeight.w600, color: _activo ? const Color(0xFF16A34A) : Colors.grey.shade500),
                             ),
                             Switch(value: _activo, activeColor: const Color(0xFF16A34A), onChanged: (v) => setState(() => _activo = v)),
                           ],
@@ -424,7 +424,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: Colors.red.shade200),
                         ),
-                        child: Text(_error!, style: GoogleFonts.poppins(color: Colors.red.shade700, fontSize: 12)),
+                        child: Text(_error!, style: appFont(color: Colors.red.shade700, fontSize: 12)),
                       ),
                     ],
                     const SizedBox(height: 20),
@@ -448,7 +448,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
                   const Spacer(),
                   TextButton(
                     onPressed: _guardando ? null : () => Navigator.pop(context),
-                    child: Text('Cancelar', style: GoogleFonts.poppins(color: Colors.grey.shade700)),
+                    child: Text('Cancelar', style: appFont(color: Colors.grey.shade700)),
                   ),
                   const SizedBox(width: 10),
                   FilledButton(
@@ -460,7 +460,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
                     ),
                     child: _guardando
                         ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.2))
-                        : Text('Guardar', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.white)),
+                        : Text('Guardar', style: appFont(fontWeight: FontWeight.w600, color: Colors.white)),
                   ),
                 ],
               ),

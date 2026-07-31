@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../data/reporte_compra_model.dart';
 import '../../data/reporte_export_service.dart';
@@ -12,6 +11,7 @@ import '../../../../core/widgets/pdf_preview_dialog.dart';
 import '../../../proveedores/providers/proveedores_provider.dart';
 import '../../../usuarios/providers/usuarios_provider.dart';
 import '../../../compras/presentation/screens/detalle_compra_screen.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 class ReporteComprasScreen extends ConsumerStatefulWidget {
   const ReporteComprasScreen({super.key});
@@ -169,7 +169,7 @@ class _ReporteComprasScreenState extends ConsumerState<ReporteComprasScreen> {
                     spacing: 12,
                     runSpacing: 10,
                     children: [
-                      Text('Reporte de Compras', style: GoogleFonts.poppins(fontSize: esMovil ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+                      Text('Reporte de Compras', style: appFont(fontSize: esMovil ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
                       _statTotalFacturado(totalFacturado),
                     ],
                   ),
@@ -195,25 +195,25 @@ class _ReporteComprasScreenState extends ConsumerState<ReporteComprasScreen> {
                       OutlinedButton.icon(
                         onPressed: _cargando ? null : _buscar,
                         icon: const Icon(Icons.search, size: 18),
-                        label: Text('Buscar', style: GoogleFonts.poppins(fontSize: 13)),
+                        label: Text('Buscar', style: appFont(fontSize: 13)),
                         style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                       ),
                       OutlinedButton.icon(
                         onPressed: _cargando ? null : _limpiar,
                         icon: const Icon(Icons.close, size: 18),
-                        label: Text('Limpiar', style: GoogleFonts.poppins(fontSize: 13)),
+                        label: Text('Limpiar', style: appFont(fontSize: 13)),
                         style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                       ),
                       OutlinedButton.icon(
                         onPressed: _exportarExcel,
                         icon: const Icon(Icons.grid_on_outlined, size: 18),
-                        label: Text('Descargar Excel', style: GoogleFonts.poppins(fontSize: 13)),
+                        label: Text('Descargar Excel', style: appFont(fontSize: 13)),
                         style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                       ),
                       OutlinedButton.icon(
                         onPressed: _exportarPdf,
                         icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
-                        label: Text('Descargar PDF', style: GoogleFonts.poppins(fontSize: 13)),
+                        label: Text('Descargar PDF', style: appFont(fontSize: 13)),
                         style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                       ),
                     ],
@@ -256,7 +256,7 @@ class _ReporteComprasScreenState extends ConsumerState<ReporteComprasScreen> {
                 child: _cargando
                     ? const Center(child: CircularProgressIndicator(color: Color(0xFF0D2B4E)))
                     : _error != null
-                        ? Center(child: Text(_error!, style: GoogleFonts.poppins(color: Colors.red)))
+                        ? Center(child: Text(_error!, style: appFont(color: Colors.red)))
                         : lista.isEmpty
                             ? Center(
                                 child: Column(
@@ -264,7 +264,7 @@ class _ReporteComprasScreenState extends ConsumerState<ReporteComprasScreen> {
                                   children: [
                                     Icon(Icons.shopping_cart_outlined, size: 56, color: Colors.grey.shade300),
                                     const SizedBox(height: 12),
-                                    Text('No se encontraron resultados', textAlign: TextAlign.center, style: GoogleFonts.poppins(color: Colors.grey.shade500)),
+                                    Text('No se encontraron resultados', textAlign: TextAlign.center, style: appFont(color: Colors.grey.shade500)),
                                   ],
                                 ),
                               )
@@ -294,8 +294,8 @@ class _ReporteComprasScreenState extends ConsumerState<ReporteComprasScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('TOTAL FACTURADO', style: GoogleFonts.poppins(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.white.withOpacity(0.85), letterSpacing: 0.6)),
-              Text(formatearMoneda(total), style: GoogleFonts.poppins(fontSize: 21, fontWeight: FontWeight.w800, color: Colors.white)),
+              Text('TOTAL FACTURADO', style: appFont(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.white.withOpacity(0.85), letterSpacing: 0.6)),
+              Text(formatearMoneda(total), style: appFont(fontSize: 21, fontWeight: FontWeight.w800, color: Colors.white)),
             ],
           ),
         ],
@@ -319,7 +319,7 @@ class _ReporteComprasScreenState extends ConsumerState<ReporteComprasScreen> {
               Icon(Icons.calendar_today_outlined, size: 15, color: Colors.grey.shade500),
               const SizedBox(width: 8),
               Flexible(
-                child: Text('$label: ${formato.format(fecha)}', overflow: TextOverflow.ellipsis, maxLines: 1, style: GoogleFonts.poppins(fontSize: 12.5, color: const Color(0xFF1A1A1A))),
+                child: Text('$label: ${formato.format(fecha)}', overflow: TextOverflow.ellipsis, maxLines: 1, style: appFont(fontSize: 12.5, color: const Color(0xFF1A1A1A))),
               ),
             ],
           ),
@@ -337,10 +337,10 @@ class _ReporteComprasScreenState extends ConsumerState<ReporteComprasScreen> {
         child: DropdownButton<String?>(
           value: _idProveedorFiltro,
           isExpanded: true,
-          hint: Text('Todos los proveedores', style: GoogleFonts.poppins(fontSize: 13)),
-          style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF1A1A1A)),
+          hint: Text('Todos los proveedores', style: appFont(fontSize: 13)),
+          style: appFont(fontSize: 13, color: const Color(0xFF1A1A1A)),
           items: [
-            DropdownMenuItem<String?>(value: null, child: Text('Todos los proveedores', style: GoogleFonts.poppins(fontSize: 13))),
+            DropdownMenuItem<String?>(value: null, child: Text('Todos los proveedores', style: appFont(fontSize: 13))),
             ...proveedores.map((p) => DropdownMenuItem<String?>(value: p.id as String, child: Text(p.razonSocial as String, overflow: TextOverflow.ellipsis))),
           ],
           onChanged: (v) => setState(() => _idProveedorFiltro = v),
@@ -358,10 +358,10 @@ class _ReporteComprasScreenState extends ConsumerState<ReporteComprasScreen> {
         child: DropdownButton<String?>(
           value: valor,
           isExpanded: true,
-          hint: Text(etiqueta, style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade500)),
-          style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF1A1A1A)),
+          hint: Text(etiqueta, style: appFont(fontSize: 13, color: Colors.grey.shade500)),
+          style: appFont(fontSize: 13, color: const Color(0xFF1A1A1A)),
           items: [
-            DropdownMenuItem<String?>(value: null, child: Text('$etiqueta: Todos', style: GoogleFonts.poppins(fontSize: 13))),
+            DropdownMenuItem<String?>(value: null, child: Text('$etiqueta: Todos', style: appFont(fontSize: 13))),
             ...opciones.map((o) => DropdownMenuItem<String?>(value: o, child: Text(o, overflow: TextOverflow.ellipsis))),
           ],
           onChanged: onChanged,
@@ -382,10 +382,10 @@ class _ReporteComprasScreenState extends ConsumerState<ReporteComprasScreen> {
           Expanded(
             child: TextField(
               controller: _busquedaController,
-              style: GoogleFonts.poppins(fontSize: 13),
+              style: appFont(fontSize: 13),
               decoration: InputDecoration(
                 hintText: 'Buscar por factura, proveedor...',
-                hintStyle: GoogleFonts.poppins(fontSize: 12.5, color: Colors.grey.shade400),
+                hintStyle: appFont(fontSize: 12.5, color: Colors.grey.shade400),
                 border: InputBorder.none,
                 isDense: true,
               ),
@@ -460,7 +460,7 @@ class _ReporteComprasScreenState extends ConsumerState<ReporteComprasScreen> {
   Widget _celdaHeader(String texto, int flex) {
     return Expanded(
       flex: flex,
-      child: Text(texto, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w700, color: const Color(0xFF666A72), letterSpacing: 0.3)),
+      child: Text(texto, maxLines: 1, overflow: TextOverflow.ellipsis, style: appFont(fontSize: 10, fontWeight: FontWeight.w700, color: const Color(0xFF666A72), letterSpacing: 0.3)),
     );
   }
 
@@ -469,7 +469,7 @@ class _ReporteComprasScreenState extends ConsumerState<ReporteComprasScreen> {
       flex: flex,
       child: Padding(
         padding: const EdgeInsets.only(right: 8),
-        child: Text(texto, maxLines: 2, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 12.5, fontWeight: peso, color: gris ? Colors.grey.shade600 : const Color(0xFF1A1A1A))),
+        child: Text(texto, maxLines: 2, overflow: TextOverflow.ellipsis, style: appFont(fontSize: 12.5, fontWeight: peso, color: gris ? Colors.grey.shade600 : const Color(0xFF1A1A1A))),
       ),
     );
   }
@@ -498,12 +498,12 @@ class _ReporteComprasScreenState extends ConsumerState<ReporteComprasScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(c.razonSocial.isEmpty ? 'Sin proveedor' : c.razonSocial, style: GoogleFonts.poppins(fontSize: 14.5, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
-                          Text('Factura ${c.noFactura}', style: GoogleFonts.poppins(fontSize: 11.5, color: Colors.grey.shade500)),
+                          Text(c.razonSocial.isEmpty ? 'Sin proveedor' : c.razonSocial, style: appFont(fontSize: 14.5, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+                          Text('Factura ${c.noFactura}', style: appFont(fontSize: 11.5, color: Colors.grey.shade500)),
                         ],
                       ),
                     ),
-                    Text(formatearMoneda(c.montoTotal), style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w800, color: const Color(0xFF1A1A1A))),
+                    Text(formatearMoneda(c.montoTotal), style: appFont(fontSize: 15, fontWeight: FontWeight.w800, color: const Color(0xFF1A1A1A))),
                   ],
                 ),
                 const SizedBox(height: 10),
@@ -528,7 +528,7 @@ class _ReporteComprasScreenState extends ConsumerState<ReporteComprasScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(color: const Color(0xFFE8EAF0), borderRadius: BorderRadius.circular(8)),
-      child: Text('$label: $valor', style: GoogleFonts.poppins(fontSize: 11.5, color: const Color(0xFF3F434A))),
+      child: Text('$label: $valor', style: appFont(fontSize: 11.5, color: const Color(0xFF3F434A))),
     );
   }
 }

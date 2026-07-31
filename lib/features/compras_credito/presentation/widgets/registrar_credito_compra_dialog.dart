@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../providers/compras_credito_provider.dart';
 import '../../../proveedores/providers/proveedores_provider.dart';
 import '../../../proveedores/data/proveedor_model.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 class RegistrarCreditoCompraDialog extends ConsumerStatefulWidget {
   const RegistrarCreditoCompraDialog({super.key});
@@ -86,7 +86,7 @@ class _RegistrarCreditoCompraDialogState extends ConsumerState<RegistrarCreditoC
   InputDecoration _decoracion(String label) {
     return InputDecoration(
       labelText: label,
-      labelStyle: GoogleFonts.poppins(fontSize: 13),
+      labelStyle: appFont(fontSize: 13),
       filled: true,
       fillColor: const Color(0xFFE8EAF0),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -123,7 +123,7 @@ class _RegistrarCreditoCompraDialogState extends ConsumerState<RegistrarCreditoC
                   ),
                   const SizedBox(width: 14),
                   Expanded(
-                    child: Text('Registrar Crédito de Compra', style: GoogleFonts.poppins(fontSize: 16.5, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
+                    child: Text('Registrar Crédito de Compra', style: appFont(fontSize: 16.5, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A))),
                   ),
                   IconButton(icon: const Icon(Icons.close, size: 20), onPressed: () => Navigator.pop(context)),
                 ],
@@ -137,7 +137,7 @@ class _RegistrarCreditoCompraDialogState extends ConsumerState<RegistrarCreditoC
                   children: [
                     Text(
                       'Usá esto para créditos de compra que no vienen de una compra registrada en el sistema (créditos anteriores, migraciones, etc.).',
-                      style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600),
+                      style: appFont(fontSize: 12, color: Colors.grey.shade600),
                     ),
                     const SizedBox(height: 16),
                     proveedoresAsync.when(
@@ -146,13 +146,13 @@ class _RegistrarCreditoCompraDialogState extends ConsumerState<RegistrarCreditoC
                           initialValue: _proveedor,
                           decoration: _decoracion('Proveedor'),
                           isExpanded: true,
-                          style: GoogleFonts.poppins(fontSize: 14, color: const Color(0xFF1A1A1A)),
+                          style: appFont(fontSize: 14, color: const Color(0xFF1A1A1A)),
                           items: proveedores.map((p) => DropdownMenuItem(value: p, child: Text(p.razonSocial, overflow: TextOverflow.ellipsis))).toList(),
                           onChanged: (v) => setState(() => _proveedor = v),
                         );
                       },
                       loading: () => const LinearProgressIndicator(),
-                      error: (e, st) => Text('Error cargando proveedores', style: GoogleFonts.poppins(color: Colors.red, fontSize: 12)),
+                      error: (e, st) => Text('Error cargando proveedores', style: appFont(color: Colors.red, fontSize: 12)),
                     ),
                     const SizedBox(height: 14),
                     Row(
@@ -160,7 +160,7 @@ class _RegistrarCreditoCompraDialogState extends ConsumerState<RegistrarCreditoC
                         Expanded(
                           child: TextField(
                             controller: _numeroDocumentoController,
-                            style: GoogleFonts.poppins(fontSize: 14),
+                            style: appFont(fontSize: 14),
                             decoration: _decoracion('No. Documento (opcional)'),
                           ),
                         ),
@@ -168,7 +168,7 @@ class _RegistrarCreditoCompraDialogState extends ConsumerState<RegistrarCreditoC
                         Expanded(
                           child: TextField(
                             controller: _noFacturaController,
-                            style: GoogleFonts.poppins(fontSize: 14),
+                            style: appFont(fontSize: 14),
                             decoration: _decoracion('No. Factura'),
                           ),
                         ),
@@ -181,7 +181,7 @@ class _RegistrarCreditoCompraDialogState extends ConsumerState<RegistrarCreditoC
                           child: TextField(
                             controller: _montoTotalController,
                             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                            style: GoogleFonts.poppins(fontSize: 14),
+                            style: appFont(fontSize: 14),
                             decoration: _decoracion('Monto total'),
                           ),
                         ),
@@ -190,14 +190,14 @@ class _RegistrarCreditoCompraDialogState extends ConsumerState<RegistrarCreditoC
                           child: TextField(
                             controller: _saldoPendienteController,
                             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                            style: GoogleFonts.poppins(fontSize: 14),
+                            style: appFont(fontSize: 14),
                             decoration: _decoracion('Saldo pendiente'),
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 14),
-                    Text('Fecha de vencimiento', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade600)),
+                    Text('Fecha de vencimiento', style: appFont(fontSize: 12, color: Colors.grey.shade600)),
                     const SizedBox(height: 6),
                     InkWell(
                       onTap: _seleccionarFecha,
@@ -210,7 +210,7 @@ class _RegistrarCreditoCompraDialogState extends ConsumerState<RegistrarCreditoC
                           children: [
                             Icon(Icons.calendar_today_outlined, size: 16, color: Colors.grey.shade500),
                             const SizedBox(width: 10),
-                            Flexible(child: Text(formatoFecha.format(_fechaVencimiento), overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 13.5, color: const Color(0xFF1A1A1A)))),
+                            Flexible(child: Text(formatoFecha.format(_fechaVencimiento), overflow: TextOverflow.ellipsis, style: appFont(fontSize: 13.5, color: const Color(0xFF1A1A1A)))),
                           ],
                         ),
                       ),
@@ -225,7 +225,7 @@ class _RegistrarCreditoCompraDialogState extends ConsumerState<RegistrarCreditoC
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: Colors.red.shade200),
                         ),
-                        child: Text(_error!, style: GoogleFonts.poppins(color: Colors.red.shade700, fontSize: 12)),
+                        child: Text(_error!, style: appFont(color: Colors.red.shade700, fontSize: 12)),
                       ),
                     ],
                     const SizedBox(height: 8),
@@ -240,7 +240,7 @@ class _RegistrarCreditoCompraDialogState extends ConsumerState<RegistrarCreditoC
                   const Spacer(),
                   TextButton(
                     onPressed: _guardando ? null : () => Navigator.pop(context),
-                    child: Text('Cancelar', style: GoogleFonts.poppins(color: Colors.grey.shade700)),
+                    child: Text('Cancelar', style: appFont(color: Colors.grey.shade700)),
                   ),
                   const SizedBox(width: 10),
                   FilledButton(
@@ -252,7 +252,7 @@ class _RegistrarCreditoCompraDialogState extends ConsumerState<RegistrarCreditoC
                     ),
                     child: _guardando
                         ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.2))
-                        : Text('Registrar Crédito', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.white)),
+                        : Text('Registrar Crédito', style: appFont(fontWeight: FontWeight.w600, color: Colors.white)),
                   ),
                 ],
               ),

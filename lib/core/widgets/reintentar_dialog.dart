@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../services/tipografia_service.dart';
 
 /// Ejecuta [accion] y, si falla (por ejemplo por un timeout de red), muestra
 /// un diálogo bien visible en el centro de la pantalla explicando que
@@ -29,21 +29,21 @@ Future<T?> ejecutarConReintento<T>(BuildContext context, Future<T> Function() ac
             children: [
               const Icon(Icons.wifi_off_outlined, color: Color(0xFF0D2B4E)),
               const SizedBox(width: 10),
-              Expanded(child: Text('No se pudo guardar', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 15))),
+              Expanded(child: Text('No se pudo guardar', style: appFont(fontWeight: FontWeight.w700, fontSize: 15))),
             ],
           ),
           content: Text(
             esTimeout
                 ? 'Parece que falló la conexión a internet. Todavía no se guardó el cambio: podés reintentar sin perder lo que escribiste.'
                 : 'Ocurrió un error y no se guardó el cambio. Podés reintentar sin perder lo que escribiste.\n\n${e.toString().replaceAll('Exception: ', '')}',
-            style: GoogleFonts.poppins(fontSize: 13),
+            style: appFont(fontSize: 13),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancelar', style: GoogleFonts.poppins())),
+            TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancelar', style: appFont())),
             FilledButton(
               style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E)),
               onPressed: () => Navigator.pop(context, true),
-              child: Text('Reintentar', style: GoogleFonts.poppins()),
+              child: Text('Reintentar', style: appFont()),
             ),
           ],
         ),

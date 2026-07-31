@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../utils/beep.dart';
+import '../services/tipografia_service.dart';
 
 /// Abre la pantalla de escaneo y devuelve el código leído (o null si se
 /// canceló). Uso: `final codigo = await escanearCodigoBarras(context);`
@@ -50,7 +50,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
-        title: Text('Escanear código de barras', style: GoogleFonts.poppins(fontSize: 16)),
+        title: Text('Escanear código de barras', style: appFont(fontSize: 16)),
         actions: [
           IconButton(
             tooltip: 'Linterna',
@@ -80,7 +80,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                   child: Text(
                     _error ?? 'No se pudo acceder a la cámara. Revisá los permisos del navegador.',
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
+                    style: appFont(color: Colors.white, fontSize: 13),
                   ),
                 ),
               );
@@ -105,7 +105,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
             child: Text(
               'Apuntá la cámara al código de barras',
               textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
+              style: appFont(color: Colors.white, fontSize: 13),
             ),
           ),
         ],

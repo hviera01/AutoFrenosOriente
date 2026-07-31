@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../data/categoria_model.dart';
 import '../../providers/categorias_provider.dart';
 import '../widgets/categoria_form_dialog.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 class CategoriasScreen extends ConsumerWidget {
   const CategoriasScreen({super.key});
@@ -32,7 +32,7 @@ class CategoriasScreen extends ConsumerWidget {
                 SliverToBoxAdapter(
                   child: Text(
                     'Categorías',
-                    style: GoogleFonts.poppins(fontSize: esMovil ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A)),
+                    style: appFont(fontSize: esMovil ? 19 : 22, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A)),
                   ),
                 ),
                 SliverToBoxAdapter(child: const SizedBox(height: 16)),
@@ -90,7 +90,7 @@ class CategoriasScreen extends ConsumerWidget {
                               children: [
                                 Icon(Icons.category_outlined, size: 56, color: Colors.grey.shade300),
                                 const SizedBox(height: 12),
-                                Text('No hay categorías', style: GoogleFonts.poppins(color: Colors.grey.shade500)),
+                                Text('No hay categorías', style: appFont(color: Colors.grey.shade500)),
                               ],
                             ),
                           );
@@ -109,8 +109,8 @@ class CategoriasScreen extends ConsumerWidget {
                                 ),
                                 child: Row(
                                   children: [
-                                    Expanded(flex: 3, child: Text('DESCRIPCIÓN', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.grey.shade600, letterSpacing: 0.5))),
-                                    Expanded(flex: 1, child: Text('ESTADO', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.grey.shade600, letterSpacing: 0.5))),
+                                    Expanded(flex: 3, child: Text('DESCRIPCIÓN', style: appFont(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.grey.shade600, letterSpacing: 0.5))),
+                                    Expanded(flex: 1, child: Text('ESTADO', style: appFont(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.grey.shade600, letterSpacing: 0.5))),
                                     const SizedBox(width: 40),
                                   ],
                                 ),
@@ -130,7 +130,7 @@ class CategoriasScreen extends ConsumerWidget {
                                           flex: 3,
                                           child: Text(
                                             categoria.descripcion,
-                                            style: GoogleFonts.poppins(fontSize: 13.5, color: const Color(0xFF1A1A1A)),
+                                            style: appFont(fontSize: 13.5, color: const Color(0xFF1A1A1A)),
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
@@ -147,7 +147,7 @@ class CategoriasScreen extends ConsumerWidget {
                                               categoria.estado ? 'Activo' : 'Inactivo',
                                               textAlign: TextAlign.center,
                                               overflow: TextOverflow.ellipsis,
-                                              style: GoogleFonts.poppins(fontSize: 11.5, fontWeight: FontWeight.w600, color: categoria.estado ? const Color(0xFF16A34A) : Colors.grey.shade600),
+                                              style: appFont(fontSize: 11.5, fontWeight: FontWeight.w600, color: categoria.estado ? const Color(0xFF16A34A) : Colors.grey.shade600),
                                             ),
                                           ),
                                         ),
@@ -165,7 +165,7 @@ class CategoriasScreen extends ConsumerWidget {
                         );
                       },
                       loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF0D2B4E))),
-                      error: (e, st) => Center(child: Text('Error: $e', style: GoogleFonts.poppins(color: Colors.red))),
+                      error: (e, st) => Center(child: Text('Error: $e', style: appFont(color: Colors.red))),
                     ),
                   ),
             ),
@@ -190,10 +190,10 @@ class CategoriasScreen extends ConsumerWidget {
           const SizedBox(width: 10),
           Expanded(
             child: TextField(
-              style: GoogleFonts.poppins(fontSize: 13),
+              style: appFont(fontSize: 13),
               decoration: InputDecoration(
                 hintText: 'Buscar por descripción...',
-                hintStyle: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade400),
+                hintStyle: appFont(fontSize: 13, color: Colors.grey.shade400),
                 border: InputBorder.none,
                 isDense: true,
               ),
@@ -209,7 +209,7 @@ class CategoriasScreen extends ConsumerWidget {
     return OutlinedButton.icon(
       onPressed: () => ref.invalidate(categoriasStreamProvider),
       icon: const Icon(Icons.refresh, size: 18),
-      label: Text('Refrescar', style: GoogleFonts.poppins(fontSize: 13)),
+      label: Text('Refrescar', style: appFont(fontSize: 13)),
       style: OutlinedButton.styleFrom(
         foregroundColor: const Color(0xFF1A1A1A),
         side: const BorderSide(color: Color(0xFFB6BCC7)),
@@ -223,7 +223,7 @@ class CategoriasScreen extends ConsumerWidget {
     return FilledButton.icon(
       onPressed: () => _abrirFormulario(context),
       icon: const Icon(Icons.add, size: 18),
-      label: Text('Nueva Categoría', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
+      label: Text('Nueva Categoría', style: appFont(fontSize: 13, fontWeight: FontWeight.w600)),
       style: FilledButton.styleFrom(
         backgroundColor: const Color(0xFF0D2B4E),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),

@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../data/escaneo_remoto_repository.dart';
 import '../../../../core/utils/beep.dart';
+import '../../../../core/services/tipografia_service.dart';
 
 /// Pantalla que abre el celular al escanear el QR que muestra la PC (ver
 /// EscanearRemotoDialog): no pide iniciar sesión (se llega acá directo desde
@@ -115,7 +115,7 @@ class _EscaneoRemotoScreenState extends State<EscaneoRemotoScreen> {
                       ? 'Se cerró la ventana de escaneo en la PC. Si querés seguir agregando productos, volvé a la PC y abrí el QR de nuevo.'
                       : 'Este código de escaneo ya no es válido. Volvé a la PC y abrí el QR de nuevo.',
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.poppins(color: Colors.white, fontSize: 14),
+                  style: appFont(color: Colors.white, fontSize: 14),
                 ),
               ],
             ),
@@ -129,7 +129,7 @@ class _EscaneoRemotoScreenState extends State<EscaneoRemotoScreen> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
-        title: Text('Escáner remoto', style: GoogleFonts.poppins(fontSize: 16)),
+        title: Text('Escáner remoto', style: appFont(fontSize: 16)),
         actions: [
           IconButton(
             tooltip: 'Linterna',
@@ -156,7 +156,7 @@ class _EscaneoRemotoScreenState extends State<EscaneoRemotoScreen> {
                   child: Text(
                     error.errorDetails?.message ?? 'No se pudo acceder a la cámara. Revisá los permisos del navegador.',
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
+                    style: appFont(color: Colors.white, fontSize: 13),
                   ),
                 ),
               );
@@ -195,16 +195,16 @@ class _EscaneoRemotoScreenState extends State<EscaneoRemotoScreen> {
                     children: [
                       const Icon(Icons.check_circle, color: Colors.white, size: 34),
                       const SizedBox(height: 6),
-                      Text('Código enviado', style: GoogleFonts.poppins(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700)),
+                      Text('Código enviado', style: appFont(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700)),
                       if (_ultimoEnviado != null)
-                        Text(_ultimoEnviado!, style: GoogleFonts.poppins(color: Colors.white.withValues(alpha: 0.9), fontSize: 12)),
+                        Text(_ultimoEnviado!, style: appFont(color: Colors.white.withValues(alpha: 0.9), fontSize: 12)),
                       const SizedBox(height: 14),
                       SizedBox(
                         width: double.infinity,
                         child: FilledButton(
                           onPressed: _confirmarEnviado,
                           style: FilledButton.styleFrom(backgroundColor: Colors.white, foregroundColor: const Color(0xFF2E7D32), padding: const EdgeInsets.symmetric(vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                          child: Text('OK, seguir escaneando', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 13)),
+                          child: Text('OK, seguir escaneando', style: appFont(fontWeight: FontWeight.w700, fontSize: 13)),
                         ),
                       ),
                     ],
@@ -225,16 +225,16 @@ class _EscaneoRemotoScreenState extends State<EscaneoRemotoScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('Apuntá la cámara al código de barras', textAlign: TextAlign.center, style: GoogleFonts.poppins(color: Colors.white, fontSize: 13)),
+                  Text('Apuntá la cámara al código de barras', textAlign: TextAlign.center, style: appFont(color: Colors.white, fontSize: 13)),
                   const SizedBox(height: 10),
                   if (_ultimoEnviado != null)
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                       decoration: BoxDecoration(color: const Color(0xFF2E7D32), borderRadius: BorderRadius.circular(20)),
-                      child: Text('✓ Enviado: $_ultimoEnviado', style: GoogleFonts.poppins(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.w600)),
+                      child: Text('✓ Enviado: $_ultimoEnviado', style: appFont(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.w600)),
                     ),
                   const SizedBox(height: 6),
-                  Text('$_enviados código(s) enviado(s) a la caja', style: GoogleFonts.poppins(color: Colors.grey.shade400, fontSize: 11.5)),
+                  Text('$_enviados código(s) enviado(s) a la caja', style: appFont(color: Colors.grey.shade400, fontSize: 11.5)),
                 ],
               ),
             ),
