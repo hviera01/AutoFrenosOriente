@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/tipografia_service.dart';
 
 class PlaceholderScreen extends StatelessWidget {
   final String titulo;
@@ -18,10 +19,10 @@ class PlaceholderScreen extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               titulo,
-              style: TextStyle(fontSize: 18, color: Colors.grey.shade500, fontWeight: FontWeight.w600),
+              style: appFont(fontSize: 18, color: Colors.grey.shade500, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 6),
-            Text('Pantalla en construcción', style: TextStyle(color: Colors.grey.shade400)),
+            Text('Pantalla en construcción', style: appFont(color: Colors.grey.shade400)),
           ],
         ),
       ),

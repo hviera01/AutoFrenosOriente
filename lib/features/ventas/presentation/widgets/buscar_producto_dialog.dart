@@ -473,8 +473,9 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(flex: 2, child: Text('Código', style: estilo)),
-        Expanded(flex: 6, child: Text('Descripción', style: estilo)),
+        Expanded(flex: 5, child: Text('Descripción', style: estilo)),
         Expanded(flex: 3, child: Text('Categoría', style: estilo)),
+        Expanded(flex: 3, child: Text('Ubicación', style: estilo)),
         Expanded(flex: 3, child: Text('Precio', textAlign: TextAlign.right, style: estilo)),
         Expanded(flex: 2, child: _encabezadoOrdenable('Existencia', 'existencia', estilo)),
       ],
@@ -549,7 +550,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
             children: [
               Expanded(flex: 2, child: Text(p.codigo, style: appFont(fontSize: 13, color: Colors.grey.shade600))),
               Expanded(
-                flex: 6,
+                flex: 5,
                 child: Padding(
                   padding: const EdgeInsets.only(right: 10),
                   child: Text(p.nombre, softWrap: true, style: appFont(fontSize: 13.5, fontWeight: FontWeight.w600)),
@@ -560,6 +561,13 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                 child: Padding(
                   padding: const EdgeInsets.only(right: 10),
                   child: Text(mapaCategorias[p.idCategoria] ?? '-', softWrap: true, style: appFont(fontSize: 12.5, color: Colors.grey.shade600)),
+                ),
+              ),
+              Expanded(
+                flex: 3,
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 10),
+                  child: Text(p.descripcion.isEmpty ? '-' : p.descripcion, softWrap: true, style: appFont(fontSize: 12.5, color: Colors.grey.shade600)),
                 ),
               ),
               Expanded(
@@ -618,6 +626,10 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                         Text(p.nombre, softWrap: true, style: appFont(fontSize: 14, fontWeight: FontWeight.w600)),
                         const SizedBox(height: 2),
                         Text('${p.codigo} · ${mapaCategorias[p.idCategoria] ?? '-'}', softWrap: true, style: appFont(fontSize: 12, color: Colors.grey.shade500)),
+                        if (p.descripcion.isNotEmpty) ...[
+                          const SizedBox(height: 2),
+                          Text('Ubicación: ${p.descripcion}', softWrap: true, style: appFont(fontSize: 11.5, color: Colors.grey.shade500)),
+                        ],
                       ],
                     ),
                   ),

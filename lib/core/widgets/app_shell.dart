@@ -258,6 +258,57 @@ class _AppShellState extends ConsumerState<AppShell> {
     );
   }
 
+  // El cambio de fuente ya no se aplica solo con tocar una opción (pedido
+  // explícito del usuario, tras un caso real donde el cambio parecía no
+  // aplicarse): ahora hay que elegir y confirmar con "Aplicar", y al aplicar
+  // se muestra un aviso confirmando que se hizo.
+  Future<void> _abrirSelectorTipografia() async {
+    var seleccion = ref.read(tipografiaProvider);
+    final aplicar = await showDialog<bool>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setStateDialogo) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: Text('Tipografía del sistema', style: appFont(fontWeight: FontWeight.w700)),
+            content: SizedBox(
+              width: 340,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: tipografiasDisponibles.entries.map((e) {
+                  return RadioListTile<String>(
+                    value: e.key,
+                    // ignore: deprecated_member_use
+                    groupValue: seleccion,
+                    activeColor: const Color(0xFF0D2B4E),
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(e.value, style: GoogleFonts.getFont(e.key, fontSize: 14.5)),
+                    // ignore: deprecated_member_use
+                    onChanged: (v) => setStateDialogo(() => seleccion = v ?? seleccion),
+                  );
+                }).toList(),
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancelar', style: appFont())),
+              FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D2B4E)),
+                onPressed: () => Navigator.pop(context, true),
+                child: Text('Aplicar', style: appFont(color: Colors.white)),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+    if (aplicar != true || !mounted) return;
+    await ref.read(tipografiaProvider.notifier).establecer(seleccion);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Tipografía aplicada: ${tipografiasDisponibles[seleccion] ?? seleccion}'), duration: const Duration(seconds: 3)),
+    );
+  }
+
  Widget _barraSuperior(dynamic usuario) {
     return SizedBox(
       width: double.infinity,
@@ -339,30 +390,10 @@ class _AppShellState extends ConsumerState<AppShell> {
                         ),
                       ],
                       const SizedBox(width: 4),
-                      PopupMenuButton<String>(
-                        tooltip: 'Tipografía',
+                      IconButton(
                         icon: const Icon(Icons.font_download_outlined, color: Colors.white, size: 20),
-                        onSelected: (fuente) => ref.read(tipografiaProvider.notifier).establecer(fuente),
-                        itemBuilder: (context) {
-                          final actual = ref.read(tipografiaProvider);
-                          return tipografiasDisponibles.entries.map((e) {
-                            final seleccionada = e.key == actual;
-                            return PopupMenuItem<String>(
-                              value: e.key,
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    seleccionada ? Icons.check_circle : Icons.circle_outlined,
-                                    size: 16,
-                                    color: seleccionada ? const Color(0xFF0D2B4E) : Colors.grey.shade400,
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Text(e.value, style: GoogleFonts.getFont(e.key, fontSize: 13.5)),
-                                ],
-                              ),
-                            );
-                          }).toList();
-                        },
+                        tooltip: 'Tipografía',
+                        onPressed: _abrirSelectorTipografia,
                       ),
                       const SizedBox(width: 4),
                       IconButton(

@@ -6,6 +6,7 @@ import '../../../categorias/providers/categorias_provider.dart';
 import '../../../../core/widgets/barcode_scanner_screen.dart';
 import '../../../../core/widgets/reintentar_dialog.dart';
 import '../../../../core/services/tipografia_service.dart';
+import '../../../compras/presentation/widgets/buscar_producto_compra_dialog.dart';
 
 class ProductoFormDialog extends ConsumerStatefulWidget {
   final ProductoModel? producto;
@@ -184,6 +185,15 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
     }
   }
 
+  // Botón "Consultar catálogo" (solo al crear un producto nuevo): abre de
+  // nuevo el buscador de productos para chequear si ya existe algo parecido
+  // (nombre, código, ubicación) antes de cargar uno duplicado -pedido
+  // explícito del usuario-. Es solo de consulta: lo que se elija ahí (o que
+  // no se elija nada) no cambia en nada este formulario.
+  Future<void> _consultarCatalogo() async {
+    await Navigator.push(context, MaterialPageRoute(fullscreenDialog: true, builder: (context) => const BuscarProductoCompraDialog()));
+  }
+
   InputDecoration _decoracion(String label) {
     return InputDecoration(
       labelText: label,
@@ -284,6 +294,20 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
                       style: appFont(fontSize: 14),
                       decoration: _decoracion('Nombre'),
                     ),
+                    if (!editando) ...[
+                      const SizedBox(height: 10),
+                      OutlinedButton.icon(
+                        onPressed: _consultarCatalogo,
+                        icon: const Icon(Icons.search, size: 18),
+                        label: Text('Consultar catálogo (ver si ya existe)', style: appFont(fontSize: 12.5)),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF0D2B4E),
+                          side: const BorderSide(color: Color(0xFF0D2B4E)),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 14),
                     TextField(
                       controller: _descripcionController,
