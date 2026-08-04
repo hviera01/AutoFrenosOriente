@@ -2218,7 +2218,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(flex: 2, child: Text(producto?.codigo ?? '-', style: appFont(fontSize: 12.5, color: Colors.grey.shade600))),
           Expanded(flex: 4, child: _campoDescripcion(index, item)),

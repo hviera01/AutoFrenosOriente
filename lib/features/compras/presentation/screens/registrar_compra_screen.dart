@@ -979,7 +979,7 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(flex: 2, child: Text(producto?.codigo ?? '-', style: appFont(fontSize: 12.5, color: Colors.grey.shade600))),
               Expanded(
