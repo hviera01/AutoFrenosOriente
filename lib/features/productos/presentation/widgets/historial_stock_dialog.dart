@@ -8,48 +8,7 @@ import '../../../ventas/presentation/screens/detalle_venta_screen.dart';
 import '../../../compras/presentation/screens/detalle_compra_screen.dart';
 import '../../../traslados/presentation/screens/detalle_traslado_screen.dart';
 import '../../../../core/services/tipografia_service.dart';
-
-/// Identifica de qué documento vino un movimiento del historial de stock, a
-/// partir del texto de [HistorialStockModel.motivo] (que arma cada
-/// repositorio, ej. "Venta 0001", "Anulación de compra 0002", "Traslado
-/// TRAS-000123 a Sucursal 2"): así una fila del historial puede abrir el
-/// detalle real de la venta/compra/traslado que la originó, en vez de
-/// quedarse solo con el texto plano. Ajustes manuales u otros motivos que no
-/// matcheen ninguno de estos patrones simplemente no son clicables.
-class _OrigenHistorial {
-  final String tipo;
-  final String numero;
-  const _OrigenHistorial(this.tipo, this.numero);
-}
-
-_OrigenHistorial? _origenDeMotivo(String motivo) {
-  final texto = motivo.trim();
-  final patrones = <RegExp, String>{
-    // Motivos que arma la app (ver Venta/Compra/TrasladoRepository).
-    RegExp(r'^Venta\s+(\S+)$', caseSensitive: false): 'venta',
-    RegExp(r'^Anulaci[oó]n de venta\s+(\S+)$', caseSensitive: false): 'venta',
-    RegExp(r'^Compra\s+(\S+)$', caseSensitive: false): 'compra',
-    RegExp(r'^Anulaci[oó]n de compra\s+(\S+)$', caseSensitive: false): 'compra',
-    // El traslado a destino es opcional en el patrón: la app siempre lo
-    // incluye ("Traslado TRAS-000123 a Sucursal 2"), pero el motivo no
-    // siempre lo trae -ver abajo, el HistorialStock migrado del sistema
-    // viejo no lo tenía-.
-    RegExp(r'^Traslado\s+(\S+)(\s+a\s+.+)?$', caseSensitive: false): 'traslado',
-    RegExp(r'^Anulaci[oó]n de traslado\s+(\S+)$', caseSensitive: false): 'traslado',
-    // Motivos tal cual quedaron migrados del HistorialStock del sistema
-    // viejo (TipoMovimiento+NumeroDocumento, ej. "VENTA 0027",
-    // "ANULACION_COMPRA 00122" -con guion bajo y sin acento, no "Anulación
-    // de compra"-): sin este segundo juego de patrones, ningún movimiento
-    // migrado antes de esta actualización quedaba clicable.
-    RegExp(r'^Anulaci[oó]n_Venta\s+(\S+)$', caseSensitive: false): 'venta',
-    RegExp(r'^Anulaci[oó]n_Compra\s+(\S+)$', caseSensitive: false): 'compra',
-  };
-  for (final entrada in patrones.entries) {
-    final match = entrada.key.firstMatch(texto);
-    if (match != null) return _OrigenHistorial(entrada.value, match.group(1)!);
-  }
-  return null;
-}
+import '../../../../core/utils/origen_historial_utils.dart';
 
 class HistorialStockDialog extends ConsumerStatefulWidget {
   final ProductoModel producto;
@@ -84,7 +43,7 @@ class _HistorialStockDialogState extends ConsumerState<HistorialStockDialog> {
   }
 
   void _abrirOrigen(HistorialStockModel r) {
-    final origen = _origenDeMotivo(r.motivo);
+    final origen = origenDeMotivo(r.motivo);
     if (origen == null) return;
     Widget pantalla;
     switch (origen.tipo) {
@@ -169,7 +128,7 @@ class _HistorialStockDialogState extends ConsumerState<HistorialStockDialog> {
                       itemBuilder: (context, index) {
                         final r = registros[index];
                         final subio = r.stockNuevo >= r.stockAnterior;
-                        final esClicable = _origenDeMotivo(r.motivo) != null;
+                        final esClicable = origenDeMotivo(r.motivo) != null;
                         return Material(
                           color: const Color(0xFFF8F9FB),
                           borderRadius: BorderRadius.circular(14),
@@ -229,7 +188,7 @@ class _HistorialStockDialogState extends ConsumerState<HistorialStockDialog> {
                             itemBuilder: (context, index) {
                               final r = registros[index];
                               final subio = r.stockNuevo >= r.stockAnterior;
-                              final esClicable = _origenDeMotivo(r.motivo) != null;
+                              final esClicable = origenDeMotivo(r.motivo) != null;
                               return InkWell(
                                 onTap: esClicable ? () => _abrirOrigen(r) : null,
                                 child: Padding(

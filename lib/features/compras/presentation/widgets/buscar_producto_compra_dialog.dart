@@ -8,6 +8,7 @@ import '../../../categorias/providers/categorias_provider.dart';
 import '../../../../core/utils/texto_utils.dart';
 import '../../../../core/utils/formato_moneda.dart';
 import '../../../../core/services/tipografia_service.dart';
+import '../../../../core/widgets/imagen_zoom_dialog.dart';
 
 /// Buscador de productos para Compras: a diferencia del de Ventas no maneja
 /// niveles de precio de venta, sino el costo de compra registrado en el
@@ -138,6 +139,10 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
     final nuevo = await showDialog<ProductoModel>(context: context, builder: (context) => const ProductoFormDialog());
     if (nuevo == null || !mounted) return;
     _confirmarSeleccion(nuevo);
+  }
+
+  void _verFoto(ProductoModel p) {
+    showDialog(context: context, builder: (context) => ImagenZoomDialog(url: p.imagenUrl));
   }
 
   @override
@@ -306,6 +311,7 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
         Expanded(flex: 2, child: Text('Costo', textAlign: TextAlign.right, style: estilo)),
         Expanded(flex: 2, child: Text('Precio Venta', textAlign: TextAlign.right, style: estilo)),
         Expanded(flex: 2, child: Text('Existencia', textAlign: TextAlign.center, style: estilo)),
+        const SizedBox(width: 40),
       ],
     );
   }
@@ -374,6 +380,16 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
                   ),
                 ),
               ),
+              SizedBox(
+                width: 40,
+                child: p.imagenUrl.isEmpty
+                    ? null
+                    : IconButton(
+                        tooltip: 'Ver foto',
+                        icon: const Icon(Icons.photo_outlined, size: 18, color: Color(0xFF0D2B4E)),
+                        onPressed: () => _verFoto(p),
+                      ),
+              ),
             ],
           ),
         ),
@@ -434,7 +450,13 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
                 children: [
                   Text('Costo: ${formatearMoneda(p.precioCompra)}', style: appFont(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF2B6CB0))),
                   const SizedBox(width: 14),
-                  Text('Venta: ${formatearMoneda(p.precioVenta)}', style: appFont(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A))),
+                  Expanded(child: Text('Venta: ${formatearMoneda(p.precioVenta)}', style: appFont(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A)))),
+                  if (p.imagenUrl.isNotEmpty)
+                    IconButton(
+                      tooltip: 'Ver foto',
+                      icon: const Icon(Icons.photo_outlined, size: 18, color: Color(0xFF0D2B4E)),
+                      onPressed: () => _verFoto(p),
+                    ),
                 ],
               ),
             ],

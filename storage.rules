@@ -1,0 +1,12 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Misma nota que firestore.rules: esta app no usa Firebase Authentication
+    // (login propio vía Firestore), por lo que request.auth siempre es null.
+    // Estas reglas son permisivas a propósito para que la app funcione.
+    match /productos/{idArchivo} {
+      allow read, write: if true;
+    }
+  }
+}

@@ -5,6 +5,7 @@ import 'historial_stock_model.dart';
 import 'historial_precio_compra_model.dart';
 import 'historial_venta_producto_model.dart';
 import 'historial_traslado_producto_model.dart';
+import 'movimiento_global_model.dart';
 import 'lote_costo_repository.dart';
 
 class ResumenImportacionProductos {
@@ -43,6 +44,7 @@ class ProductoRepository {
     required double precioVenta3,
     required bool estado,
     bool esServicio = false,
+    String imagenUrl = '',
   }) async {
     var codigoFinal = codigo.trim();
     if (codigoFinal.isEmpty) {
@@ -66,6 +68,7 @@ class ProductoRepository {
       'precioVenta3': precioVenta3,
       'estado': estado,
       'esServicio': esServicio,
+      'imagenUrl': imagenUrl,
       'fechaRegistro': FieldValue.serverTimestamp(),
     });
     // Si el producto se crea con existencia inicial, esa cantidad también
@@ -97,6 +100,7 @@ class ProductoRepository {
       precioVenta3: precioVenta3,
       estado: estado,
       esServicio: esServicio,
+      imagenUrl: imagenUrl,
     );
   }
 
@@ -113,6 +117,7 @@ class ProductoRepository {
     required double precioVenta3,
     required bool estado,
     bool esServicio = false,
+    String? imagenUrl,
   }) async {
     final codigoFinal = codigo.trim().isEmpty ? _generarCodigo() : codigo.trim();
     final existe = await _col.where('codigo', isEqualTo: codigoFinal).limit(2).get();
@@ -132,7 +137,15 @@ class ProductoRepository {
       'precioVenta3': precioVenta3,
       'estado': estado,
       'esServicio': esServicio,
+      if (imagenUrl != null) 'imagenUrl': imagenUrl,
     });
+  }
+
+  /// Actualiza solo la foto de un producto — usado desde flujos que no
+  /// pasan por el formulario completo (ej. "agregar/cambiar foto" desde el
+  /// carrito de Compras al recibir un producto ya existente en inventario).
+  Future<void> actualizarImagen(String id, String imagenUrl) async {
+    await _col.doc(id).update({'imagenUrl': imagenUrl});
   }
 
   Future<void> eliminar(String id) async {
@@ -304,6 +317,27 @@ class ProductoRepository {
     } catch (_) {
       return false;
     }
+  }
+
+  /// Historial de existencia de TODOS los productos junto, para el
+  /// "Historial Global" de Inventario — a diferencia de [obtenerHistorialStock]
+  /// (un solo producto), esto es un collectionGroup sobre la subcolección
+  /// 'historial' de cada producto, filtrado por rango de fecha. Cada
+  /// documento no trae el nombre del producto dueño (solo vive en el
+  /// documento padre), así que [nombresPorId] -ya resuelto por quien llama,
+  /// normalmente desde el mismo stream de productos que ya tiene cargado en
+  /// memoria- se usa para no tener que leer cada producto aparte.
+  Future<List<MovimientoGlobalModel>> obtenerHistorialGlobal(DateTime inicio, DateTime finInclusive, Map<String, String> nombresPorId) async {
+    final snap = await FirebaseFirestore.instance
+        .collectionGroup('historial')
+        .where('fecha', isGreaterThanOrEqualTo: Timestamp.fromDate(inicio))
+        .where('fecha', isLessThanOrEqualTo: Timestamp.fromDate(finInclusive))
+        .orderBy('fecha', descending: true)
+        .get();
+    return snap.docs.map((d) {
+      final idProducto = d.reference.parent.parent?.id ?? '';
+      return MovimientoGlobalModel.fromDoc(d, nombresPorId[idProducto] ?? 'Producto eliminado');
+    }).toList();
   }
 
   Stream<List<HistorialStockModel>> obtenerHistorialStock(String idProducto) {

@@ -24,6 +24,8 @@ import '../../../../core/utils/codigo_barras_utils.dart';
 import '../../../../core/constants/roles.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../../core/services/tipografia_service.dart';
+import '../../../../core/widgets/imagen_zoom_dialog.dart';
+import 'historial_global_screen.dart';
 
 class InventarioScreen extends ConsumerStatefulWidget {
   const InventarioScreen({super.key});
@@ -279,6 +281,14 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     );
   }
 
+  void _verFoto(ProductoModel producto) {
+    showDialog(context: context, builder: (context) => ImagenZoomDialog(url: producto.imagenUrl));
+  }
+
+  void _abrirHistorialGlobal() {
+    Navigator.of(context).push(MaterialPageRoute(fullscreenDialog: true, builder: (context) => const HistorialGlobalScreen()));
+  }
+
   void _alternarOrden(String columna) {
     setState(() {
       if (_columnaOrden == columna) {
@@ -436,6 +446,12 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                         onPressed: () => ref.invalidate(productosStreamProvider),
                         icon: const Icon(Icons.refresh, size: 18),
                         label: Text('Refrescar', style: appFont(fontSize: 13)),
+                        style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: _abrirHistorialGlobal,
+                        icon: const Icon(Icons.history, size: 18),
+                        label: Text('Historial Global', style: appFont(fontSize: 13)),
                         style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF1A1A1A), side: const BorderSide(color: Color(0xFFB6BCC7)), padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                       ),
                       if (!soloLectura) ...[
@@ -607,7 +623,25 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          _celdaTabla(flex: 12, child: Text(producto.codigo, maxLines: 6, overflow: TextOverflow.ellipsis, style: appFont(fontSize: 12.5, color: const Color(0xFF3F434A)))),
+                          _celdaTabla(
+                            flex: 12,
+                            child: producto.imagenUrl.isEmpty
+                                ? Text(producto.codigo, maxLines: 6, overflow: TextOverflow.ellipsis, style: appFont(fontSize: 12.5, color: const Color(0xFF3F434A)))
+                                : Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      InkWell(
+                                        borderRadius: BorderRadius.circular(8),
+                                        onTap: () => _verFoto(producto),
+                                        child: const Padding(
+                                          padding: EdgeInsets.only(right: 4),
+                                          child: Icon(Icons.photo_outlined, size: 15, color: Color(0xFF0D2B4E)),
+                                        ),
+                                      ),
+                                      Flexible(child: Text(producto.codigo, maxLines: 6, overflow: TextOverflow.ellipsis, style: appFont(fontSize: 12.5, color: const Color(0xFF3F434A)))),
+                                    ],
+                                  ),
+                          ),
                           // El nombre prácticamente nunca se recorta: la altura
                           // de la fila ya se calculó (_alturaFila) midiendo
                           // cuántas líneas necesita (mismo tope de 6 líneas acá
@@ -682,6 +716,15 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (p.imagenUrl.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 6, top: 2),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(8),
+                          onTap: () => _verFoto(p),
+                          child: const Icon(Icons.photo_outlined, size: 18, color: Color(0xFF0D2B4E)),
+                        ),
+                      ),
                     Expanded(child: Text(p.nombre, style: appFont(fontSize: 14.5, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A)))),
                     _celdaAccionesMovil(p, soloLectura),
                   ],

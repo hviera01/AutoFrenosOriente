@@ -17,6 +17,7 @@ import '../widgets/buscar_producto_compra_dialog.dart';
 import '../widgets/buscar_proveedor_dialog.dart';
 import 'detalle_compra_screen.dart';
 import '../../../../core/services/tipografia_service.dart';
+import '../../../productos/presentation/widgets/producto_form_dialog.dart';
 
 const _metodosPago = ['Efectivo', 'Transferencia', 'Tarjeta', 'Cheque'];
 
@@ -153,6 +154,16 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
 
   void _quitarItem(int index) {
     ref.read(carritoCompraProvider.notifier).quitarItem(index);
+  }
+
+  // Abre el formulario completo del producto (ya con el selector de foto)
+  // para agregarle o cambiarle la foto sin salir de la compra en curso — útil
+  // justo al recibir mercadería que todavía no tenía foto en el catálogo. La
+  // edición pega directo sobre el producto real; no toca esta línea del
+  // carrito (que ya guardó su propia copia de nombre/costo al agregarse).
+  Future<void> _agregarOCambiarFoto(ProductoModel? producto) async {
+    if (producto == null) return;
+    await showDialog(context: context, builder: (context) => ProductoFormDialog(producto: producto));
   }
 
   void _actualizarCantidad(int index, double nuevaCantidad) {
@@ -827,7 +838,7 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
         Expanded(flex: 2, child: Text('Descuento %', textAlign: TextAlign.center, style: estilo)),
         Expanded(flex: 2, child: Text('Descuento (L)', textAlign: TextAlign.right, style: estilo)),
         Expanded(flex: 2, child: Text('Importe', textAlign: TextAlign.right, style: estilo)),
-        const SizedBox(width: 40),
+        const SizedBox(width: 80),
       ],
     );
   }
@@ -995,6 +1006,14 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
               Expanded(flex: 2, child: Text(formatearMoneda(item.subtotal as double), textAlign: TextAlign.right, style: appFont(fontSize: 13, fontWeight: FontWeight.w700))),
               SizedBox(
                 width: 40,
+                child: IconButton(
+                  tooltip: 'Agregar/cambiar foto',
+                  icon: const Icon(Icons.photo_camera_outlined, size: 18, color: Color(0xFF0D2B4E)),
+                  onPressed: () => _agregarOCambiarFoto(producto),
+                ),
+              ),
+              SizedBox(
+                width: 40,
                 child: IconButton(icon: const Icon(Icons.delete_outline, size: 18, color: Color(0xFF0D2B4E)), onPressed: () => _quitarItem(index)),
               ),
             ],
@@ -1007,7 +1026,7 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
                 Expanded(flex: 2, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: _campoInlineConEtiqueta('margen_$index', 'Margen %', ctrlMargen, _margenActual(item), (v) => _actualizarMargenCompra(index, v)))),
                 Expanded(flex: 2, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: _campoInlineConEtiqueta('precioVenta_$index', 'Precio de venta', ctrlPrecioVenta, (item.precioVentaNuevo as double?) ?? 0, (v) => _actualizarPrecioVentaCompra(index, v), prefijo: 'L.', dosDecimales: true))),
                 Expanded(flex: 4, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: _campoInlineConEtiquetaTexto('descripcion_$index', 'Ubicación física (opcional)', ctrlDescripcion, (item.descripcionNueva as String?) ?? '', (v) => _actualizarDescripcionCompra(index, v)))),
-                const SizedBox(width: 40),
+                const SizedBox(width: 80),
               ],
             ),
           ),
@@ -1042,6 +1061,11 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
                     Text(producto?.codigo ?? '-', style: appFont(fontSize: 11, color: Colors.grey.shade500)),
                   ],
                 ),
+              ),
+              IconButton(
+                tooltip: 'Agregar/cambiar foto',
+                icon: const Icon(Icons.photo_camera_outlined, size: 18, color: Color(0xFF0D2B4E)),
+                onPressed: () => _agregarOCambiarFoto(producto),
               ),
               IconButton(icon: const Icon(Icons.delete_outline, size: 18, color: Color(0xFF0D2B4E)), onPressed: () => _quitarItem(index)),
             ],

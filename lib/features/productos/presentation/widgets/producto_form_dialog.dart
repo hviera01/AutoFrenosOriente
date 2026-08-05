@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/producto_model.dart';
@@ -6,6 +8,8 @@ import '../../../categorias/providers/categorias_provider.dart';
 import '../../../../core/widgets/barcode_scanner_screen.dart';
 import '../../../../core/widgets/reintentar_dialog.dart';
 import '../../../../core/services/tipografia_service.dart';
+import '../../../../core/services/firebase_storage_service.dart';
+import '../../../../core/widgets/imagen_producto_network.dart';
 import '../../../compras/presentation/widgets/buscar_producto_compra_dialog.dart';
 
 class ProductoFormDialog extends ConsumerStatefulWidget {
@@ -41,6 +45,15 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
   bool _guardando = false;
   String? _error;
 
+  // Foto del producto: se sube a Storage apenas se elige (no recién al
+  // guardar), así el usuario ve enseguida si la subida falló en vez de
+  // enterarse hasta el final. _imagenUrl es lo que se manda a crear/
+  // actualizar; _imagenPreviewBytes es la vista previa local mientras sube
+  // (o si la subida falló y no hay URL todavía).
+  String _imagenUrl = '';
+  Uint8List? _imagenPreviewBytes;
+  bool _subiendoImagen = false;
+
   @override
   void initState() {
     super.initState();
@@ -59,7 +72,42 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
       _idCategoria = p.idCategoria;
       _activo = p.estado;
       _esServicio = p.esServicio;
+      _imagenUrl = p.imagenUrl;
     }
+  }
+
+  Future<void> _elegirImagen() async {
+    final resultado = await FilePicker.pickFiles(type: FileType.custom, allowedExtensions: ['jpg', 'jpeg', 'png', 'webp'], withData: true);
+    if (resultado == null || resultado.files.isEmpty || !mounted) return;
+    final archivo = resultado.files.first;
+    final bytes = archivo.bytes;
+    if (bytes == null) return;
+    setState(() {
+      _imagenPreviewBytes = bytes;
+      _subiendoImagen = true;
+    });
+    try {
+      final url = await FirebaseStorageService().subirImagenProducto(bytes, archivo.extension ?? 'jpg');
+      if (!mounted) return;
+      setState(() {
+        _imagenUrl = url;
+        _subiendoImagen = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _imagenPreviewBytes = null;
+        _subiendoImagen = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No se pudo subir la foto, probá de nuevo')));
+    }
+  }
+
+  void _quitarImagen() {
+    setState(() {
+      _imagenUrl = '';
+      _imagenPreviewBytes = null;
+    });
   }
 
   @override
@@ -112,6 +160,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
               precioVenta3: _parseDouble(_precioVenta3Controller.text),
               estado: _activo,
               esServicio: _esServicio,
+              imagenUrl: _imagenUrl,
             )
             .timeout(const Duration(seconds: 12)),
       );
@@ -141,6 +190,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
               precioVenta3: _parseDouble(_precioVenta3Controller.text),
               estado: _activo,
               esServicio: _esServicio,
+              imagenUrl: _imagenUrl,
             )
             .timeout(const Duration(seconds: 12));
         return true;
@@ -258,6 +308,8 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Center(child: _selectorImagen()),
+                    const SizedBox(height: 18),
                     Row(
                       children: [
                         Expanded(
@@ -492,6 +544,65 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _selectorImagen() {
+    const lado = 96.0;
+    Widget contenido;
+    if (_imagenPreviewBytes != null) {
+      contenido = Image.memory(_imagenPreviewBytes!, width: lado, height: lado, fit: BoxFit.cover);
+    } else if (_imagenUrl.isNotEmpty) {
+      contenido = ImagenProductoNetwork(url: _imagenUrl, width: lado, height: lado);
+    } else {
+      contenido = Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.add_a_photo_outlined, color: Colors.grey.shade400, size: 26),
+          const SizedBox(height: 4),
+          Text('Foto', style: appFont(fontSize: 10.5, color: Colors.grey.shade500)),
+        ],
+      );
+    }
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        InkWell(
+          onTap: _subiendoImagen ? null : _elegirImagen,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            width: lado,
+            height: lado,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE8EAF0),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFB6BCC7)),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(15),
+              child: _subiendoImagen
+                  ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Color(0xFF0D2B4E), strokeWidth: 2.2))
+                  : contenido,
+            ),
+          ),
+        ),
+        if (!_subiendoImagen && (_imagenUrl.isNotEmpty || _imagenPreviewBytes != null))
+          Positioned(
+            top: -8,
+            right: -8,
+            child: InkWell(
+              onTap: _quitarImagen,
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(color: Color(0xFF0D2B4E), shape: BoxShape.circle),
+                child: const Icon(Icons.close, size: 14, color: Colors.white),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

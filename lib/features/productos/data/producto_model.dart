@@ -17,6 +17,7 @@ class ProductoModel {
   // "es servicio" de una categoría mágica (IdCategoria == 50), acá es un
   // campo explícito del producto.
   final bool esServicio;
+  final String imagenUrl;
 
   ProductoModel({
     required this.id,
@@ -32,6 +33,7 @@ class ProductoModel {
     required this.precioVenta3,
     required this.estado,
     this.esServicio = false,
+    this.imagenUrl = '',
   });
 
   factory ProductoModel.fromMap(String id, Map<String, dynamic> data) {
@@ -49,6 +51,7 @@ class ProductoModel {
       precioVenta3: (data['precioVenta3'] ?? 0).toDouble(),
       estado: data['estado'] ?? true,
       esServicio: data['esServicio'] ?? false,
+      imagenUrl: data['imagenUrl'] ?? '',
     );
   }
 

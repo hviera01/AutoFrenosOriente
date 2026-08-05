@@ -11,6 +11,7 @@ import '../../../../core/utils/formato_moneda.dart';
 import '../../../../core/utils/codigo_barras_utils.dart';
 import '../../../../core/widgets/barcode_scanner_screen.dart';
 import '../../../../core/services/tipografia_service.dart';
+import '../../../../core/widgets/imagen_zoom_dialog.dart';
 
 /// Resultado de elegir un producto (y el nivel de precio con el que se va a
 /// vender) desde el buscador.
@@ -241,6 +242,10 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
     final nuevo = await showDialog<ProductoModel>(context: context, builder: (context) => const ProductoFormDialog());
     if (nuevo == null || !mounted) return;
     _confirmarSeleccion(nuevo);
+  }
+
+  void _verFoto(ProductoModel p) {
+    showDialog(context: context, builder: (context) => ImagenZoomDialog(url: p.imagenUrl));
   }
 
   Future<void> _escanear() async {
@@ -478,6 +483,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
         Expanded(flex: 3, child: Text('Ubicación', style: estilo)),
         Expanded(flex: 3, child: Text('Precio', textAlign: TextAlign.right, style: estilo)),
         Expanded(flex: 2, child: _encabezadoOrdenable('Existencia', 'existencia', estilo)),
+        const SizedBox(width: 40),
       ],
     );
   }
@@ -587,6 +593,16 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                   ),
                 ),
               ),
+              SizedBox(
+                width: 40,
+                child: p.imagenUrl.isEmpty
+                    ? null
+                    : IconButton(
+                        tooltip: 'Ver foto',
+                        icon: const Icon(Icons.photo_outlined, size: 18, color: Color(0xFF0D2B4E)),
+                        onPressed: () => _verFoto(p),
+                      ),
+              ),
             ],
           ),
         ),
@@ -644,7 +660,17 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                 ],
               ),
               const SizedBox(height: 10),
-              _celdaPrecio(p),
+              Row(
+                children: [
+                  Expanded(child: _celdaPrecio(p)),
+                  if (p.imagenUrl.isNotEmpty)
+                    IconButton(
+                      tooltip: 'Ver foto',
+                      icon: const Icon(Icons.photo_outlined, size: 18, color: Color(0xFF0D2B4E)),
+                      onPressed: () => _verFoto(p),
+                    ),
+                ],
+              ),
             ],
           ),
         ),
