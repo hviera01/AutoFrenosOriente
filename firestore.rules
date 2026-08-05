@@ -156,5 +156,13 @@ service cloud.firestore {
     match /{path=**}/detalle/{idItem} {
       allow read, write: if true;
     }
+
+    // Historial Global de Existencias (Inventario) usa collectionGroup
+    // sobre "historial" para traer los movimientos de todos los productos
+    // juntos, ordenados por fecha. La regla anidada en productos/{id}/historial
+    // solo cubre lecturas bajo un padre conocido.
+    match /{path=**}/historial/{idHistorial} {
+      allow read, write: if true;
+    }
   }
 }

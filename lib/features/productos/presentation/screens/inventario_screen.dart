@@ -25,6 +25,7 @@ import '../../../../core/constants/roles.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../../core/services/tipografia_service.dart';
 import '../../../../core/widgets/imagen_zoom_dialog.dart';
+import '../widgets/detalle_producto_dialog.dart';
 import 'historial_global_screen.dart';
 
 class InventarioScreen extends ConsumerStatefulWidget {
@@ -283,6 +284,16 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
 
   void _verFoto(ProductoModel producto) {
     showDialog(context: context, builder: (context) => ImagenZoomDialog(url: producto.imagenUrl));
+  }
+
+  // Doble tap/doble clic en un producto (tabla o tarjeta): una card de solo
+  // lectura con toda su info -incluida la foto en grande, si tiene- para
+  // consultar rápido sin tener que abrir el formulario de edición.
+  void _verDetalle(ProductoModel producto, Map<String, String> mapaCategorias) {
+    showDialog(
+      context: context,
+      builder: (context) => DetalleProductoDialog(producto: producto, categoria: mapaCategorias[producto.idCategoria] ?? '-'),
+    );
   }
 
   void _abrirHistorialGlobal() {
@@ -609,6 +620,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                       _tomarFoco();
                       setState(() => _filaSeleccionada = seleccionada ? null : producto.id);
                     },
+                    onDoubleTap: () => _verDetalle(producto, mapaCategorias),
                     child: Container(
                       // Alto fijo (calculado en _alturaFila) en vez de
                       // IntrinsicHeight: con alto fijo, Flutter no necesita un
@@ -707,6 +719,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
             _tomarFoco();
             setState(() => _filaSeleccionada = seleccionada ? null : p.id);
           },
+          onDoubleTap: () => _verDetalle(p, mapaCategorias),
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(color: seleccionada ? const Color(0xFFE6E9F2) : Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: seleccionada ? const Color(0xFF0D2B4E) : const Color(0xFFC7CBD3))),
