@@ -45,12 +45,18 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
   String? _columnaOrden;
   bool _ordenAscendente = false;
   bool _precioConIsv = true;
+  // Por defecto solo se ven los productos activos -hay varios cientos
+  // inactivos (basura de importaciones viejas, ej. nombre "0") que antes
+  // aparecían mezclados en toda vista/búsqueda. "Mostrar inactivos" los
+  // vuelve a incluir cuando hace falta revisarlos.
+  bool _mostrarInactivos = false;
   // Cuando la búsqueda viene de escanear un código de barras se filtra por
   // coincidencia exacta de código, no con el buscador difuso (que con
   // códigos largos puede "acercarse" a varios productos distintos).
   bool _busquedaPorCodigoBarras = false;
   List<ProductoModel> _listaActual = [];
   double _anchoColumnaNombreActual = 0;
+  double _anchoColumnaProveedorActual = 0;
 
   // --- Memoización del filtrado/orden -------------------------------------
   // El bloque que arma `lista` (filtrar por vista/búsqueda + ordenar) se
@@ -66,6 +72,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
   bool? _cacheBusquedaPorCodigo;
   String? _cacheColumnaOrden;
   bool? _cacheOrdenAscendente;
+  bool? _cacheMostrarInactivos;
   List<ProductoModel> _cacheResultado = const [];
 
   List<ProductoModel> _listaFiltrada(List<ProductoModel> productos, String vista, String busqueda) {
@@ -74,10 +81,14 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
         busqueda == _cacheBusqueda &&
         _busquedaPorCodigoBarras == _cacheBusquedaPorCodigo &&
         _columnaOrden == _cacheColumnaOrden &&
-        _ordenAscendente == _cacheOrdenAscendente) {
+        _ordenAscendente == _cacheOrdenAscendente &&
+        _mostrarInactivos == _cacheMostrarInactivos) {
       return _cacheResultado;
     }
     var lista = productos;
+    if (!_mostrarInactivos) {
+      lista = lista.where((p) => p.estado).toList();
+    }
     if (vista == 'bajo') {
       lista = lista.where((p) => p.stock < 3).toList();
     }
@@ -96,33 +107,47 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     _cacheBusquedaPorCodigo = _busquedaPorCodigoBarras;
     _cacheColumnaOrden = _columnaOrden;
     _cacheOrdenAscendente = _ordenAscendente;
+    _cacheMostrarInactivos = _mostrarInactivos;
     _cacheResultado = lista;
     return lista;
   }
 
   // --- Alturas de fila variables (solo la que lo necesita) ----------------
-  // Casi todos los nombres entran en una línea; cuando uno no entra, en vez
-  // de recortarlo con "..." se mide con TextPainter (el mismo estilo/ancho
-  // real de la columna NOMBRE) y esa fila puntual crece lo justo para
-  // mostrarlo completo. El resultado se cachea por "nombre@ancho" porque la
-  // medición es la única parte no trivial de este cálculo y los nombres se
-  // repiten mucho entre pantallazos (scroll, reordenar, etc.).
+  // Casi todas las filas entran en una línea; cuando el NOMBRE o el
+  // PROVEEDOR (la única otra columna con texto libre y sin tope) no entran,
+  // en vez de recortarlos con "..." se miden con TextPainter (mismo
+  // estilo/ancho real de cada columna) y esa fila puntual crece lo justo
+  // para mostrar completo el que necesite más líneas. El resultado se
+  // cachea porque la medición es la única parte no trivial de este cálculo
+  // y nombres/proveedores se repiten mucho entre pantallazos (scroll,
+  // reordenar, etc.).
   static const double _altoFilaBase = 65; // 64 de contenido + 1 de borde inferior
   static const double _altoLinea = 18;
   final Map<String, double> _alturaFilaCache = {};
 
-  double _alturaFila(String nombre, double anchoColumnaNombre) {
-    if (anchoColumnaNombre <= 0 || nombre.isEmpty) return _altoFilaBase;
-    final clave = '$nombre@${anchoColumnaNombre.round()}';
+  int _lineasTexto(String texto, double ancho, TextStyle estilo) {
+    if (ancho <= 0 || texto.isEmpty) return 1;
+    final tp = TextPainter(
+      text: TextSpan(text: texto, style: estilo),
+      textDirection: TextDirection.ltr,
+      maxLines: 6,
+    )..layout(maxWidth: ancho);
+    return tp.computeLineMetrics().length.clamp(1, 6);
+  }
+
+  double _alturaFila(ProductoModel producto, double anchoColumnaNombre, double anchoColumnaProveedor) {
+    if (anchoColumnaNombre <= 0) return _altoFilaBase;
+    final clave = '${producto.nombre}|${producto.ultimoProveedorNombre}@${anchoColumnaNombre.round()}x${anchoColumnaProveedor.round()}';
     final cacheado = _alturaFilaCache[clave];
     if (cacheado != null) return cacheado;
 
-    final tp = TextPainter(
-      text: TextSpan(text: nombre, style: appFont(fontSize: 12.5, fontWeight: FontWeight.w600)),
-      textDirection: TextDirection.ltr,
-      maxLines: 6,
-    )..layout(maxWidth: anchoColumnaNombre);
-    final lineas = tp.computeLineMetrics().length.clamp(1, 6);
+    final lineasNombre = _lineasTexto(producto.nombre, anchoColumnaNombre, appFont(fontSize: 12.5, fontWeight: FontWeight.w600));
+    // Resta el espacio del ícono "ver historial" (solo aparece cuando hay
+    // más de un proveedor distinto) para no subestimar cuántas líneas
+    // necesita el texto del proveedor.
+    final anchoTextoProveedor = (anchoColumnaProveedor - (producto.proveedoresHistorial.length > 1 ? 20 : 0)).clamp(0, double.infinity).toDouble();
+    final lineasProveedor = _lineasTexto(producto.ultimoProveedorNombre, anchoTextoProveedor, appFont(fontSize: 12.5));
+    final lineas = (lineasNombre > lineasProveedor ? lineasNombre : lineasProveedor).clamp(1, 6);
     final altura = lineas <= 2 ? _altoFilaBase : (28 + lineas * _altoLinea + 1);
     _alturaFilaCache[clave] = altura;
     return altura;
@@ -359,9 +384,9 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     if (!_scrollController.hasClients || indice < 0 || indice >= _listaActual.length) return;
     var offsetInicio = 0.0;
     for (var i = 0; i < indice; i++) {
-      offsetInicio += _alturaFila(_listaActual[i].nombre, _anchoColumnaNombreActual);
+      offsetInicio += _alturaFila(_listaActual[i], _anchoColumnaNombreActual, _anchoColumnaProveedorActual);
     }
-    final offsetFin = offsetInicio + _alturaFila(_listaActual[indice].nombre, _anchoColumnaNombreActual);
+    final offsetFin = offsetInicio + _alturaFila(_listaActual[indice], _anchoColumnaNombreActual, _anchoColumnaProveedorActual);
     final posicion = _scrollController.position;
     final inicioVisible = posicion.pixels;
     final finVisible = posicion.pixels + posicion.viewportDimension;
@@ -452,6 +477,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                     runSpacing: 10,
                     children: [
                       SizedBox(width: esMovil ? constraints.maxWidth : 220, child: _selectorVista(vista)),
+                      _selectorEstado(),
                       _selectorPrecioIsv(),
                       SizedBox(width: esMovil ? constraints.maxWidth : 340, child: _buscador(busqueda)),
                       OutlinedButton.icon(
@@ -567,16 +593,21 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
         final ancho = constraints.maxWidth;
         final mostrarDescripcion = ancho >= 1050;
         final mostrarCategoria = ancho >= 850;
-        final mostrarProveedor = ancho >= 1250;
+        // A diferencia de Ubicación/Categoría, Proveedor no se oculta en
+        // pantallas angostas: el pedido explícito fue que se vea siempre.
+        const flexProveedor = 16;
 
-        // Ancho real (en píxeles) de la columna NOMBRE con este layout, para
-        // saber cuántas líneas necesita cada nombre (ver _alturaFila). 76 es
-        // el ancho fijo de la columna de acciones; 24 es el padding
-        // horizontal de la celda (12 a cada lado).
-        final totalFlex = 12 + 24 + (mostrarDescripcion ? 20 : 0) + (mostrarCategoria ? 17 : 0) + (mostrarProveedor ? 16 : 0) + 12 + 14 + (soloLectura ? 0 : 14) + 11;
+        // Ancho real (en píxeles) de las columnas NOMBRE y PROVEEDOR con este
+        // layout, para saber cuántas líneas necesita cada una (ver
+        // _alturaFila). 76 es el ancho fijo de la columna de acciones; 24 es
+        // el padding horizontal de la celda (12 a cada lado).
+        final totalFlex = 12 + 24 + (mostrarDescripcion ? 20 : 0) + (mostrarCategoria ? 17 : 0) + flexProveedor + 12 + 14 + (soloLectura ? 0 : 14) + 11;
         final anchoContenido = (ancho - 76).clamp(0, double.infinity);
-        final anchoColumnaNombre = (anchoContenido * (24 / totalFlex) - 24).clamp(0, double.infinity).toDouble();
+        double anchoColumna(int flex) => (anchoContenido * (flex / totalFlex) - 24).clamp(0, double.infinity).toDouble();
+        final anchoColumnaNombre = anchoColumna(24);
+        final anchoColumnaProveedor = anchoColumna(flexProveedor);
         _anchoColumnaNombreActual = anchoColumnaNombre;
+        _anchoColumnaProveedorActual = anchoColumnaProveedor;
 
         return Column(
           children: [
@@ -589,7 +620,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                   _celdaHeader(texto: 'NOMBRE', flex: 24, columnaOrdenKey: 'nombre'),
                   if (mostrarDescripcion) _celdaHeader(texto: 'UBICACIÓN', flex: 20),
                   if (mostrarCategoria) _celdaHeader(texto: 'CATEGORÍA', flex: 17),
-                  if (mostrarProveedor) _celdaHeader(texto: 'PROVEEDOR', flex: 16),
+                  _celdaHeader(texto: 'PROVEEDOR', flex: flexProveedor),
                   _celdaHeader(texto: 'EXISTENCIA', flex: 12, columnaOrdenKey: 'existencia'),
                   _celdaHeader(texto: _precioConIsv ? 'P. VENTA (C/ISV)' : 'P. VENTA (S/ISV)', flex: 14, columnaOrdenKey: 'precioVenta'),
                   if (!soloLectura) _celdaHeader(texto: 'P. COMPRA', flex: 14, columnaOrdenKey: 'precioCompra'),
@@ -610,13 +641,13 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                 // Casi todas las filas miden lo mismo (_altoFilaBase); solo
                 // las que tienen un nombre largo son más altas, y solo esa
                 // fila puntual — no se agranda la tabla entera por eso.
-                itemExtentBuilder: (index, dimensions) => _alturaFila(lista[index].nombre, anchoColumnaNombre),
+                itemExtentBuilder: (index, dimensions) => _alturaFila(lista[index], anchoColumnaNombre, anchoColumnaProveedor),
                 itemCount: lista.length,
                 itemBuilder: (context, index) {
                   final producto = lista[index];
                   final bajoStock = producto.stock < 3;
                   final seleccionada = _filaSeleccionada == producto.id;
-                  final altoFila = _alturaFila(producto.nombre, anchoColumnaNombre) - 1;
+                  final altoFila = _alturaFila(producto, anchoColumnaNombre, anchoColumnaProveedor) - 1;
 
                   return InkWell(
                     onTap: () {
@@ -668,8 +699,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                             _celdaTabla(flex: 20, child: Text(producto.descripcion.isEmpty ? '-' : producto.descripcion, maxLines: 2, overflow: TextOverflow.ellipsis, style: appFont(fontSize: 12, color: Colors.grey.shade600))),
                           if (mostrarCategoria)
                             _celdaTabla(flex: 17, child: Text(mapaCategorias[producto.idCategoria] ?? '-', maxLines: 2, overflow: TextOverflow.ellipsis, style: appFont(fontSize: 12.5, color: const Color(0xFF3F434A)))),
-                          if (mostrarProveedor)
-                            _celdaTabla(flex: 16, child: ProveedorProductoCelda(producto: producto)),
+                          _celdaTabla(flex: flexProveedor, child: ProveedorProductoCelda(producto: producto, maxLines: 6)),
                           _celdaTabla(
                             flex: 12,
                             child: Align(
@@ -799,13 +829,15 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
 
   Widget _chipProveedor(ProductoModel p) {
     return Container(
+      constraints: const BoxConstraints(maxWidth: 240),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(color: const Color(0xFFE8EAF0), borderRadius: BorderRadius.circular(8)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Proveedor: ', style: appFont(fontSize: 11.5, color: const Color(0xFF3F434A))),
-          ProveedorProductoCelda(producto: p, fontSize: 11.5, maxLines: 1),
+          Flexible(child: ProveedorProductoCelda(producto: p, fontSize: 11.5, maxLines: 3)),
         ],
       ),
     );
@@ -962,6 +994,41 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
             ref.read(inventarioVistaProvider.notifier).actualizar(v);
           },
         ),
+      ),
+    );
+  }
+
+  Widget _selectorEstado() {
+    Widget opcion(String texto, bool valor) {
+      final activo = _mostrarInactivos == valor;
+      return InkWell(
+        onTap: () => setState(() => _mostrarInactivos = valor),
+        borderRadius: BorderRadius.circular(10),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+          decoration: BoxDecoration(
+            color: activo ? const Color(0xFF0D2B4E) : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(
+            texto,
+            style: appFont(fontSize: 13, fontWeight: FontWeight.w600, color: activo ? Colors.white : const Color(0xFF666A72)),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      height: 46,
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFB6BCC7))),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          opcion('Activos', false),
+          opcion('Todos', true),
+        ],
       ),
     );
   }

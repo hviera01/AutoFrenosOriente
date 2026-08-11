@@ -444,10 +444,10 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
                         if (p.ultimoProveedorNombre.isNotEmpty) ...[
                           const SizedBox(height: 2),
                           Row(
-                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text('Proveedor: ', style: appFont(fontSize: 11.5, color: Colors.grey.shade500)),
-                              ProveedorProductoCelda(producto: p, fontSize: 11.5, color: Colors.grey.shade500, maxLines: 1),
+                              Flexible(child: ProveedorProductoCelda(producto: p, fontSize: 11.5, color: Colors.grey.shade500, maxLines: 2)),
                             ],
                           ),
                         ],
