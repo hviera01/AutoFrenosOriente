@@ -24,7 +24,16 @@ class _HistorialGlobalScreenState extends ConsumerState<HistorialGlobalScreen> {
   late DateTime _fechaInicio;
   late DateTime _fechaFin;
   Future<List<MovimientoGlobalModel>>? _future;
-  Map<String, String>? _nombresPorIdCargados;
+  // Rango que ya está cargado en [_future] (no el mapa de nombres): antes se
+  // comparaba con `identical()` sobre el mapa nombresPorId, pero ese mapa se
+  // arma con un literal nuevo en CADA build (línea 143), así que nunca era
+  // idéntico al anterior y la pantalla volvía a pedir el historial completo
+  // en cada reconstrucción (cualquier rebuild del árbol, no solo al cambiar
+  // de fecha) — eso era lo que hacía sentir la pantalla lenta incluso para
+  // volver a ver el mismo día. Ahora se compara contra el rango de fechas
+  // real, que solo cambia cuando el usuario lo cambia explícitamente.
+  DateTime? _fechaInicioCargada;
+  DateTime? _fechaFinCargada;
 
   @override
   void initState() {
@@ -35,8 +44,9 @@ class _HistorialGlobalScreenState extends ConsumerState<HistorialGlobalScreen> {
   }
 
   void _cargar(Map<String, String> nombresPorId) {
-    if (identical(nombresPorId, _nombresPorIdCargados) && _future != null) return;
-    _nombresPorIdCargados = nombresPorId;
+    if (_future != null && _fechaInicioCargada == _fechaInicio && _fechaFinCargada == _fechaFin) return;
+    _fechaInicioCargada = _fechaInicio;
+    _fechaFinCargada = _fechaFin;
     _future = ref.read(productoRepositoryProvider).obtenerHistorialGlobal(
           _fechaInicio,
           DateTime(_fechaFin.year, _fechaFin.month, _fechaFin.day, 23, 59, 59),

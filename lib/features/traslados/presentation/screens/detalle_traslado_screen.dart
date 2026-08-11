@@ -9,6 +9,7 @@ import '../../data/traslado_model.dart';
 import '../../providers/traslados_provider.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../negocio/providers/negocio_provider.dart';
+import '../../../productos/data/producto_model.dart';
 import '../../../productos/providers/productos_provider.dart';
 import '../../../ventas/providers/ventas_provider.dart' show presenciaImpresionRepositoryProvider;
 import '../../../../core/widgets/pdf_preview_dialog.dart';
@@ -351,9 +352,20 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
     return Container(color: const Color(0xFFF2F3F7), child: contenido);
   }
 
+  // Memoizado igual que en RegistrarTrasladoScreen._codigosPorProducto: sin
+  // esto, cada build de esta pantalla (cualquier setState, no solo abrir un
+  // traslado nuevo) recorría los ~3900 productos del stream para rearmar el
+  // mapa código->producto desde cero. Se recalcula solo si el stream trajo
+  // un snapshot nuevo (cambia de referencia), no en cada build.
+  List<ProductoModel>? _cacheProductosCodigos;
+  Map<String, String> _cacheCodigos = const {};
+
   Map<String, String> _codigosPorProducto() {
     final productos = ref.read(productosStreamProvider).value ?? [];
-    return {for (final p in productos) p.id: p.codigo};
+    if (identical(productos, _cacheProductosCodigos)) return _cacheCodigos;
+    _cacheProductosCodigos = productos;
+    _cacheCodigos = {for (final p in productos) p.id: p.codigo};
+    return _cacheCodigos;
   }
 
   Widget _detalle(TrasladoModel t, bool esMovil, Map<String, String> codigos) {

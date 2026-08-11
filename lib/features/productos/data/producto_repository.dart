@@ -319,6 +319,19 @@ class ProductoRepository {
     }
   }
 
+  // Cache corto por rango de fechas para el "Historial Global": la pantalla
+  // se cerraba y reabría (o simplemente se reconstruía) sin que el rango de
+  // fechas cambiara, y cada vez repetía desde cero el collectionGroup sobre
+  // TODOS los 'historial' de TODOS los productos -la consulta más pesada de
+  // Traslados/Inventario-, lo que se sentía eterno incluso para el mismo
+  // día ya consultado segundos antes. El plazo es corto a propósito (no
+  // como el de NegocioRepository) para no tapar por mucho tiempo un
+  // movimiento recién registrado (venta/compra/traslado/ajuste) si el
+  // dueño vuelve a entrar a chequear "hoy".
+  static const _vigenciaCacheHistorialGlobal = Duration(minutes: 2);
+  final _cacheHistorialGlobal = <String, List<MovimientoGlobalModel>>{};
+  final _cacheHistorialGlobalEn = <String, DateTime>{};
+
   /// Historial de existencia de TODOS los productos junto, para el
   /// "Historial Global" de Inventario — a diferencia de [obtenerHistorialStock]
   /// (un solo producto), esto es un collectionGroup sobre la subcolección
@@ -328,16 +341,25 @@ class ProductoRepository {
   /// normalmente desde el mismo stream de productos que ya tiene cargado en
   /// memoria- se usa para no tener que leer cada producto aparte.
   Future<List<MovimientoGlobalModel>> obtenerHistorialGlobal(DateTime inicio, DateTime finInclusive, Map<String, String> nombresPorId) async {
+    final clave = '${inicio.toIso8601String()}_${finInclusive.toIso8601String()}';
+    final cacheEn = _cacheHistorialGlobalEn[clave];
+    final cache = _cacheHistorialGlobal[clave];
+    if (cache != null && cacheEn != null && DateTime.now().difference(cacheEn) < _vigenciaCacheHistorialGlobal) {
+      return cache;
+    }
     final snap = await FirebaseFirestore.instance
         .collectionGroup('historial')
         .where('fecha', isGreaterThanOrEqualTo: Timestamp.fromDate(inicio))
         .where('fecha', isLessThanOrEqualTo: Timestamp.fromDate(finInclusive))
         .orderBy('fecha', descending: true)
         .get();
-    return snap.docs.map((d) {
+    final resultado = snap.docs.map((d) {
       final idProducto = d.reference.parent.parent?.id ?? '';
       return MovimientoGlobalModel.fromDoc(d, nombresPorId[idProducto] ?? 'Producto eliminado');
     }).toList();
+    _cacheHistorialGlobal[clave] = resultado;
+    _cacheHistorialGlobalEn[clave] = DateTime.now();
+    return resultado;
   }
 
   Stream<List<HistorialStockModel>> obtenerHistorialStock(String idProducto) {

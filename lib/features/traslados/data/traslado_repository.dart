@@ -58,10 +58,19 @@ class TrasladoRepository {
     ];
   }
 
+  // El doc del traslado y su subcolección 'detalle' se piden en paralelo (no
+  // uno detrás del otro): la referencia de 'detalle' se arma solo con el
+  // [id] que ya tenemos, así que no hace falta esperar a que vuelva el doc
+  // primero para recién ahí pedir el detalle. Esta es la consulta que se
+  // dispara al abrir "Detalle de Traslado" con un id (desde el Reporte de
+  // Traslados o el Historial Global): antes eran 2 idas y vueltas seguidas a
+  // Firestore, ahora es 1 sola (las 2 en simultáneo).
   Future<TrasladoModel?> obtenerPorId(String id) async {
-    final doc = await _col.doc(id).get();
+    final ref = _col.doc(id);
+    final resultados = await Future.wait([ref.get(), ref.collection('detalle').get()]);
+    final doc = resultados[0] as DocumentSnapshot<Map<String, dynamic>>;
     if (!doc.exists) return null;
-    final detalleSnap = await doc.reference.collection('detalle').get();
+    final detalleSnap = resultados[1] as QuerySnapshot<Map<String, dynamic>>;
     final detalle = detalleSnap.docs.map((d) => ItemTrasladoModel.fromMap(d.data())).toList();
     return TrasladoModel.fromMap(doc.id, doc.data()!, detalle);
   }
