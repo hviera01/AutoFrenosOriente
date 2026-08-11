@@ -18,6 +18,12 @@ class ProductoModel {
   // campo explícito del producto.
   final bool esServicio;
   final String imagenUrl;
+  // Se actualizan en CompraRepository.registrarCompra: el último proveedor
+  // al que se le compró este producto, y la lista de proveedores distintos
+  // (para saber si hay más de uno y mostrar el historial completo). No se
+  // revierten al anular una compra, igual que precioCompra.
+  final String ultimoProveedorNombre;
+  final List<String> proveedoresHistorial;
 
   ProductoModel({
     required this.id,
@@ -34,6 +40,8 @@ class ProductoModel {
     required this.estado,
     this.esServicio = false,
     this.imagenUrl = '',
+    this.ultimoProveedorNombre = '',
+    this.proveedoresHistorial = const [],
   });
 
   factory ProductoModel.fromMap(String id, Map<String, dynamic> data) {
@@ -52,6 +60,8 @@ class ProductoModel {
       estado: data['estado'] ?? true,
       esServicio: data['esServicio'] ?? false,
       imagenUrl: data['imagenUrl'] ?? '',
+      ultimoProveedorNombre: data['ultimoProveedorNombre'] ?? '',
+      proveedoresHistorial: (data['proveedoresHistorial'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? const [],
     );
   }
 

@@ -114,7 +114,12 @@ class CompraRepository {
         // línea (importe gravado), más el ISV de esta compra.
         final precioFinalConIsv = redondearMoneda(item.precioCompra * (1 - item.descuentoPorcentaje / 100) * (1 + isvPorcentaje / 100));
 
-        final Map<String, dynamic> actualizacion = {'stock': stockNuevo, 'precioCompra': precioFinalConIsv};
+        final Map<String, dynamic> actualizacion = {
+          'stock': stockNuevo,
+          'precioCompra': precioFinalConIsv,
+          'ultimoProveedorNombre': razonSocial,
+          'proveedoresHistorial': FieldValue.arrayUnion([razonSocial]),
+        };
         if (item.precioVentaNuevo != null) {
           actualizacion['precioVenta'] = item.precioVentaNuevo!;
         }

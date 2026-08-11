@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../productos/data/producto_model.dart';
 import '../../../productos/providers/productos_provider.dart';
 import '../../../productos/presentation/widgets/producto_form_dialog.dart';
+import '../../../productos/presentation/widgets/proveedor_producto_widget.dart';
 import '../../../categorias/providers/categorias_provider.dart';
 import '../../../../core/utils/texto_utils.dart';
 import '../../../../core/utils/formato_moneda.dart';
@@ -308,6 +309,7 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
         Expanded(flex: 4, child: Text('Descripción', style: estilo)),
         Expanded(flex: 2, child: Text('Categoría', style: estilo)),
         Expanded(flex: 2, child: Text('Ubicación', style: estilo)),
+        Expanded(flex: 2, child: Text('Proveedor', style: estilo)),
         Expanded(flex: 2, child: Text('Costo', textAlign: TextAlign.right, style: estilo)),
         Expanded(flex: 2, child: Text('Precio Venta', textAlign: TextAlign.right, style: estilo)),
         Expanded(flex: 2, child: Text('Existencia', textAlign: TextAlign.center, style: estilo)),
@@ -357,6 +359,13 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
                 child: Padding(
                   padding: const EdgeInsets.only(right: 10),
                   child: Text(p.descripcion.isEmpty ? '-' : p.descripcion, softWrap: true, style: appFont(fontSize: 12.5, color: Colors.grey.shade600)),
+                ),
+              ),
+              Expanded(
+                flex: 2,
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 10),
+                  child: ProveedorProductoCelda(producto: p, fontSize: 12.5, color: Colors.grey.shade600),
                 ),
               ),
               Expanded(
@@ -431,6 +440,16 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
                         if (p.descripcion.isNotEmpty) ...[
                           const SizedBox(height: 2),
                           Text('Ubicación: ${p.descripcion}', softWrap: true, style: appFont(fontSize: 11.5, color: Colors.grey.shade500)),
+                        ],
+                        if (p.ultimoProveedorNombre.isNotEmpty) ...[
+                          const SizedBox(height: 2),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('Proveedor: ', style: appFont(fontSize: 11.5, color: Colors.grey.shade500)),
+                              ProveedorProductoCelda(producto: p, fontSize: 11.5, color: Colors.grey.shade500, maxLines: 1),
+                            ],
+                          ),
                         ],
                       ],
                     ),

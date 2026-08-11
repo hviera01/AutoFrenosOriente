@@ -26,6 +26,7 @@ import '../../../auth/providers/auth_provider.dart';
 import '../../../../core/services/tipografia_service.dart';
 import '../../../../core/widgets/imagen_zoom_dialog.dart';
 import '../widgets/detalle_producto_dialog.dart';
+import '../widgets/proveedor_producto_widget.dart';
 import 'historial_global_screen.dart';
 
 class InventarioScreen extends ConsumerStatefulWidget {
@@ -566,12 +567,13 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
         final ancho = constraints.maxWidth;
         final mostrarDescripcion = ancho >= 1050;
         final mostrarCategoria = ancho >= 850;
+        final mostrarProveedor = ancho >= 1250;
 
         // Ancho real (en píxeles) de la columna NOMBRE con este layout, para
         // saber cuántas líneas necesita cada nombre (ver _alturaFila). 76 es
         // el ancho fijo de la columna de acciones; 24 es el padding
         // horizontal de la celda (12 a cada lado).
-        final totalFlex = 12 + 24 + (mostrarDescripcion ? 20 : 0) + (mostrarCategoria ? 17 : 0) + 12 + 14 + (soloLectura ? 0 : 14) + 11;
+        final totalFlex = 12 + 24 + (mostrarDescripcion ? 20 : 0) + (mostrarCategoria ? 17 : 0) + (mostrarProveedor ? 16 : 0) + 12 + 14 + (soloLectura ? 0 : 14) + 11;
         final anchoContenido = (ancho - 76).clamp(0, double.infinity);
         final anchoColumnaNombre = (anchoContenido * (24 / totalFlex) - 24).clamp(0, double.infinity).toDouble();
         _anchoColumnaNombreActual = anchoColumnaNombre;
@@ -587,6 +589,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                   _celdaHeader(texto: 'NOMBRE', flex: 24, columnaOrdenKey: 'nombre'),
                   if (mostrarDescripcion) _celdaHeader(texto: 'UBICACIÓN', flex: 20),
                   if (mostrarCategoria) _celdaHeader(texto: 'CATEGORÍA', flex: 17),
+                  if (mostrarProveedor) _celdaHeader(texto: 'PROVEEDOR', flex: 16),
                   _celdaHeader(texto: 'EXISTENCIA', flex: 12, columnaOrdenKey: 'existencia'),
                   _celdaHeader(texto: _precioConIsv ? 'P. VENTA (C/ISV)' : 'P. VENTA (S/ISV)', flex: 14, columnaOrdenKey: 'precioVenta'),
                   if (!soloLectura) _celdaHeader(texto: 'P. COMPRA', flex: 14, columnaOrdenKey: 'precioCompra'),
@@ -665,6 +668,8 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                             _celdaTabla(flex: 20, child: Text(producto.descripcion.isEmpty ? '-' : producto.descripcion, maxLines: 2, overflow: TextOverflow.ellipsis, style: appFont(fontSize: 12, color: Colors.grey.shade600))),
                           if (mostrarCategoria)
                             _celdaTabla(flex: 17, child: Text(mapaCategorias[producto.idCategoria] ?? '-', maxLines: 2, overflow: TextOverflow.ellipsis, style: appFont(fontSize: 12.5, color: const Color(0xFF3F434A)))),
+                          if (mostrarProveedor)
+                            _celdaTabla(flex: 16, child: ProveedorProductoCelda(producto: producto)),
                           _celdaTabla(
                             flex: 12,
                             child: Align(
@@ -753,6 +758,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                   children: [
                     _chipInfo('Código', p.codigo),
                     _chipInfo('Categoría', mapaCategorias[p.idCategoria] ?? '-'),
+                    _chipProveedor(p),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(color: bajoStock ? const Color(0xFFFCE4E4) : const Color(0xFFEFF4FF), borderRadius: BorderRadius.circular(8)),
@@ -788,6 +794,20 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(color: const Color(0xFFE8EAF0), borderRadius: BorderRadius.circular(8)),
       child: Text('$label: $valor', style: appFont(fontSize: 11.5, color: const Color(0xFF3F434A))),
+    );
+  }
+
+  Widget _chipProveedor(ProductoModel p) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(color: const Color(0xFFE8EAF0), borderRadius: BorderRadius.circular(8)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('Proveedor: ', style: appFont(fontSize: 11.5, color: const Color(0xFF3F434A))),
+          ProveedorProductoCelda(producto: p, fontSize: 11.5, maxLines: 1),
+        ],
+      ),
     );
   }
 
