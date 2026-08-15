@@ -45,6 +45,17 @@ class _ReporteTrasladosScreenState extends ConsumerState<ReporteTrasladosScreen>
   // que ImprimirTrasladoCopia() en el sistema viejo: la única vez que sale
   // ORIGINAL+COPIA es al registrar el traslado por primera vez.
   Future<void> _reimprimir(TrasladoModel t) async {
+    // Si se entra derecho a "Reporte de Traslados" sin haber abierto antes
+    // Inventario u otra pantalla que ya dejara el stream de productos
+    // cargado, un ref.read directo llegaba antes de que trajera el primer
+    // snapshot y el ticket salía con la columna de código vacía para
+    // siempre. Mismo criterio que en DetalleTrasladoScreen._reimprimir.
+    if (ref.read(productosStreamProvider).value == null) {
+      try {
+        await ref.read(productosStreamProvider.future);
+      } catch (_) {}
+      if (!mounted) return;
+    }
     final negocio = await ref.read(negocioRepositoryProvider).obtenerNegocioActual();
     if (!mounted) return;
     final productos = ref.read(productosStreamProvider).value ?? [];
@@ -141,6 +152,11 @@ class _ReporteTrasladosScreenState extends ConsumerState<ReporteTrasladosScreen>
 
   @override
   Widget build(BuildContext context) {
+    // Mantiene vivo el stream de productos mientras esta pantalla está
+    // abierta, para que _reimprimir ya lo encuentre cargado (ver el guard
+    // de todos modos, por si el primer reimprimir llega antes del primer
+    // snapshot).
+    ref.watch(productosStreamProvider);
     final sucursalesAsync = ref.watch(sucursalesActivasProvider);
 
     return Container(

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../data/compra_en_espera_model.dart';
 import '../../providers/carrito_compra_provider.dart';
 import '../../providers/compras_provider.dart';
 import '../../../auth/providers/auth_provider.dart';
@@ -15,6 +16,7 @@ import '../../../../core/providers/tabs_provider.dart';
 import '../../../../core/utils/formato_moneda.dart';
 import '../widgets/buscar_producto_compra_dialog.dart';
 import '../widgets/buscar_proveedor_dialog.dart';
+import '../widgets/compras_en_espera_dialog.dart';
 import 'detalle_compra_screen.dart';
 import '../../../../core/services/tipografia_service.dart';
 import '../../../productos/presentation/widgets/producto_form_dialog.dart';
@@ -54,6 +56,13 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
   final Map<String, VoidCallback> _confirmarInline = {};
   int _conteoItemsControladores = -1;
 
+  // Autoguardado de "compra en espera": ver _programarAutoguardado. Así una
+  // compra en curso nunca vive SOLO en la memoria de esta pestaña -si el
+  // navegador la descarta/recarga sola, se corta el internet o se cierra la
+  // app, el borrador ya quedó en Firestore y se recupera desde "Compras en
+  // Espera"-.
+  Timer? _debounceEnEspera;
+
   @override
   void initState() {
     super.initState();
@@ -87,6 +96,7 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
 
   @override
   void dispose() {
+    _debounceEnEspera?.cancel();
     HardwareKeyboard.instance.removeHandler(_manejarAtajoTeclado);
     _proveedorController.dispose();
     _noFacturaController.dispose();
@@ -295,7 +305,68 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
       final continuar = await _confirmarDialogo('Limpiar compra', '¿Seguro que querés borrar todos los productos y datos ingresados en esta compra?');
       if (!continuar) return;
     }
+    _debounceEnEspera?.cancel();
+    if (carrito.idEnEspera != null) {
+      unawaited(ref.read(compraRepositoryProvider).eliminarCompraEnEspera(carrito.idEnEspera!));
+    }
     _limpiarTodo();
+  }
+
+  // ---------- Compras en espera (autoguardado) ----------
+
+  /// Se llama en cada cambio del carrito (ver ref.listen en build): reinicia
+  /// el debounce para no golpear Firestore en cada tecla, y solo guarda si
+  /// ya hay algo que perder.
+  void _programarAutoguardado(CarritoCompraState carrito) {
+    _debounceEnEspera?.cancel();
+    if (carrito.items.isEmpty) return;
+    _debounceEnEspera = Timer(const Duration(seconds: 2), _guardarEnEsperaAutomatico);
+  }
+
+  Future<void> _guardarEnEsperaAutomatico() async {
+    if (!mounted) return;
+    final carrito = ref.read(carritoCompraProvider);
+    if (carrito.items.isEmpty) return;
+    final repo = ref.read(compraRepositoryProvider);
+    final sesion = CompraEnEsperaModel(
+      id: carrito.idEnEspera ?? '',
+      fecha: DateTime.now(),
+      idProveedor: carrito.idProveedor,
+      documentoProveedor: carrito.documentoProveedor,
+      razonSocial: carrito.razonSocial,
+      noFactura: carrito.noFactura,
+      condicion: carrito.condicion,
+      metodoPago: carrito.metodoPago,
+      fechaRegistro: carrito.fecha,
+      fechaVencimiento: carrito.fechaVencimiento,
+      descuentoGlobalPorcentaje: carrito.descuentoGlobalPorcentaje,
+      isvPorcentaje: carrito.isvPorcentaje,
+      ajusteManual: carrito.ajusteManual,
+      items: carrito.items,
+    );
+    try {
+      if (carrito.idEnEspera != null) {
+        await repo.actualizarCompraEnEspera(carrito.idEnEspera!, sesion);
+      } else {
+        final id = await repo.guardarCompraEnEspera(sesion);
+        if (!mounted) return;
+        ref.read(carritoCompraProvider.notifier).establecerIdEnEspera(id);
+      }
+    } catch (_) {
+      // Sin internet u otro error transitorio: no se pudo autoguardar esta
+      // vez, se reintenta solo con el próximo cambio del carrito.
+    }
+  }
+
+  Future<void> _verEnEspera() async {
+    final sesion = await showDialog<CompraEnEsperaModel>(context: context, builder: (context) => const ComprasEnEsperaDialog());
+    if (sesion == null || !mounted) return;
+    ref.read(carritoCompraProvider.notifier).cargarSesion(sesion);
+    _proveedorController.text = sesion.razonSocial;
+    _noFacturaController.text = sesion.noFactura;
+    _descuentoGlobalController.text = sesion.descuentoGlobalPorcentaje == 0 ? '' : sesion.descuentoGlobalPorcentaje.toStringAsFixed(1);
+    _isvController.text = sesion.isvPorcentaje.toStringAsFixed(0);
+    _ajusteManualController.text = sesion.ajusteManual == 0 ? '' : sesion.ajusteManual.toStringAsFixed(2);
   }
 
   // ---------- Confirmar compra ----------
@@ -339,6 +410,10 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
           );
 
       if (!mounted) return;
+      if (carrito.idEnEspera != null) {
+        unawaited(ref.read(compraRepositoryProvider).eliminarCompraEnEspera(carrito.idEnEspera!));
+      }
+      _debounceEnEspera?.cancel();
       _limpiarTodo();
       _mostrarMensaje('Compra registrada: ${compra.numeroDocumento}');
     } catch (e) {
@@ -355,6 +430,7 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
   @override
   Widget build(BuildContext context) {
     final carrito = ref.watch(carritoCompraProvider);
+    ref.listen<CarritoCompraState>(carritoCompraProvider, (previous, next) => _programarAutoguardado(next));
     final productos = ref.watch(productosStreamProvider).value ?? [];
     final mapaProductos = {for (final p in productos) p.id: p};
 
@@ -436,6 +512,12 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
           onPressed: _verDetalleCompra,
           icon: const Icon(Icons.receipt_long_outlined, size: 18),
           label: Text('Ver Detalle', style: appFont(fontSize: 13)),
+          style: _estiloBotonSecundario(),
+        ),
+        OutlinedButton.icon(
+          onPressed: _verEnEspera,
+          icon: const Icon(Icons.pause_circle_outline, size: 18),
+          label: Text('Compras en Espera', style: appFont(fontSize: 13)),
           style: _estiloBotonSecundario(),
         ),
       ],
