@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
 import '../../data/traslado_export_service.dart';
+import '../../data/traslado_ticket_escpos_service.dart';
+import '../widgets/traslado_ticket_escpos_preview.dart';
 import '../../data/traslado_model.dart';
 import '../../providers/traslados_provider.dart';
 import '../../../auth/providers/auth_provider.dart';
@@ -38,6 +40,7 @@ class DetalleTrasladoScreen extends ConsumerStatefulWidget {
 class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
   final _busquedaController = TextEditingController();
   final _servicioExport = TrasladoExportService();
+  final _servicioTicketEscPos = TrasladoTicketEscPosService();
   TrasladoModel? _traslado;
   bool _cargando = false;
   bool _actuando = false;
@@ -236,6 +239,9 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
         generarPdf: () => _servicioExport.generarPdfTraslado(t, negocio, forzarCopia: true, codigosPorProducto: codigos),
         generarPdfConFormato: (formato) => _servicioExport.generarPdfTraslado(t, negocio, forzarCopia: true, codigosPorProducto: codigos, formatoImpresora: formato),
         impresora: impresora,
+        generarTicketEscPos: () => _servicioTicketEscPos.generarTicket(t, negocio, forzarCopia: true, codigosPorProducto: codigos),
+        nombreImpresoraWindows: negocio.impresoraTermicaNombre,
+        vistaPreviaTicket: () => TrasladoTicketEscPosPreview(traslado: t, negocio: negocio, codigosPorProducto: codigos, esCopia: true),
       ),
     );
   }

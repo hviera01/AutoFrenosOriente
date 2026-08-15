@@ -6,6 +6,8 @@ import 'package:printing/printing.dart';
 import '../../data/item_traslado_model.dart';
 import '../../data/traslado_export_service.dart';
 import '../../data/traslado_model.dart';
+import '../../data/traslado_ticket_escpos_service.dart';
+import '../widgets/traslado_ticket_escpos_preview.dart';
 import '../../providers/traslados_provider.dart';
 import '../../../sucursales/data/sucursal_model.dart';
 import '../../../sucursales/providers/sucursales_provider.dart';
@@ -33,6 +35,7 @@ class RegistrarTrasladoScreen extends ConsumerStatefulWidget {
 class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScreen> {
   final _observacionesController = TextEditingController();
   final _servicioExport = TrasladoExportService();
+  final _servicioTicketEscPos = TrasladoTicketEscPosService();
   SucursalModel? _origen;
   SucursalModel? _destino;
   List<ItemTrasladoModel> _items = [];
@@ -277,6 +280,9 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
         generarPdf: () => _servicioExport.generarPdfTraslado(traslado, negocio, codigosPorProducto: codigos),
         generarPdfConFormato: (formato) => _servicioExport.generarPdfTraslado(traslado, negocio, codigosPorProducto: codigos, formatoImpresora: formato),
         impresora: impresora,
+        generarTicketEscPos: () => _servicioTicketEscPos.generarTicket(traslado, negocio, codigosPorProducto: codigos),
+        nombreImpresoraWindows: negocio.impresoraTermicaNombre,
+        vistaPreviaTicket: () => TrasladoTicketEscPosPreview(traslado: traslado, negocio: negocio, codigosPorProducto: codigos, esCopia: false),
       ),
     );
   }

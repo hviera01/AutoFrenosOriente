@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
 import '../../data/traslado_export_service.dart';
 import '../../data/traslado_model.dart';
+import '../../data/traslado_ticket_escpos_service.dart';
+import '../widgets/traslado_ticket_escpos_preview.dart';
 import '../../providers/traslados_provider.dart';
 import '../../../productos/providers/productos_provider.dart';
 import '../../../sucursales/providers/sucursales_provider.dart';
@@ -29,6 +31,7 @@ class _ReporteTrasladosScreenState extends ConsumerState<ReporteTrasladosScreen>
   List<TrasladoModel>? _traslados;
   final _formatoFecha = DateFormat('dd/MM/yyyy HH:mm');
   final _servicioExport = TrasladoExportService();
+  final _servicioTicketEscPos = TrasladoTicketEscPosService();
 
   static const _estados = ['Pendiente', 'Enviado', 'Entregado', 'Anulado'];
 
@@ -56,6 +59,9 @@ class _ReporteTrasladosScreenState extends ConsumerState<ReporteTrasladosScreen>
         generarPdf: () => _servicioExport.generarPdfTraslado(t, negocio, forzarCopia: true, codigosPorProducto: codigos),
         generarPdfConFormato: (formato) => _servicioExport.generarPdfTraslado(t, negocio, forzarCopia: true, codigosPorProducto: codigos, formatoImpresora: formato),
         impresora: impresora,
+        generarTicketEscPos: () => _servicioTicketEscPos.generarTicket(t, negocio, forzarCopia: true, codigosPorProducto: codigos),
+        nombreImpresoraWindows: negocio.impresoraTermicaNombre,
+        vistaPreviaTicket: () => TrasladoTicketEscPosPreview(traslado: t, negocio: negocio, codigosPorProducto: codigos, esCopia: true),
       ),
     );
   }
