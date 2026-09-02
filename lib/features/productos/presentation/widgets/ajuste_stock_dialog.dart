@@ -4,6 +4,7 @@ import '../../data/producto_model.dart';
 import '../../providers/productos_provider.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../../core/services/tipografia_service.dart';
+import '../../../../core/widgets/exito_transaccion_overlay.dart';
 
 class AjusteStockDialog extends ConsumerStatefulWidget {
   final ProductoModel producto;
@@ -61,7 +62,10 @@ class _AjusteStockDialogState extends ConsumerState<AjusteStockDialog> {
         motivo: _motivoController.text.trim(),
         costoUnitario: costoUnitario,
       );
-      if (mounted) Navigator.pop(context);
+      if (mounted) {
+        mostrarExitoTransaccion(context, mensaje: 'Stock ajustado correctamente');
+        Navigator.pop(context);
+      }
     } catch (e) {
       setState(() {
         _error = e.toString().replaceAll('Exception: ', '');

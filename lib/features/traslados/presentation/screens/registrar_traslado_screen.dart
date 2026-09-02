@@ -19,6 +19,7 @@ import '../../../compras/presentation/widgets/buscar_producto_compra_dialog.dart
 import '../../../ventas/presentation/widgets/teclado_numerico_dialog.dart';
 import '../../../ventas/providers/ventas_provider.dart' show presenciaImpresionRepositoryProvider;
 import '../../../../core/widgets/pdf_preview_dialog.dart';
+import '../../../../core/widgets/exito_transaccion_overlay.dart';
 import '../../../../core/services/tipografia_service.dart';
 
 /// Registrar Traslado: antes era un diálogo chico centrado; ahora es una
@@ -159,6 +160,7 @@ class _RegistrarTrasladoScreenState extends ConsumerState<RegistrarTrasladoScree
         usuarioRecibe: usuario,
       );
       if (!mounted) return;
+      mostrarExitoTransaccion(context, mensaje: 'Traslado registrado correctamente');
 
       // Desde el celular (APK) o el navegador de un celular no hay
       // impresora térmica a mano para elegir: en vez de preguntar y abrir
