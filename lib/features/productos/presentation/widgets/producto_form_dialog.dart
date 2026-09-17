@@ -11,6 +11,8 @@ import '../../../../core/services/tipografia_service.dart';
 import '../../../../core/services/firebase_storage_service.dart';
 import '../../../../core/widgets/imagen_producto_network.dart';
 import '../../../compras/presentation/widgets/buscar_producto_compra_dialog.dart';
+import '../../../negocio/data/negocio_model.dart';
+import '../../../negocio/presentation/widgets/acceso_especial.dart';
 
 class ProductoFormDialog extends ConsumerStatefulWidget {
   final ProductoModel? producto;
@@ -138,6 +140,22 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
       setState(() => _error = 'Seleccioná una categoría');
       return;
     }
+    final producto = widget.producto;
+    final nuevoPrecioCompra = _parseDouble(_precioCompraController.text);
+    final nuevoPrecioVenta = _parseDouble(_precioVentaController.text);
+    final nuevoPrecioVenta2 = _parseDouble(_precioVenta2Controller.text);
+    final nuevoPrecioVenta3 = _parseDouble(_precioVenta3Controller.text);
+    // La clave especial solo se pide si lo que cambió es el precio -pedido
+    // explícito del dueño-: editar nombre, ubicación (descripcion) u otros
+    // campos de un producto ya existente no debe pedir clave.
+    if (producto != null &&
+        (nuevoPrecioCompra != producto.precioCompra ||
+            nuevoPrecioVenta != producto.precioVenta ||
+            nuevoPrecioVenta2 != producto.precioVenta2 ||
+            nuevoPrecioVenta3 != producto.precioVenta3)) {
+      final autorizado = await verificarAccesoEspecial(context, ref, PermisosEspeciales.inventarioEditarProducto);
+      if (!autorizado || !mounted) return;
+    }
     setState(() {
       _guardando = true;
       _error = null;
@@ -154,10 +172,10 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
               descripcion: _descripcionController.text,
               idCategoria: _idCategoria!,
               stock: _esServicio ? 0 : _parseDouble(_stockController.text),
-              precioCompra: _parseDouble(_precioCompraController.text),
-              precioVenta: _parseDouble(_precioVentaController.text),
-              precioVenta2: _parseDouble(_precioVenta2Controller.text),
-              precioVenta3: _parseDouble(_precioVenta3Controller.text),
+              precioCompra: nuevoPrecioCompra,
+              precioVenta: nuevoPrecioVenta,
+              precioVenta2: nuevoPrecioVenta2,
+              precioVenta3: nuevoPrecioVenta3,
               estado: _activo,
               esServicio: _esServicio,
               imagenUrl: _imagenUrl,
@@ -184,10 +202,10 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
               nombre: nombre,
               descripcion: _descripcionController.text,
               idCategoria: _idCategoria!,
-              precioCompra: _parseDouble(_precioCompraController.text),
-              precioVenta: _parseDouble(_precioVentaController.text),
-              precioVenta2: _parseDouble(_precioVenta2Controller.text),
-              precioVenta3: _parseDouble(_precioVenta3Controller.text),
+              precioCompra: nuevoPrecioCompra,
+              precioVenta: nuevoPrecioVenta,
+              precioVenta2: nuevoPrecioVenta2,
+              precioVenta3: nuevoPrecioVenta3,
               estado: _activo,
               esServicio: _esServicio,
               imagenUrl: _imagenUrl,

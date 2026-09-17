@@ -226,14 +226,10 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
   }
 
   Future<void> _abrirFormulario([ProductoModel? producto, bool soloLectura = false]) async {
-    // El rol Roles.inventarioLectura tiene permiso libre (sin clave especial)
-    // para editar código/nombre/ubicación de un producto existente -el
-    // formulario mismo (edicionLimitada) le bloquea el resto de los campos-.
-    if (producto != null && !soloLectura) {
-      final autorizado = await verificarAccesoEspecial(context, ref, PermisosEspeciales.inventarioEditarProducto);
-      if (!autorizado || !mounted) return;
-    }
-    if (!mounted) return;
+    // La clave especial ya no se pide para abrir el formulario: se pide
+    // dentro de ProductoFormDialog, y solo si al guardar el precio cambió
+    // -pedido explícito del dueño-. Editar nombre, ubicación (descripcion) u
+    // otros campos de un producto existente nunca la pide.
     showDialog(context: context, builder: (context) => ProductoFormDialog(producto: producto, edicionLimitada: soloLectura && producto != null));
   }
 
