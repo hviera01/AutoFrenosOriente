@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../../core/utils/prefs_seguras.dart';
 import '../data/auth_repository.dart';
 import '../data/usuario_model.dart';
 import '../../../core/providers/tabs_provider.dart';
@@ -85,8 +85,12 @@ class AuthNotifier extends Notifier<AuthState> {
 
       state = AuthState(usuario: usuario);
 
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('usuario_id', usuario.id);
+      // Guardar el id es opcional (nada lo lee al arrancar): si el archivo
+      // local de preferencias está dañado no debe impedir un login válido.
+      try {
+        final prefs = await abrirPrefsSeguras();
+        await prefs?.setString('usuario_id', usuario.id);
+      } catch (_) {}
 
       // Precarga (sin esperar) la configuración del negocio para que, una
       // vez adentro, acciones como pedir la clave especial o abrir el
@@ -105,8 +109,10 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
  Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('usuario_id');
+    try {
+      final prefs = await abrirPrefsSeguras();
+      await prefs?.remove('usuario_id');
+    } catch (_) {}
     state = AuthState();
     ref.invalidate(tabsProvider);
   }

@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'core/utils/prefs_seguras.dart';
 import 'core/services/tipografia_service.dart';
 import 'firebase_options.dart';
 import 'features/auth/providers/auth_provider.dart';
@@ -35,8 +35,8 @@ Future<void> main() async {
   GoogleFonts.config.allowRuntimeFetching = false;
   // Se lee acá (antes de runApp) para que la primera pantalla ya nazca con
   // la fuente guardada, sin parpadeo entre la predeterminada y la elegida.
-  final prefs = await SharedPreferences.getInstance();
-  TipografiaApp.actual = prefs.getString('fuente_app') ?? 'Poppins';
+  final prefs = await abrirPrefsSeguras();
+  TipografiaApp.actual = prefs?.getString('fuente_app') ?? 'Poppins';
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );

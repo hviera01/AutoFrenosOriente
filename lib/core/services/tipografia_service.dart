@@ -2,7 +2,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../utils/prefs_seguras.dart';
 
 /// Tipografías que el usuario puede elegir para toda la interfaz (no afecta
 /// los tickets/PDF impresos, esos usan su propia fuente fija en pdf_tema.dart).
@@ -32,8 +32,8 @@ class TipografiaNotifier extends Notifier<String> {
   Future<void> establecer(String fuente) async {
     TipografiaApp.actual = fuente;
     state = fuente;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('fuente_app', fuente);
+    final prefs = await abrirPrefsSeguras();
+    await prefs?.setString('fuente_app', fuente);
   }
 }
 
