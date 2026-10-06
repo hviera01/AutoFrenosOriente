@@ -51,6 +51,10 @@ class _AppShellState extends ConsumerState<AppShell> {
   @override
   void initState() {
     super.initState();
+    // Empieza a cargar el catálogo apenas se entra al sistema (no hasta abrir
+    // Inventario/Ventas): con ~3400 productos la primera carga tarda y se
+    // notaba como un spinner largo y la ventana congelada al abrir esas pantallas.
+    ref.listenManual(productosStreamProvider, (_, _) {});
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final tabsState = ref.read(tabsProvider);
       if (tabsState.tabs.isEmpty) {

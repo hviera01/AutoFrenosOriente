@@ -5,7 +5,6 @@ import '../../data/producto_model.dart';
 import '../../data/producto_export_service.dart';
 import '../../providers/productos_provider.dart';
 import '../../../categorias/providers/categorias_provider.dart';
-import '../../../../core/utils/texto_utils.dart';
 import '../../../../core/utils/formato_moneda.dart';
 import '../../../../core/utils/exportador.dart';
 import '../widgets/producto_form_dialog.dart';
@@ -25,6 +24,8 @@ import '../../../../core/constants/roles.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../../core/services/tipografia_service.dart';
 import '../../../../core/widgets/imagen_zoom_dialog.dart';
+import '../../../../core/widgets/filtro_vehiculo_campos.dart';
+import '../../../../core/utils/busqueda_producto.dart';
 import '../widgets/detalle_producto_dialog.dart';
 import '../widgets/proveedor_producto_widget.dart';
 import 'historial_global_screen.dart';
@@ -38,6 +39,8 @@ class InventarioScreen extends ConsumerStatefulWidget {
 
 class _InventarioScreenState extends ConsumerState<InventarioScreen> {
   final _busquedaController = TextEditingController();
+  final _vehiculoCtrl = TextEditingController();
+  final _anioCtrl = TextEditingController();
   final _focusNode = FocusNode();
   final _scrollController = ScrollController();
   final _servicioExport = ProductoExportService();
@@ -54,6 +57,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
   // coincidencia exacta de código, no con el buscador difuso (que con
   // códigos largos puede "acercarse" a varios productos distintos).
   bool _busquedaPorCodigoBarras = false;
+  FiltroVehiculo _vehiculo = const FiltroVehiculo();
   List<ProductoModel> _listaActual = [];
   double _anchoColumnaNombreActual = 0;
   double _anchoColumnaProveedorActual = 0;
@@ -73,6 +77,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
   String? _cacheColumnaOrden;
   bool? _cacheOrdenAscendente;
   bool? _cacheMostrarInactivos;
+  FiltroVehiculo? _cacheVehiculo;
   List<ProductoModel> _cacheResultado = const [];
 
   List<ProductoModel> _listaFiltrada(List<ProductoModel> productos, String vista, String busqueda) {
@@ -82,7 +87,8 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
         _busquedaPorCodigoBarras == _cacheBusquedaPorCodigo &&
         _columnaOrden == _cacheColumnaOrden &&
         _ordenAscendente == _cacheOrdenAscendente &&
-        _mostrarInactivos == _cacheMostrarInactivos) {
+        _mostrarInactivos == _cacheMostrarInactivos &&
+        identical(_vehiculo, _cacheVehiculo)) {
       return _cacheResultado;
     }
     var lista = productos;
@@ -95,10 +101,12 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     if (busqueda.isNotEmpty) {
       lista = _busquedaPorCodigoBarras
           ? lista.where((p) => p.codigoBarras.trim() == busqueda || p.codigo.trim() == busqueda).toList()
-          : lista.where((p) => coincideFuzzy(p.textoBusqueda, busqueda)).toList();
-    } else if (vista == 'filtrados') {
+          : lista.where((p) => coincideProductoEstricto(p, busqueda)).toList();
+      if (!_busquedaPorCodigoBarras) lista = ordenarPorCodigoPrimero(lista, busqueda);
+    } else if (vista == 'filtrados' && !_vehiculo.activo) {
       lista = [];
     }
+    lista = filtrarPorVehiculo(lista, _vehiculo);
     lista = _ordenarLista(lista);
 
     _cacheProductos = productos;
@@ -108,6 +116,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
     _cacheColumnaOrden = _columnaOrden;
     _cacheOrdenAscendente = _ordenAscendente;
     _cacheMostrarInactivos = _mostrarInactivos;
+    _cacheVehiculo = _vehiculo;
     _cacheResultado = lista;
     return lista;
   }
@@ -182,13 +191,18 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
   @override
   void dispose() {
     _busquedaController.dispose();
+    _vehiculoCtrl.dispose();
+    _anioCtrl.dispose();
     _focusNode.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
   void _buscar() {
-    setState(() => _busquedaPorCodigoBarras = false);
+    setState(() {
+      _busquedaPorCodigoBarras = false;
+      _vehiculo = filtroDesdeCampos(_vehiculoCtrl, _anioCtrl);
+    });
     ref.read(inventarioBusquedaProvider.notifier).actualizar(_busquedaController.text.trim());
   }
 
@@ -476,6 +490,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                       _selectorEstado(),
                       _selectorPrecioIsv(),
                       SizedBox(width: esMovil ? constraints.maxWidth : 340, child: _buscador(busqueda)),
+                      FiltroVehiculoCampos(compacto: true, vehiculoCtrl: _vehiculoCtrl, anioCtrl: _anioCtrl, onBuscar: _buscar),
                       OutlinedButton.icon(
                         onPressed: () => ref.invalidate(productosStreamProvider),
                         icon: const Icon(Icons.refresh, size: 18),

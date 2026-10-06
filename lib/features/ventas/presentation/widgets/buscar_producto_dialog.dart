@@ -7,7 +7,8 @@ import '../../../productos/providers/productos_provider.dart';
 import '../../../productos/presentation/widgets/producto_form_dialog.dart';
 import '../../../productos/presentation/widgets/proveedor_producto_widget.dart';
 import '../../../categorias/providers/categorias_provider.dart';
-import '../../../../core/utils/texto_utils.dart';
+import '../../../../core/utils/busqueda_producto.dart';
+import '../../../../core/widgets/filtro_vehiculo_campos.dart';
 import '../../../../core/utils/formato_moneda.dart';
 import '../../../../core/utils/codigo_barras_utils.dart';
 import '../../../../core/widgets/barcode_scanner_screen.dart';
@@ -33,6 +34,8 @@ class BuscarProductoDialog extends ConsumerStatefulWidget {
 
 class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
   final _busquedaController = TextEditingController();
+  final _vehiculoCtrl = TextEditingController();
+  final _anioCtrl = TextEditingController();
   final _focusNodeLista = FocusNode();
   final _scrollController = ScrollController();
   String _busquedaAplicada = '';
@@ -40,6 +43,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
   // coincidencia exacta de código, no con el buscador difuso (que con
   // códigos largos puede "acercarse" a varios productos distintos).
   bool _busquedaExacta = false;
+  FiltroVehiculo _vehiculo = const FiltroVehiculo();
   List<ProductoModel> _listaActual = [];
   String? _filaSeleccionada;
   int _nivelActivo = 1;
@@ -56,6 +60,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
   List<ProductoModel>? _cacheProductos;
   String? _cacheBusquedaAplicada;
   bool? _cacheBusquedaExacta;
+  FiltroVehiculo? _cacheVehiculo;
   String? _cacheColumnaOrden;
   bool? _cacheOrdenAscendente;
   List<ProductoModel> _cacheResultado = const [];
@@ -64,17 +69,21 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
     if (identical(productos, _cacheProductos) &&
         _busquedaAplicada == _cacheBusquedaAplicada &&
         _busquedaExacta == _cacheBusquedaExacta &&
+        identical(_vehiculo, _cacheVehiculo) &&
         _columnaOrden == _cacheColumnaOrden &&
         _ordenAscendente == _cacheOrdenAscendente) {
       return _cacheResultado;
     }
-    final lista = productos.where((p) => p.estado && _coincide(p, _busquedaAplicada)).toList();
+    var lista = productos.where((p) => p.estado && _coincide(p, _busquedaAplicada)).toList();
+    if (!_busquedaExacta) lista = ordenarPorCodigoPrimero(lista, _busquedaAplicada);
+    lista = filtrarPorVehiculo(lista, _vehiculo);
     if (_columnaOrden == 'existencia') {
       lista.sort((a, b) => _ordenAscendente ? a.stock.compareTo(b.stock) : b.stock.compareTo(a.stock));
     }
     _cacheProductos = productos;
     _cacheBusquedaAplicada = _busquedaAplicada;
     _cacheBusquedaExacta = _busquedaExacta;
+    _cacheVehiculo = _vehiculo;
     _cacheColumnaOrden = _columnaOrden;
     _cacheOrdenAscendente = _ordenAscendente;
     _cacheResultado = lista;
@@ -89,6 +98,8 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
   @override
   void dispose() {
     _busquedaController.dispose();
+    _vehiculoCtrl.dispose();
+    _anioCtrl.dispose();
     _focusNodeLista.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -217,6 +228,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
     }
     setState(() {
       _busquedaAplicada = texto;
+      _vehiculo = exacta ? const FiltroVehiculo() : filtroDesdeCampos(_vehiculoCtrl, _anioCtrl);
       _filaSeleccionada = null;
       _busquedaExacta = exacta;
     });
@@ -236,7 +248,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
 
   bool _coincide(ProductoModel p, String texto) {
     if (_busquedaExacta) return _coincideExacto(p, texto);
-    return coincideFuzzy(p.textoBusqueda, texto);
+    return coincideProductoEstricto(p, texto);
   }
 
   Future<void> _crearProductoNuevo() async {
@@ -336,6 +348,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                       ),
                     ),
                   ),
+                  FiltroVehiculoCampos(vehiculoCtrl: _vehiculoCtrl, anioCtrl: _anioCtrl, onBuscar: _buscar),
                   _selectorNivelPrecio(),
                   // Escanear con la cámara solo tiene sentido en el celular
                   // (APK o navegador móvil): en escritorio no hay cámara
@@ -381,7 +394,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                     onKeyEvent: _manejarTeclado,
                     child: productosAsync.when(
                     data: (productos) {
-                      if (_busquedaAplicada.isEmpty) {
+                      if (_busquedaAplicada.isEmpty && !_vehiculo.activo) {
                         _listaActual = [];
                         return Center(
                           child: Column(

@@ -6,7 +6,8 @@ import '../../../productos/providers/productos_provider.dart';
 import '../../../productos/presentation/widgets/producto_form_dialog.dart';
 import '../../../productos/presentation/widgets/proveedor_producto_widget.dart';
 import '../../../categorias/providers/categorias_provider.dart';
-import '../../../../core/utils/texto_utils.dart';
+import '../../../../core/utils/busqueda_producto.dart';
+import '../../../../core/widgets/filtro_vehiculo_campos.dart';
 import '../../../../core/utils/formato_moneda.dart';
 import '../../../../core/services/tipografia_service.dart';
 import '../../../../core/widgets/imagen_zoom_dialog.dart';
@@ -23,6 +24,8 @@ class BuscarProductoCompraDialog extends ConsumerStatefulWidget {
 
 class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompraDialog> {
   final _busquedaController = TextEditingController();
+  final _vehiculoCtrl = TextEditingController();
+  final _anioCtrl = TextEditingController();
   final _focusNodeLista = FocusNode();
   final _scrollController = ScrollController();
   String _busquedaAplicada = '';
@@ -34,15 +37,20 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
   // catálogo contra la búsqueda solo para repintar el resaltado.
   List<ProductoModel>? _cacheProductos;
   String? _cacheBusquedaAplicada;
+  FiltroVehiculo? _cacheVehiculo;
+  FiltroVehiculo _vehiculo = const FiltroVehiculo();
   List<ProductoModel> _cacheResultado = const [];
 
   List<ProductoModel> _listaFiltrada(List<ProductoModel> productos) {
-    if (identical(productos, _cacheProductos) && _busquedaAplicada == _cacheBusquedaAplicada) {
+    if (identical(productos, _cacheProductos) && _busquedaAplicada == _cacheBusquedaAplicada && identical(_vehiculo, _cacheVehiculo)) {
       return _cacheResultado;
     }
-    final lista = productos.where((p) => p.estado && coincideFuzzy(p.textoBusqueda, _busquedaAplicada)).toList();
+    var lista = productos.where((p) => p.estado && coincideProductoEstricto(p, _busquedaAplicada)).toList();
+    lista = ordenarPorCodigoPrimero(lista, _busquedaAplicada);
+    lista = filtrarPorVehiculo(lista, _vehiculo);
     _cacheProductos = productos;
     _cacheBusquedaAplicada = _busquedaAplicada;
+    _cacheVehiculo = _vehiculo;
     _cacheResultado = lista;
     return lista;
   }
@@ -50,6 +58,8 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
   @override
   void dispose() {
     _busquedaController.dispose();
+    _vehiculoCtrl.dispose();
+    _anioCtrl.dispose();
     _focusNodeLista.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -132,6 +142,7 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
     final texto = _busquedaController.text.trim();
     setState(() {
       _busquedaAplicada = texto;
+      _vehiculo = filtroDesdeCampos(_vehiculoCtrl, _anioCtrl);
       _filaSeleccionada = null;
     });
   }
@@ -216,6 +227,7 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
                       ),
                     ),
                   ),
+                  FiltroVehiculoCampos(vehiculoCtrl: _vehiculoCtrl, anioCtrl: _anioCtrl, onBuscar: _buscar),
                   OutlinedButton.icon(
                     onPressed: _crearProductoNuevo,
                     icon: const Icon(Icons.add_circle_outline, size: 18),
@@ -244,7 +256,7 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
                     onKeyEvent: _manejarTeclado,
                     child: productosAsync.when(
                       data: (productos) {
-                        if (_busquedaAplicada.isEmpty) {
+                        if (_busquedaAplicada.isEmpty && !_vehiculo.activo) {
                           _listaActual = [];
                           return Center(
                             child: Column(
