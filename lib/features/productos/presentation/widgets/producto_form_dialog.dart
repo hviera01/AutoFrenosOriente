@@ -13,6 +13,7 @@ import '../../../../core/widgets/imagen_producto_network.dart';
 import '../../../compras/presentation/widgets/buscar_producto_compra_dialog.dart';
 import '../../../negocio/data/negocio_model.dart';
 import '../../../negocio/presentation/widgets/acceso_especial.dart';
+import '../../../../core/widgets/exito_transaccion_overlay.dart';
 
 class ProductoFormDialog extends ConsumerStatefulWidget {
   final ProductoModel? producto;
@@ -187,6 +188,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
         setState(() => _guardando = false);
         return;
       }
+      mostrarExito('Guardado correctamente');
       Navigator.pop(context, creado);
       return;
     }
@@ -219,6 +221,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
       setState(() => _guardando = false);
       return;
     }
+    mostrarExito('Guardado correctamente');
     Navigator.pop(context);
   }
 
@@ -247,6 +250,7 @@ class _ProductoFormDialogState extends ConsumerState<ProductoFormDialog> {
     });
     if (!mounted) return;
     if (ok == true) {
+      mostrarExito('Eliminado correctamente');
       Navigator.pop(context);
     } else {
       setState(() => _guardando = false);

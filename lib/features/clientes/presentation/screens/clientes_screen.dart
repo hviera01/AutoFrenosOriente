@@ -7,6 +7,7 @@ import '../widgets/cliente_form_dialog.dart';
 import '../widgets/cliente_dashboard_dialog.dart';
 import '../widgets/cliente_vehiculos_dialog.dart';
 import '../../../../core/services/tipografia_service.dart';
+import '../../../../core/widgets/exito_transaccion_overlay.dart';
 
 class ClientesScreen extends ConsumerStatefulWidget {
   const ClientesScreen({super.key});
@@ -57,6 +58,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
     );
     if (confirmar != true) return;
     await ref.read(clienteRepositoryProvider).eliminar(cliente.id);
+    mostrarExito('Eliminado correctamente');
   }
 
   void _manejarAccion(String valor, ClienteModel cliente) {

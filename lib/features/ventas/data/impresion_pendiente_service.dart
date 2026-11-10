@@ -10,6 +10,7 @@ import 'venta_export_service.dart';
 import 'venta_model.dart';
 import 'venta_repository.dart';
 import 'venta_ticket_escpos_service.dart';
+import '../../../core/widgets/animacion_impresion.dart';
 
 /// Imprime una venta pendiente directo desde su lista
 /// (VentasPendientesImpresionDialog), sin tener que abrir el detalle.
@@ -87,6 +88,7 @@ class ImpresionPendienteService {
     }
     try {
       final impresora = Printer(url: negocio.impresoraTermicaUrl, name: negocio.impresoraTermicaNombre);
+      AnimacionImpresion.mostrar();
       await Printing.directPrintPdf(printer: impresora, onLayout: (formato) => _servicioExport.generarPdfFactura(venta, negocio, formatoImpresora: formato));
       await ventaRepo.marcarPendienteImpresion(venta.id, false);
     } catch (_) {

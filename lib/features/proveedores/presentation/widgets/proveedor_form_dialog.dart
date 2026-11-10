@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/proveedor_model.dart';
 import '../../providers/proveedores_provider.dart';
 import '../../../../core/services/tipografia_service.dart';
+import '../../../../core/widgets/exito_transaccion_overlay.dart';
 
 class ProveedorFormDialog extends ConsumerStatefulWidget {
   final ProveedorModel? proveedor;
@@ -74,6 +75,7 @@ class _ProveedorFormDialogState extends ConsumerState<ProveedorFormDialog> {
           estado: _activo,
         );
       }
+      mostrarExito('Guardado correctamente');
       if (mounted) Navigator.pop(context);
     } catch (e) {
       setState(() {
@@ -104,6 +106,7 @@ class _ProveedorFormDialogState extends ConsumerState<ProveedorFormDialog> {
     setState(() => _guardando = true);
     try {
       await ref.read(proveedorRepositoryProvider).eliminar(widget.proveedor!.id);
+      mostrarExito('Eliminado correctamente');
       if (mounted) Navigator.pop(context);
     } catch (e) {
       setState(() {

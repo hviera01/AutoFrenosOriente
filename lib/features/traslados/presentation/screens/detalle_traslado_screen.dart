@@ -16,6 +16,7 @@ import '../../../productos/providers/productos_provider.dart';
 import '../../../ventas/providers/ventas_provider.dart' show presenciaImpresionRepositoryProvider;
 import '../../../../core/widgets/pdf_preview_dialog.dart';
 import '../../../../core/services/tipografia_service.dart';
+import '../../../../core/widgets/exito_transaccion_overlay.dart';
 
 /// Pantalla de consulta de un traslado ya registrado: buscá por número (o
 /// abrila directo desde el Reporte de Traslados pasando [trasladoIdInicial])
@@ -177,6 +178,7 @@ class _DetalleTrasladoScreenState extends ConsumerState<DetalleTrasladoScreen> {
     try {
       final usuario = ref.read(authProvider).usuario?.nombreCompleto ?? '';
       await ref.read(trasladoRepositoryProvider).anular(t.id, usuario: usuario);
+      mostrarExito('Traslado anulado');
       if (mounted) await _buscarPorId(t.id);
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))));

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/cliente_model.dart';
 import '../../providers/clientes_provider.dart';
 import '../../../../core/services/tipografia_service.dart';
+import '../../../../core/widgets/exito_transaccion_overlay.dart';
 
 class ClienteFormDialog extends ConsumerStatefulWidget {
   final ClienteModel? cliente;
@@ -74,6 +75,7 @@ class _ClienteFormDialogState extends ConsumerState<ClienteFormDialog> {
           estado: _activo,
         );
       }
+      mostrarExito('Guardado correctamente');
       if (mounted) Navigator.pop(context);
     } catch (e) {
       setState(() {
@@ -104,6 +106,7 @@ class _ClienteFormDialogState extends ConsumerState<ClienteFormDialog> {
     setState(() => _guardando = true);
     try {
       await ref.read(clienteRepositoryProvider).eliminar(widget.cliente!.id);
+      mostrarExito('Eliminado correctamente');
       if (mounted) Navigator.pop(context);
     } catch (e) {
       setState(() {

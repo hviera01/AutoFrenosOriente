@@ -10,6 +10,8 @@ import '../../providers/negocio_provider.dart';
 import '../widgets/negocio_logo_picker.dart';
 import '../widgets/selector_impresora.dart';
 import '../../../../core/services/tipografia_service.dart';
+import '../../../../core/widgets/selector_fecha_rapida.dart';
+import '../../../../core/widgets/exito_transaccion_overlay.dart';
 
 class NegocioScreen extends ConsumerWidget {
   const NegocioScreen({super.key});
@@ -168,6 +170,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
             rangoHasta: _rangoHastaController.text.trim(),
             fechaLimiteEmision: _fechaLimite,
           );
+      mostrarExito('Guardado correctamente');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Datos del negocio guardados')));
       }
@@ -179,7 +182,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
   }
 
   Future<void> _seleccionarFecha() async {
-    final fecha = await showDatePicker(
+    final fecha = await seleccionarFechaRapida(
       context: context,
       initialDate: _fechaLimite ?? DateTime.now(),
       firstDate: DateTime(2020),
@@ -240,6 +243,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
     setState(() => _guardandoIps = true);
     try {
       await ref.read(negocioRepositoryProvider).actualizarIpsPermitidasInventarioLectura(_ipsPermitidasController.text.trim());
+      mostrarExito('Guardado correctamente');
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Restricción de red guardada')));
     } finally {
       if (mounted) setState(() => _guardandoIps = false);
@@ -257,6 +261,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
     setState(() => _guardandoRed = true);
     try {
       await ref.read(negocioRepositoryProvider).actualizarImpresoraRed(ip, puerto);
+      mostrarExito('Guardado correctamente');
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Impresora de red guardada')));
     } finally {
       if (mounted) setState(() => _guardandoRed = false);

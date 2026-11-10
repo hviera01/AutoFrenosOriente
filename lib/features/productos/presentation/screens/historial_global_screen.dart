@@ -8,6 +8,7 @@ import '../../../compras/presentation/screens/detalle_compra_screen.dart';
 import '../../../traslados/presentation/screens/detalle_traslado_screen.dart';
 import '../../../../core/services/tipografia_service.dart';
 import '../../../../core/utils/origen_historial_utils.dart';
+import '../../../../core/widgets/selector_fecha_rapida.dart';
 
 /// Historial de existencia de TODOS los productos juntos, por fecha —
 /// pensado para ver de un vistazo qué movimientos (ventas, compras,
@@ -55,14 +56,17 @@ class _HistorialGlobalScreenState extends ConsumerState<HistorialGlobalScreen> {
   }
 
   Future<void> _seleccionarFecha(bool esInicio) async {
-    final fecha = await showDatePicker(context: context, initialDate: esInicio ? _fechaInicio : _fechaFin, firstDate: DateTime(2020), lastDate: DateTime(2100));
-    if (fecha == null) return;
+    final rango = await seleccionarRangoRapido(
+      context: context,
+      esInicio: esInicio,
+      inicio: _fechaInicio,
+      fin: _fechaFin,
+      primera: DateTime(2020),
+    );
+    if (rango == null) return;
     setState(() {
-      if (esInicio) {
-        _fechaInicio = fecha;
-      } else {
-        _fechaFin = fecha;
-      }
+      _fechaInicio = rango.inicio;
+      _fechaFin = rango.fin;
       _future = null;
     });
   }

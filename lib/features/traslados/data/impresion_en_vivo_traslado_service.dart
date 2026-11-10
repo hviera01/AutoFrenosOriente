@@ -6,6 +6,7 @@ import '../../../core/services/impresora_usb_windows_service.dart';
 import 'traslado_export_service.dart';
 import 'traslado_model.dart';
 import 'traslado_ticket_escpos_service.dart';
+import '../../../core/widgets/animacion_impresion.dart';
 
 /// Imprime automáticamente, sin ningún diálogo ni confirmación, un traslado
 /// que llegó como "solicitud de impresión en vivo" desde el celular/web
@@ -39,6 +40,7 @@ class ImpresionEnVivoTrasladoService {
     }
     try {
       final impresora = Printer(url: negocio.impresoraTermicaUrl, name: negocio.impresoraTermicaNombre);
+      AnimacionImpresion.mostrar();
       await Printing.directPrintPdf(
         printer: impresora,
         onLayout: (formato) => _servicioExport.generarPdfTraslado(traslado, negocio, forzarCopia: forzarCopia, codigosPorProducto: codigosPorProducto, formatoImpresora: formato),

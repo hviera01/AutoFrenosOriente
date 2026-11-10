@@ -5,6 +5,7 @@ import '../../providers/proveedores_provider.dart';
 import '../../../../core/utils/texto_utils.dart';
 import '../widgets/proveedor_form_dialog.dart';
 import '../../../../core/services/tipografia_service.dart';
+import '../../../../core/widgets/exito_transaccion_overlay.dart';
 
 class ProveedoresScreen extends ConsumerStatefulWidget {
   const ProveedoresScreen({super.key});
@@ -55,6 +56,7 @@ class _ProveedoresScreenState extends ConsumerState<ProveedoresScreen> {
     );
     if (confirmar != true) return;
     await ref.read(proveedorRepositoryProvider).eliminar(proveedor.id);
+    mostrarExito('Eliminado correctamente');
   }
 
   void _manejarAccion(String valor, ProveedorModel proveedor) {

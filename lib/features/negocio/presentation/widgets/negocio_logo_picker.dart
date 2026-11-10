@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/negocio_provider.dart';
 import '../../../../core/services/tipografia_service.dart';
+import '../../../../core/widgets/exito_transaccion_overlay.dart';
 
 const _tamanoMaximoBytes = 700 * 1024;
 
@@ -43,6 +44,7 @@ class _NegocioLogoPickerState extends ConsumerState<NegocioLogoPicker> {
       } else {
         await repo.guardarLogoBn(bytes);
       }
+      mostrarExito('Guardado correctamente');
     } catch (e) {
       _mostrarError('No se pudo guardar el logo');
     } finally {

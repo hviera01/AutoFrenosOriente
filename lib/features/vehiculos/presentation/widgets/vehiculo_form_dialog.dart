@@ -5,6 +5,7 @@ import '../../providers/vehiculos_provider.dart';
 import '../../../clientes/data/cliente_model.dart';
 import '../../../ventas/presentation/widgets/buscar_cliente_dialog.dart';
 import '../../../../core/services/tipografia_service.dart';
+import '../../../../core/widgets/exito_transaccion_overlay.dart';
 
 class VehiculoFormDialog extends ConsumerStatefulWidget {
   final VehiculoModel? vehiculo;
@@ -82,6 +83,7 @@ class _VehiculoFormDialogState extends ConsumerState<VehiculoFormDialog> {
       } else {
         await repo.actualizar(id: widget.vehiculo!.id, idCliente: _idCliente, nombreCliente: _nombreCliente, marca: marca, modelo: _modeloController.text.trim(), anio: _anioController.text.trim(), placa: _placaController.text.trim());
       }
+      mostrarExito('Guardado correctamente');
       if (mounted) Navigator.pop(context);
     } catch (e) {
       setState(() {
@@ -112,6 +114,7 @@ class _VehiculoFormDialogState extends ConsumerState<VehiculoFormDialog> {
     setState(() => _guardando = true);
     try {
       await ref.read(vehiculoRepositoryProvider).eliminar(widget.vehiculo!.id);
+      mostrarExito('Eliminado correctamente');
       if (mounted) Navigator.pop(context);
     } catch (e) {
       setState(() {

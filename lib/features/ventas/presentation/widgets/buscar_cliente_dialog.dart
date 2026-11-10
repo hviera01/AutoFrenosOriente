@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../clientes/providers/clientes_provider.dart';
 import '../../../../core/utils/texto_utils.dart';
 import '../../../../core/services/tipografia_service.dart';
+import '../../../../core/widgets/exito_transaccion_overlay.dart';
 
 class BuscarClienteDialog extends ConsumerStatefulWidget {
   const BuscarClienteDialog({super.key});
@@ -32,6 +33,7 @@ class _BuscarClienteDialogState extends ConsumerState<BuscarClienteDialog> {
     setState(() => _creando = true);
     try {
       final creado = await ref.read(clienteRepositoryProvider).crearRapido(nombreCompleto: nombre);
+      mostrarExito('Guardado correctamente');
       if (mounted) Navigator.pop(context, creado);
     } catch (e) {
       if (mounted) {

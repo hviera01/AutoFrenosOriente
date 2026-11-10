@@ -6,6 +6,7 @@ import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 import '../services/tipografia_service.dart';
 import '../services/impresora_usb_windows_service.dart';
+import 'animacion_impresion.dart';
 
 class PdfPreviewDialog extends StatefulWidget {
   final String titulo;
@@ -68,6 +69,7 @@ class _PdfPreviewDialogState extends State<PdfPreviewDialog> {
         return;
       }
       final generarConFormato = widget.generarPdfConFormato;
+      AnimacionImpresion.mostrar();
       await Printing.directPrintPdf(
         printer: impresora,
         onLayout: generarConFormato != null ? (format) => generarConFormato(format) : (format) => widget.generarPdf(),

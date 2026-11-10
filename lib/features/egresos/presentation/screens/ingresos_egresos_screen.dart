@@ -10,6 +10,8 @@ import '../../../../core/utils/texto_utils.dart';
 import '../../../../core/utils/exportador.dart';
 import '../../../../core/widgets/pdf_preview_dialog.dart';
 import '../../../../core/services/tipografia_service.dart';
+import '../../../../core/widgets/selector_fecha_rapida.dart';
+import '../../../../core/widgets/exito_transaccion_overlay.dart';
 
 class IngresosEgresosScreen extends ConsumerStatefulWidget {
   const IngresosEgresosScreen({super.key});
@@ -129,9 +131,11 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
       if (_idEditando.isEmpty) {
         await repo.crear(egreso);
         _mostrarMensaje('Egreso registrado');
+        mostrarExito('Guardado correctamente');
       } else {
         await repo.actualizar(egreso);
         _mostrarMensaje('Egreso actualizado');
+        mostrarExito('Cambios guardados');
       }
       setState(_limpiarFormulario);
       await _cargar();
@@ -160,6 +164,7 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
     try {
       await ref.read(egresoRepositoryProvider).eliminar(_idEditando);
       _mostrarMensaje('Egreso eliminado');
+      mostrarExito('Eliminado correctamente');
       setState(_limpiarFormulario);
       await _cargar();
     } catch (e) {
@@ -185,14 +190,17 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
   }
 
   Future<void> _seleccionarFecha(bool esInicio) async {
-    final fecha = await showDatePicker(context: context, initialDate: esInicio ? _fechaInicio : _fechaFin, firstDate: DateTime(2000), lastDate: DateTime(2100));
-    if (fecha == null) return;
+    final rango = await seleccionarRangoRapido(
+      context: context,
+      esInicio: esInicio,
+      inicio: _fechaInicio,
+      fin: _fechaFin,
+      primera: DateTime(2000),
+    );
+    if (rango == null) return;
     setState(() {
-      if (esInicio) {
-        _fechaInicio = fecha;
-      } else {
-        _fechaFin = fecha;
-      }
+      _fechaInicio = rango.inicio;
+      _fechaFin = rango.fin;
     });
     await _cargar();
   }
@@ -331,7 +339,7 @@ class _IngresosEgresosScreenState extends ConsumerState<IngresosEgresosScreen> {
           const SizedBox(height: 10),
           InkWell(
             onTap: () async {
-              final fecha = await showDatePicker(context: context, initialDate: _fechaEgreso, firstDate: DateTime(2000), lastDate: DateTime(2100));
+              final fecha = await seleccionarFechaRapida(context: context, initialDate: _fechaEgreso, firstDate: DateTime(2000), lastDate: DateTime(2100));
               if (fecha == null) return;
               setState(() => _fechaEgreso = DateTime(fecha.year, fecha.month, fecha.day, _fechaEgreso.hour, _fechaEgreso.minute));
             },

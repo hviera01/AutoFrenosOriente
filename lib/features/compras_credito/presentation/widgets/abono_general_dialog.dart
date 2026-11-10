@@ -6,6 +6,7 @@ import '../../providers/compras_credito_provider.dart';
 import '../../../../core/utils/formato_moneda.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../../core/services/tipografia_service.dart';
+import '../../../../core/widgets/exito_transaccion_overlay.dart';
 
 class _ProveedorConDeuda {
   final String idProveedor;
@@ -95,6 +96,7 @@ class _AbonoGeneralDialogState extends ConsumerState<AbonoGeneralDialog> {
             metodoPago: _metodoPago,
             usuario: usuario,
           );
+      mostrarExito('Guardado correctamente');
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       setState(() {

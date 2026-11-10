@@ -2,6 +2,7 @@ import 'package:printing/printing.dart';
 import '../../negocio/data/negocio_model.dart';
 import 'venta_export_service.dart';
 import 'venta_model.dart';
+import '../../../core/widgets/animacion_impresion.dart';
 
 /// Imprime automáticamente, sin ningún diálogo ni confirmación, una venta
 /// que llegó como "solicitud de impresión en vivo" desde el celular (ver
@@ -29,6 +30,7 @@ class ImpresionEnVivoService {
     if (negocio.impresoraTermicaUrl.isEmpty) return false;
     try {
       final impresora = Printer(url: negocio.impresoraTermicaUrl, name: negocio.impresoraTermicaNombre);
+      AnimacionImpresion.mostrar();
       await Printing.directPrintPdf(
         printer: impresora,
         onLayout: (formato) => _servicioExport.generarPdfFactura(venta, negocio, forzarCopia: forzarCopia, formatoImpresora: formato),

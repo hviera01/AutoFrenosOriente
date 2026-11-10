@@ -7,6 +7,7 @@ import '../../../auth/providers/auth_provider.dart';
 import '../../../productos/providers/productos_provider.dart';
 import '../../../../core/utils/formato_moneda.dart';
 import '../../../../core/services/tipografia_service.dart';
+import '../../../../core/widgets/exito_transaccion_overlay.dart';
 
 /// Pantalla de consulta de una compra ya registrada: buscá por número de
 /// documento (o abrila directo desde Compras a Crédito pasando
@@ -154,6 +155,7 @@ class _DetalleCompraScreenState extends ConsumerState<DetalleCompraScreen> {
     try {
       final usuario = ref.read(authProvider).usuario?.nombreCompleto ?? '';
       await ref.read(compraRepositoryProvider).anularCompra(id: compra.id, usuario: usuario, motivo: motivoController.text.trim());
+      mostrarExito('Compra anulada');
       if (!mounted) return;
       await _buscarPorId(compra.id);
       if (mounted) {

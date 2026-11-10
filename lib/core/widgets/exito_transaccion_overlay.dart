@@ -1,103 +1,137 @@
 import 'package:flutter/material.dart';
 import '../services/tipografia_service.dart';
 
-/// Check verde chico en el centro de la pantalla al terminar una operación
-/// (traslado, ajuste de stock, venta, compra, etc.): confirma de un vistazo
-/// que se guardó, sin interrumpir el flujo (no bloquea nada, se desvanece
-/// solo). Usa un OverlayEntry en vez de un diálogo a propósito: no depende
-/// de un Navigator ni compite con otros diálogos que puedan abrirse justo
-/// después (ej. el de imprimir), y con [IgnorePointer] se puede seguir
-/// tocando la pantalla de abajo mientras se desvanece.
-/// Mismo patrón que `mostrarExitoTransaccion` en sistema_ventas (Super Color).
-void mostrarExitoTransaccion(BuildContext context, {String mensaje = 'Transacción realizada correctamente'}) {
-  final overlayState = Overlay.maybeOf(context);
-  if (overlayState == null) return;
-  late OverlayEntry entrada;
-  entrada = OverlayEntry(builder: (context) => _ExitoTransaccionOverlay(mensaje: mensaje, onFin: () => entrada.remove()));
-  overlayState.insert(entrada);
-}
-
-class _ExitoTransaccionOverlay extends StatefulWidget {
+class EventoExito {
+  final int id;
   final String mensaje;
-  final VoidCallback onFin;
 
-  const _ExitoTransaccionOverlay({required this.mensaje, required this.onFin});
-
-  @override
-  State<_ExitoTransaccionOverlay> createState() => _ExitoTransaccionOverlayState();
+  const EventoExito(this.id, this.mensaje);
 }
 
-class _ExitoTransaccionOverlayState extends State<_ExitoTransaccionOverlay> with SingleTickerProviderStateMixin {
-  late final AnimationController _controlador;
-  late final Animation<double> _escala;
-  late final Animation<double> _opacidad;
+class ExitoTransaccion {
+  ExitoTransaccion._();
 
-  @override
-  void initState() {
-    super.initState();
-    _controlador = AnimationController(vsync: this, duration: const Duration(milliseconds: 220));
-    _escala = CurvedAnimation(parent: _controlador, curve: Curves.easeOutBack);
-    _opacidad = CurvedAnimation(parent: _controlador, curve: Curves.easeOut);
-    _controlador.forward();
-    Future.delayed(const Duration(milliseconds: 1300), () async {
-      if (!mounted) return;
-      await _controlador.reverse();
-      widget.onFin();
-    });
-  }
+  static final ValueNotifier<EventoExito?> eventos = ValueNotifier(null);
+  static int _contador = 0;
 
-  @override
-  void dispose() {
-    _controlador.dispose();
-    super.dispose();
+  static void mostrar(String mensaje) {
+    eventos.value = EventoExito(++_contador, mensaje);
   }
+}
+
+/// Check verde en el centro de la pantalla al terminar una operación
+/// (venta, compra, guardar, editar, eliminar, confirmar...) -pedido
+/// explícito del dueño-: confirma de un vistazo que se realizó, sin
+/// interrumpir el flujo. No necesita BuildContext: lo dibuja el host que
+/// vive encima del Navigator (ver AnimacionImpresionHost), así que sale
+/// aunque la pantalla que lo pidió ya se haya cerrado y por encima de
+/// cualquier diálogo.
+void mostrarExito([String mensaje = 'Transacción realizada correctamente']) {
+  ExitoTransaccion.mostrar(mensaje);
+}
+
+void mostrarExitoTransaccion(
+  BuildContext context, {
+  String mensaje = 'Transacción realizada correctamente',
+}) {
+  ExitoTransaccion.mostrar(mensaje);
+}
+
+class EscenaExito extends StatelessWidget {
+  final double t;
+  final String mensaje;
+
+  const EscenaExito({super.key, required this.t, required this.mensaje});
 
   @override
   Widget build(BuildContext context) {
-    return Positioned.fill(
-      child: IgnorePointer(
-        child: Center(
-          child: FadeTransition(
-            opacity: _opacidad,
-            child: ScaleTransition(
-              scale: _escala,
-              // Material(type: transparency): se inserta con un OverlayEntry
-              // crudo, no con showDialog/MaterialPageRoute -- esos SIEMPRE
-              // envuelven su contenido en un Material por dentro, pero un
-              // OverlayEntry a mano no. Sin esto, el Text de abajo no
-              // encuentra un ancestro Material.
-              child: Material(
-                type: MaterialType.transparency,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 26),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.25), blurRadius: 30, offset: const Offset(0, 12))],
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 68,
-                        height: 68,
-                        decoration: const BoxDecoration(color: Color(0xFF1E9E5A), shape: BoxShape.circle),
-                        child: const Icon(Icons.check, color: Colors.white, size: 40),
+    final entrada = Curves.easeOutBack.transform((t / 0.2).clamp(0.0, 1.0));
+    final aparicion = Curves.easeOut.transform((t / 0.2).clamp(0.0, 1.0));
+    final salida = Curves.easeIn.transform(((t - 0.8) / 0.2).clamp(0.0, 1.0));
+    final opacidad = (aparicion * (1 - salida)).clamp(0.0, 1.0);
+    final check = Curves.easeOut.transform(((t - 0.1) / 0.3).clamp(0.0, 1.0));
+
+    return Center(
+      child: Opacity(
+          opacity: opacidad,
+          child: Transform.scale(
+            scale: entrada.clamp(0.0, 1.2),
+            child: Material(
+              type: MaterialType.transparency,
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 300),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 26,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.25),
+                      blurRadius: 30,
+                      offset: const Offset(0, 12),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 68,
+                      height: 68,
+                      child: CustomPaint(painter: _CheckPainter(check)),
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      mensaje,
+                      textAlign: TextAlign.center,
+                      style: appFont(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF1A1A1A),
                       ),
-                      const SizedBox(height: 14),
-                      Text(
-                        widget.mensaje,
-                        textAlign: TextAlign.center,
-                        style: appFont(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A1A)),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
         ),
-      ),
     );
   }
+}
+
+class _CheckPainter extends CustomPainter {
+  final double progreso;
+
+  _CheckPainter(this.progreso);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final centro = size.center(Offset.zero);
+    canvas.drawCircle(
+      centro,
+      size.width / 2,
+      Paint()..color = const Color(0xFF1E9E5A),
+    );
+    final trazo = Path()
+      ..moveTo(centro.dx - 15, centro.dy + 1)
+      ..lineTo(centro.dx - 5, centro.dy + 12)
+      ..lineTo(centro.dx + 16, centro.dy - 11);
+    final metrica = trazo.computeMetrics().first;
+    canvas.drawPath(
+      metrica.extractPath(0, metrica.length * progreso),
+      Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 5
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_CheckPainter old) => old.progreso != progreso;
 }

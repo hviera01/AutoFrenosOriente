@@ -6,6 +6,7 @@ import '../../providers/ventas_credito_provider.dart';
 import '../../../../core/utils/formato_moneda.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../../core/services/tipografia_service.dart';
+import '../../../../core/widgets/exito_transaccion_overlay.dart';
 
 class RegistrarAbonoDialog extends ConsumerStatefulWidget {
   final VentaCreditoModel credito;
@@ -65,6 +66,7 @@ class _RegistrarAbonoDialogState extends ConsumerState<RegistrarAbonoDialog> {
             numeroRecibo: _numeroReciboController.text.trim(),
             usuario: usuario,
           );
+      mostrarExito('Abono registrado');
       if (!mounted) return;
       Navigator.pop(
         context,

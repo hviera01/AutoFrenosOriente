@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/sucursal_model.dart';
 import '../../providers/sucursales_provider.dart';
 import '../../../../core/services/tipografia_service.dart';
+import '../../../../core/widgets/exito_transaccion_overlay.dart';
 
 class SucursalFormDialog extends ConsumerStatefulWidget {
   final SucursalModel? sucursal;
@@ -55,6 +56,7 @@ class _SucursalFormDialogState extends ConsumerState<SucursalFormDialog> {
       } else {
         await repo.actualizar(id: widget.sucursal!.id, nombre: nombre, direccion: _direccionController.text.trim(), estado: _activo);
       }
+      mostrarExito('Guardado correctamente');
       if (mounted) Navigator.pop(context);
     } catch (e) {
       setState(() {
@@ -85,6 +87,7 @@ class _SucursalFormDialogState extends ConsumerState<SucursalFormDialog> {
     setState(() => _guardando = true);
     try {
       await ref.read(sucursalRepositoryProvider).eliminar(widget.sucursal!.id);
+      mostrarExito('Eliminado correctamente');
       if (mounted) Navigator.pop(context);
     } catch (e) {
       setState(() {

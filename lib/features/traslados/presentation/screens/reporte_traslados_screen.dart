@@ -13,6 +13,7 @@ import '../../../negocio/providers/negocio_provider.dart';
 import '../../../../core/widgets/pdf_preview_dialog.dart';
 import 'detalle_traslado_screen.dart';
 import '../../../../core/services/tipografia_service.dart';
+import '../../../../core/widgets/selector_fecha_rapida.dart';
 
 class ReporteTrasladosScreen extends ConsumerStatefulWidget {
   const ReporteTrasladosScreen({super.key});
@@ -103,14 +104,17 @@ class _ReporteTrasladosScreenState extends ConsumerState<ReporteTrasladosScreen>
   }
 
   Future<void> _seleccionarFecha(bool esInicio) async {
-    final fecha = await showDatePicker(context: context, initialDate: esInicio ? _fechaInicio : _fechaFin, firstDate: DateTime(2020), lastDate: DateTime(2100));
-    if (fecha == null) return;
+    final rango = await seleccionarRangoRapido(
+      context: context,
+      esInicio: esInicio,
+      inicio: _fechaInicio,
+      fin: _fechaFin,
+      primera: DateTime(2020),
+    );
+    if (rango == null) return;
     setState(() {
-      if (esInicio) {
-        _fechaInicio = fecha;
-      } else {
-        _fechaFin = fecha;
-      }
+      _fechaInicio = rango.inicio;
+      _fechaFin = rango.fin;
     });
   }
 

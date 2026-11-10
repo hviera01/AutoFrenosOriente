@@ -20,6 +20,7 @@ import '../widgets/compras_en_espera_dialog.dart';
 import 'detalle_compra_screen.dart';
 import '../../../../core/services/tipografia_service.dart';
 import '../../../productos/presentation/widgets/producto_form_dialog.dart';
+import '../../../../core/widgets/selector_fecha_rapida.dart';
 
 const _metodosPago = ['Efectivo', 'Transferencia', 'Tarjeta', 'Cheque'];
 
@@ -590,7 +591,7 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
                 width: esMovil ? double.infinity : 160,
                 child: InkWell(
                   onTap: () async {
-                    final fecha = await showDatePicker(context: context, initialDate: carrito.fecha, firstDate: DateTime(2020), lastDate: DateTime(2100));
+                    final fecha = await seleccionarFechaRapida(context: context, initialDate: carrito.fecha, firstDate: DateTime(2020), lastDate: DateTime(2100));
                     if (fecha != null) ref.read(carritoCompraProvider.notifier).establecerFecha(fecha);
                   },
                   borderRadius: BorderRadius.circular(12),
@@ -652,7 +653,7 @@ class _RegistrarCompraScreenState extends ConsumerState<RegistrarCompraScreen> {
                   width: esMovil ? double.infinity : 160,
                   child: InkWell(
                     onTap: () async {
-                      final fecha = await showDatePicker(
+                      final fecha = await seleccionarFechaRapida(
                         context: context,
                         initialDate: carrito.fechaVencimiento ?? DateTime.now().add(const Duration(days: 30)),
                         firstDate: DateTime(2020),

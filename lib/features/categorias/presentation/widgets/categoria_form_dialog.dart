@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/categoria_model.dart';
 import '../../providers/categorias_provider.dart';
 import '../../../../core/services/tipografia_service.dart';
+import '../../../../core/widgets/exito_transaccion_overlay.dart';
 
 class CategoriaFormDialog extends ConsumerStatefulWidget {
   final CategoriaModel? categoria;
@@ -53,6 +54,7 @@ class _CategoriaFormDialogState extends ConsumerState<CategoriaFormDialog> {
       } else {
         await repo.actualizar(widget.categoria!.id, descripcion, _activo, controlaStock: _controlaStock);
       }
+      mostrarExito('Guardado correctamente');
       if (mounted) Navigator.pop(context);
     } catch (e) {
       setState(() {
@@ -83,6 +85,7 @@ class _CategoriaFormDialogState extends ConsumerState<CategoriaFormDialog> {
     setState(() => _guardando = true);
     try {
       await ref.read(categoriaRepositoryProvider).eliminar(widget.categoria!.id);
+      mostrarExito('Eliminado correctamente');
       if (mounted) Navigator.pop(context);
     } catch (e) {
       setState(() {

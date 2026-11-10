@@ -5,6 +5,8 @@ import '../../providers/compras_credito_provider.dart';
 import '../../../proveedores/providers/proveedores_provider.dart';
 import '../../../proveedores/data/proveedor_model.dart';
 import '../../../../core/services/tipografia_service.dart';
+import '../../../../core/widgets/selector_fecha_rapida.dart';
+import '../../../../core/widgets/exito_transaccion_overlay.dart';
 
 class RegistrarCreditoCompraDialog extends ConsumerStatefulWidget {
   const RegistrarCreditoCompraDialog({super.key});
@@ -35,7 +37,7 @@ class _RegistrarCreditoCompraDialogState extends ConsumerState<RegistrarCreditoC
   double _parseDouble(String texto) => double.tryParse(texto.replaceAll(',', '').trim()) ?? 0;
 
   Future<void> _seleccionarFecha() async {
-    final fecha = await showDatePicker(
+    final fecha = await seleccionarFechaRapida(
       context: context,
       initialDate: _fechaVencimiento,
       firstDate: DateTime(2000),
@@ -74,6 +76,7 @@ class _RegistrarCreditoCompraDialogState extends ConsumerState<RegistrarCreditoC
             saldoPendiente: saldoPendiente,
             fechaVencimiento: _fechaVencimiento,
           );
+      mostrarExito('Guardado correctamente');
       if (mounted) Navigator.pop(context);
     } catch (e) {
       setState(() {

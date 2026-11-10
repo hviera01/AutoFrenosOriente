@@ -20,6 +20,7 @@ import '../widgets/historial_abonos_dialog.dart';
 import '../widgets/importar_creditos_venta_dialog.dart';
 import '../../../ventas/presentation/screens/detalle_venta_screen.dart';
 import '../../../../core/services/tipografia_service.dart';
+import '../../../../core/widgets/exito_transaccion_overlay.dart';
 
 class VentasCreditoScreen extends ConsumerStatefulWidget {
   const VentasCreditoScreen({super.key});
@@ -118,6 +119,7 @@ class _VentasCreditoScreenState extends ConsumerState<VentasCreditoScreen> {
     );
     if (confirmar != true) return;
     await ref.read(ventaCreditoRepositoryProvider).eliminar(credito.id);
+    mostrarExito('Eliminado correctamente');
     setState(() => _seleccionadosParaUnir.remove(credito.id));
   }
 

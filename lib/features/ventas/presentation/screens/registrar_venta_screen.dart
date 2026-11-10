@@ -43,6 +43,9 @@ import '../widgets/escanear_remoto_dialog.dart';
 import '../../data/tipos_documento.dart';
 import 'detalle_venta_screen.dart';
 import '../../../../core/services/tipografia_service.dart';
+import '../../../../core/widgets/animacion_impresion.dart';
+import '../../../../core/widgets/selector_fecha_rapida.dart';
+import '../../../../core/widgets/exito_transaccion_overlay.dart';
 
 const _metodosPago = ['Efectivo', 'Tarjeta', 'Transferencia', 'Mixto'];
 
@@ -758,9 +761,11 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
     if (carrito.idEnEspera != null) {
       await repo.actualizarVentaEnEspera(carrito.idEnEspera!, sesion);
       _mostrarMensaje('Venta en espera actualizada.');
+      mostrarExito('Venta en espera guardada');
     } else {
       await repo.guardarVentaEnEspera(sesion);
       _mostrarMensaje('Venta guardada en espera.');
+      mostrarExito('Venta en espera guardada');
     }
     _limpiarTodo();
   }
@@ -1145,6 +1150,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
     }
     try {
       final impresora = Printer(url: negocio.impresoraTermicaUrl, name: negocio.impresoraTermicaNombre);
+      AnimacionImpresion.mostrar();
       await Printing.directPrintPdf(printer: impresora, onLayout: (formato) => _servicioExport.generarPdfFactura(venta, negocio, formatoImpresora: formato));
     } catch (_) {
       _mostrarMensaje('No se pudo imprimir en la impresora configurada');
@@ -1396,7 +1402,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                 width: esMovil ? double.infinity : 160,
                 child: InkWell(
                   onTap: () async {
-                    final fecha = await showDatePicker(context: context, initialDate: carrito.fecha, firstDate: DateTime(2020), lastDate: DateTime(2100));
+                    final fecha = await seleccionarFechaRapida(context: context, initialDate: carrito.fecha, firstDate: DateTime(2020), lastDate: DateTime(2100));
                     if (fecha != null) ref.read(carritoVentaProvider.notifier).establecerFecha(fecha);
                   },
                   borderRadius: BorderRadius.circular(12),
@@ -1579,7 +1585,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
                                 width: esMovil ? double.infinity : 160,
                                 child: InkWell(
                                   onTap: () async {
-                                    final fecha = await showDatePicker(
+                                    final fecha = await seleccionarFechaRapida(
                                       context: context,
                                       initialDate: carrito.fechaVencimiento ?? DateTime.now().add(const Duration(days: 30)),
                                       firstDate: DateTime(2020),

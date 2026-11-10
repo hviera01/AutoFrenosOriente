@@ -12,6 +12,7 @@ import 'features/auth/presentation/screens/login_screen.dart';
 import 'core/widgets/app_shell.dart';
 import 'core/widgets/splash_screen.dart';
 import 'features/ventas/presentation/screens/escaneo_remoto_screen.dart';
+import 'core/widgets/animacion_impresion.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -73,6 +74,8 @@ class SistemaVentasApp extends ConsumerWidget {
         useMaterial3: true,
         textTheme: GoogleFonts.getTextTheme(fuente),
       ),
+      builder: (context, child) =>
+          AnimacionImpresionHost(child: child ?? const SizedBox.shrink()),
       locale: const Locale('es'),
       supportedLocales: const [Locale('es')],
       localizationsDelegates: const [
