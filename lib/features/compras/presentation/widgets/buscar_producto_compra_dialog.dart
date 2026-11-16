@@ -25,6 +25,7 @@ class BuscarProductoCompraDialog extends ConsumerStatefulWidget {
 class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompraDialog> {
   final _busquedaController = TextEditingController();
   final _vehiculoCtrl = TextEditingController();
+  final _tipoRepuesto = ValueNotifier<String?>(null);
   final _anioCtrl = TextEditingController();
   final _focusNodeLista = FocusNode();
   final _scrollController = ScrollController();
@@ -59,6 +60,7 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
   void dispose() {
     _busquedaController.dispose();
     _vehiculoCtrl.dispose();
+    _tipoRepuesto.dispose();
     _anioCtrl.dispose();
     _focusNodeLista.dispose();
     _scrollController.dispose();
@@ -142,7 +144,7 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
     final texto = _busquedaController.text.trim();
     setState(() {
       _busquedaAplicada = texto;
-      _vehiculo = filtroDesdeCampos(_vehiculoCtrl, _anioCtrl);
+      _vehiculo = filtroDesdeCampos(_vehiculoCtrl, _anioCtrl, tipo: _tipoRepuesto.value);
       _filaSeleccionada = null;
     });
   }
@@ -227,7 +229,7 @@ class _BuscarProductoCompraDialogState extends ConsumerState<BuscarProductoCompr
                       ),
                     ),
                   ),
-                  FiltroVehiculoCampos(vehiculoCtrl: _vehiculoCtrl, anioCtrl: _anioCtrl, onBuscar: _buscar),
+                  FiltroVehiculoCampos(vehiculoCtrl: _vehiculoCtrl, anioCtrl: _anioCtrl, tipoNotifier: _tipoRepuesto, onBuscar: _buscar),
                   OutlinedButton.icon(
                     onPressed: _crearProductoNuevo,
                     icon: const Icon(Icons.add_circle_outline, size: 18),

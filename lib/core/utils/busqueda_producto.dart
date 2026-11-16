@@ -1,5 +1,6 @@
 import '../../features/productos/data/producto_model.dart';
 import 'texto_utils.dart';
+import 'vehiculo_diccionario.dart';
 
 // Búsqueda de productos igual a la del sistema viejo (WinForms,
 // frmProducto/mdProducto): se separa lo escrito en palabras y CADA palabra
@@ -56,9 +57,19 @@ List<ProductoModel> ordenarPorCodigoPrimero(List<ProductoModel> lista, String co
 class FiltroVehiculo {
   final String texto;
   final int? anio;
-  const FiltroVehiculo({this.texto = '', this.anio});
+  final String? tipo;
+  const FiltroVehiculo({this.texto = '', this.anio, this.tipo});
 
-  bool get activo => texto.trim().isNotEmpty || anio != null;
+  bool get activo => texto.trim().isNotEmpty || anio != null || tipo != null;
+}
+
+String? _textoConsultaCacheado;
+ConsultaVehiculo? _consultaCacheada;
+
+ConsultaVehiculo _consultaDe(String texto) {
+  if (_consultaCacheada != null && _textoConsultaCacheado == texto) return _consultaCacheada!;
+  _textoConsultaCacheado = texto;
+  return _consultaCacheada = analizarConsultaVehiculo(texto);
 }
 
 int? parsearAnio(String entrada) {
@@ -114,11 +125,9 @@ enum CoincidenciaVehiculo { no, confirmada, sinDatoDeAnio }
 
 CoincidenciaVehiculo coincideVehiculo(ProductoModel p, FiltroVehiculo filtro) {
   if (!filtro.activo) return CoincidenciaVehiculo.confirmada;
+  if (filtro.tipo != null && tipoRepuestoDe(p) != filtro.tipo) return CoincidenciaVehiculo.no;
   final nombre = normalizarTexto(p.nombre);
-  final tokens = normalizarTexto(filtro.texto).split(RegExp(r'\s+')).where((t) => t.isNotEmpty);
-  for (final t in tokens) {
-    if (!nombre.contains(t)) return CoincidenciaVehiculo.no;
-  }
+  if (!productoCumpleConsultaVehiculo(p, _consultaDe(filtro.texto), nombre)) return CoincidenciaVehiculo.no;
   final anio = filtro.anio;
   if (anio == null) return CoincidenciaVehiculo.confirmada;
   final rangos = _rangosDeNombre(p.nombre);

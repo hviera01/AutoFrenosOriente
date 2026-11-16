@@ -40,6 +40,7 @@ class InventarioScreen extends ConsumerStatefulWidget {
 class _InventarioScreenState extends ConsumerState<InventarioScreen> {
   final _busquedaController = TextEditingController();
   final _vehiculoCtrl = TextEditingController();
+  final _tipoRepuesto = ValueNotifier<String?>(null);
   final _anioCtrl = TextEditingController();
   final _focusNode = FocusNode();
   final _scrollController = ScrollController();
@@ -192,6 +193,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
   void dispose() {
     _busquedaController.dispose();
     _vehiculoCtrl.dispose();
+    _tipoRepuesto.dispose();
     _anioCtrl.dispose();
     _focusNode.dispose();
     _scrollController.dispose();
@@ -201,7 +203,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
   void _buscar() {
     setState(() {
       _busquedaPorCodigoBarras = false;
-      _vehiculo = filtroDesdeCampos(_vehiculoCtrl, _anioCtrl);
+      _vehiculo = filtroDesdeCampos(_vehiculoCtrl, _anioCtrl, tipo: _tipoRepuesto.value);
     });
     ref.read(inventarioBusquedaProvider.notifier).actualizar(_busquedaController.text.trim());
   }
@@ -490,7 +492,7 @@ class _InventarioScreenState extends ConsumerState<InventarioScreen> {
                       _selectorEstado(),
                       _selectorPrecioIsv(),
                       SizedBox(width: esMovil ? constraints.maxWidth : 340, child: _buscador(busqueda)),
-                      FiltroVehiculoCampos(compacto: true, vehiculoCtrl: _vehiculoCtrl, anioCtrl: _anioCtrl, onBuscar: _buscar),
+                      FiltroVehiculoCampos(compacto: true, vehiculoCtrl: _vehiculoCtrl, anioCtrl: _anioCtrl, tipoNotifier: _tipoRepuesto, onBuscar: _buscar),
                       OutlinedButton.icon(
                         onPressed: () => ref.invalidate(productosStreamProvider),
                         icon: const Icon(Icons.refresh, size: 18),

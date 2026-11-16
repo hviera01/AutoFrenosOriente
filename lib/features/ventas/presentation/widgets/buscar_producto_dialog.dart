@@ -35,6 +35,7 @@ class BuscarProductoDialog extends ConsumerStatefulWidget {
 class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
   final _busquedaController = TextEditingController();
   final _vehiculoCtrl = TextEditingController();
+  final _tipoRepuesto = ValueNotifier<String?>(null);
   final _anioCtrl = TextEditingController();
   final _focusNodeLista = FocusNode();
   final _scrollController = ScrollController();
@@ -99,6 +100,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
   void dispose() {
     _busquedaController.dispose();
     _vehiculoCtrl.dispose();
+    _tipoRepuesto.dispose();
     _anioCtrl.dispose();
     _focusNodeLista.dispose();
     _scrollController.dispose();
@@ -228,7 +230,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
     }
     setState(() {
       _busquedaAplicada = texto;
-      _vehiculo = exacta ? const FiltroVehiculo() : filtroDesdeCampos(_vehiculoCtrl, _anioCtrl);
+      _vehiculo = exacta ? const FiltroVehiculo() : filtroDesdeCampos(_vehiculoCtrl, _anioCtrl, tipo: _tipoRepuesto.value);
       _filaSeleccionada = null;
       _busquedaExacta = exacta;
     });
@@ -348,7 +350,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
                       ),
                     ),
                   ),
-                  FiltroVehiculoCampos(vehiculoCtrl: _vehiculoCtrl, anioCtrl: _anioCtrl, onBuscar: _buscar),
+                  FiltroVehiculoCampos(vehiculoCtrl: _vehiculoCtrl, anioCtrl: _anioCtrl, tipoNotifier: _tipoRepuesto, onBuscar: _buscar),
                   _selectorNivelPrecio(),
                   // Escanear con la cámara solo tiene sentido en el celular
                   // (APK o navegador móvil): en escritorio no hay cámara
