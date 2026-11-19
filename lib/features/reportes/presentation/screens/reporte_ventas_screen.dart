@@ -12,6 +12,7 @@ import '../../../usuarios/providers/usuarios_provider.dart';
 import '../../../ventas/presentation/screens/detalle_venta_screen.dart';
 import '../../../../core/services/tipografia_service.dart';
 import '../../../../core/widgets/selector_fecha_rapida.dart';
+import '../../../ventas/data/tipos_documento.dart';
 
 class ReporteVentasScreen extends ConsumerStatefulWidget {
   const ReporteVentasScreen({super.key});
@@ -38,7 +39,7 @@ class _ReporteVentasScreenState extends ConsumerState<ReporteVentasScreen> {
   static const _metodosPago = ['Efectivo', 'Transferencia', 'Tarjeta', 'Cheque', 'Mixto'];
   static const _condiciones = ['Contado', 'Crédito'];
   static const _estados = ['Activa', 'Anulada'];
-  static const _tiposDocumento = ['Factura', 'Boleta', 'Cotizacion', 'VentaSinFacturar'];
+  static const _tiposDocumento = ['VentaSinFacturar', 'Factura', 'Cotizacion'];
 
   @override
   void initState() {
@@ -126,7 +127,7 @@ class _ReporteVentasScreenState extends ConsumerState<ReporteVentasScreen> {
       lista = lista.where((v) => v.estado == _estadoFiltro).toList();
     }
     if (_tipoDocumentoFiltro != null) {
-      lista = lista.where((v) => v.tipoDocumento == _tipoDocumentoFiltro).toList();
+      lista = lista.where((v) => coincideTipoDocumentoFiltro(v.tipoDocumento, _tipoDocumentoFiltro)).toList();
     }
     if (_usuarioFiltro != null) {
       lista = lista.where((v) => v.usuarioRegistro == _usuarioFiltro).toList();
@@ -353,7 +354,7 @@ class _ReporteVentasScreenState extends ConsumerState<ReporteVentasScreen> {
           style: appFont(fontSize: 13, color: const Color(0xFF1A1A1A)),
           items: [
             DropdownMenuItem<String?>(value: null, child: Text('$etiqueta: Todos', style: appFont(fontSize: 13))),
-            ...opciones.map((o) => DropdownMenuItem<String?>(value: o, child: Text(o, overflow: TextOverflow.ellipsis))),
+            ...opciones.map((o) => DropdownMenuItem<String?>(value: o, child: Text(etiquetaTipoDocumento(o), overflow: TextOverflow.ellipsis))),
           ],
           onChanged: onChanged,
         ),
@@ -394,7 +395,7 @@ class _ReporteVentasScreenState extends ConsumerState<ReporteVentasScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(color: esCotizacion ? const Color(0xFFFFF6D8) : const Color(0xFFEFF4FF), borderRadius: BorderRadius.circular(8)),
-      child: Text(v.tipoDocumento, style: appFont(fontSize: 11, fontWeight: FontWeight.w600, color: esCotizacion ? const Color(0xFF92720B) : const Color(0xFF3B82F6))),
+      child: Text(etiquetaTipoDocumento(v.tipoDocumento), style: appFont(fontSize: 11, fontWeight: FontWeight.w600, color: esCotizacion ? const Color(0xFF92720B) : const Color(0xFF3B82F6))),
     );
   }
 

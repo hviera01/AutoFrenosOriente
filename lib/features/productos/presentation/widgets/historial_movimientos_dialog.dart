@@ -9,6 +9,7 @@ import '../../../compras/presentation/screens/detalle_compra_screen.dart';
 import '../../../traslados/presentation/screens/detalle_traslado_screen.dart';
 import '../../../../core/services/tipografia_service.dart';
 import '../../../../core/widgets/selector_fecha_rapida.dart';
+import '../../../ventas/data/tipos_documento.dart';
 
 /// Fila normalizada para mostrar en la tabla, sea de venta, compra o
 /// traslado. [precio] queda null para traslados (no tienen precio).
@@ -154,7 +155,7 @@ class _HistorialMovimientosDialogState extends ConsumerState<HistorialMovimiento
         final filas = _filtrar(data
             .map((r) => _FilaHistorial(
                   fecha: r.fecha,
-                  documento: '${r.tipoDocumento} ${r.numeroDocumento}',
+                  documento: '${etiquetaTipoDocumento(r.tipoDocumento)} ${r.numeroDocumento}',
                   contraparte: r.cliente.isEmpty ? 'CONSUMIDOR FINAL' : r.cliente,
                   cantidad: r.cantidad,
                   precio: r.precioVenta,

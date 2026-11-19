@@ -5,6 +5,7 @@ import '../../data/venta_en_espera_model.dart';
 import '../../providers/ventas_provider.dart';
 import '../../../../core/utils/formato_moneda.dart';
 import '../../../../core/services/tipografia_service.dart';
+import '../../data/tipos_documento.dart';
 
 class VentasEnEsperaDialog extends ConsumerWidget {
   const VentasEnEsperaDialog({super.key});
@@ -96,7 +97,7 @@ class VentasEnEsperaDialog extends ConsumerWidget {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      '${sesion.tipoDocumento} · ${sesion.items.length} producto(s) · ${formatearMoneda(sesion.total)}',
+                                      '${etiquetaTipoDocumento(sesion.tipoDocumento)} · ${sesion.items.length} producto(s) · ${formatearMoneda(sesion.total)}',
                                       style: appFont(fontSize: 11.5, color: Colors.grey.shade600),
                                     ),
                                     if (sesion.fecha != null) ...[

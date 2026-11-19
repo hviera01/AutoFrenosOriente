@@ -7,6 +7,8 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'venta_model.dart';
 import 'numero_a_letras.dart';
+import 'tipos_documento.dart';
+import 'venta_ticket_escpos_service.dart';
 import '../../../core/utils/formato_moneda.dart';
 import '../../../core/utils/logo_pdf.dart';
 import '../../../core/utils/pdf_tema.dart';
@@ -27,7 +29,7 @@ class VentaExportService {
     // El ISV siempre se cobra en este negocio (excepto en cotizaciones, que
     // todavía no son una venta concretada); [preciosConIsv] solo decide si
     // el desglose de la tabla se muestra con o sin impuesto incluido.
-    final esFacturable = venta.tipoDocumento != 'Cotizacion';
+    final esFacturable = venta.llevaIsv;
     final conIsv = esFacturable && (preciosConIsv ?? negocio.facturaPreciosConIsv);
     final tema = await obtenerTemaImpresion();
     final doc = pw.Document(theme: tema);
@@ -105,7 +107,7 @@ class VentaExportService {
           child: pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.end,
             children: [
-              pw.Text(esCotizacion ? 'COTIZACIÓN' : venta.tipoDocumento.toUpperCase(), style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.white)),
+              pw.Text(esCotizacion ? 'COTIZACIÓN' : etiquetaTipoDocumento(venta.tipoDocumento).toUpperCase(), style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.white)),
               pw.SizedBox(height: 2),
               pw.Text('No. ${venta.numeroDocumento}', style: const pw.TextStyle(fontSize: 11, color: PdfColors.white)),
             ],
@@ -190,7 +192,7 @@ class VentaExportService {
     }
 
     return pw.TableHelper.fromTextArray(
-      headers: ['Cant.', 'Descripción', conIsv ? 'P. Unitario (c/ISV)' : 'P. Unitario (s/ISV)', 'Desc. %', 'Importe'],
+      headers: ['Cant.', 'Descripción', venta.esVentaSinFacturar ? 'P. Unitario' : (conIsv ? 'P. Unitario (c/ISV)' : 'P. Unitario (s/ISV)'), 'Desc. %', 'Importe'],
       data: venta.detalle.map((item) {
         final nombreBarbero = item.nombreBarbero as String;
         final descripcion = (item.esServicio as bool) && nombreBarbero.isNotEmpty ? '${item.nombreProducto}\n(Barbero: $nombreBarbero)' : item.nombreProducto as String;
@@ -275,7 +277,7 @@ class VentaExportService {
         children: [
           _filaTotalFormal('Subtotal', formatearMoneda(venta.subtotal)),
           if (venta.descuentoGlobal > 0) _filaTotalFormal('Descuento global', '${_formatoCantidad(venta.descuentoGlobal)}%'),
-          _filaTotalFormal('Descuentos y rebajas', formatearMoneda(descuentosYRebajas)),
+          if (esFacturable || descuentosYRebajas > 0) _filaTotalFormal('Descuentos y rebajas', formatearMoneda(descuentosYRebajas)),
           if (esFacturable) ...[
             _filaTotalFormal('Importe exento', formatearMoneda(0)),
             _filaTotalFormal('Importe exonerado', formatearMoneda(0)),
@@ -305,6 +307,19 @@ class VentaExportService {
             style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: _colorGrisTexto),
           ),
         ),
+        if (venta.tipoDocumento == 'Factura') ...[
+          pw.SizedBox(height: 4),
+          pw.Center(
+            child: pw.Text(
+              [
+                if (caiValido(negocio.cai)) 'CAI: ${negocio.cai}',
+                if (negocio.rangoPrefijo.isNotEmpty || negocio.rangoDesde.isNotEmpty) 'Rango Aut.: ${negocio.rangoPrefijo}${negocio.rangoDesde} al ${negocio.rangoPrefijo}${negocio.rangoHasta}',
+                if (negocio.fechaLimiteEmision != null) 'Fecha límite: ${DateFormat('dd/MM/yyyy').format(negocio.fechaLimiteEmision!)}',
+              ].join('   ·   '),
+              style: const pw.TextStyle(fontSize: 8, color: _colorGrisTexto),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -332,7 +347,7 @@ class VentaExportService {
     // maxDimension más alto que el default acá: el logo del ticket ahora se
     // imprime más grande (ver _construirPaginaTicket), y con la resolución
     // chica que alcanza para un logo de cabecera normal se vería borroso.
-    final logo = decodificarLogoPdf(negocio.logoBnBase64, maxDimension: 400);
+    final logo = negocio.logoEnTicket ? decodificarLogoPdf(negocio.logoBnBase64, maxDimension: 400) : null;
     // Preferí el ancho que reportó el driver de la impresora si parece
     // válido; si no, el que el usuario configuró a mano en Negocio (no un
     // 80mm fijo a ciegas: el driver de Windows no siempre lo reporta bien).
@@ -377,8 +392,8 @@ class VentaExportService {
     const fNormal = 8.0;
     final alturaMm = _estimarAlturaTicketMm(venta, negocio, tieneLogo: logo != null);
 
-    // El ISV siempre se cobra en este negocio (excepto en cotizaciones).
-    final esFacturable = venta.tipoDocumento != 'Cotizacion';
+    final esFacturable = venta.llevaIsv;
+    final esFactura = venta.tipoDocumento == 'Factura';
     final conIsv = esFacturable && negocio.facturaPreciosConIsv;
     double precioMostrado(dynamic item) => conIsv ? redondearMoneda((item.precioVenta as double) * 1.15) : item.precioVenta as double;
     double importeMostrado(dynamic item) {
@@ -435,9 +450,10 @@ class VentaExportService {
             if (negocio.rtn.isNotEmpty) pw.Center(child: pw.Text('RTN: ${negocio.rtn}', style: const pw.TextStyle(fontSize: fSmall))),
             if (negocio.telefono.isNotEmpty) pw.Center(child: pw.Text('Tel: ${negocio.telefono}', style: const pw.TextStyle(fontSize: fSmall))),
             if (negocio.correo.isNotEmpty) pw.Center(child: pw.Text('Email: ${negocio.correo}', style: const pw.TextStyle(fontSize: fSmall))),
+            if (esFactura && caiValido(negocio.cai)) pw.Center(child: pw.Text('CAI: ${negocio.cai}', style: const pw.TextStyle(fontSize: fSmall), textAlign: pw.TextAlign.center)),
             pw.SizedBox(height: 6),
             _separador(),
-            pw.Text('${venta.tipoDocumento.toUpperCase()} ${negocio.rangoPrefijo}${venta.numeroDocumento}', style: const pw.TextStyle(fontSize: fNormal)),
+            pw.Text(encabezadoDocumentoVenta(venta, negocio), style: pw.TextStyle(fontSize: fNormal, fontWeight: pw.FontWeight.bold)),
             pw.Text('Fecha: ${venta.fechaRegistro != null ? formatoFecha.format(venta.fechaRegistro!) : '-'}', style: const pw.TextStyle(fontSize: fNormal)),
             pw.Text('Atendido por: ${venta.usuarioRegistro}', style: const pw.TextStyle(fontSize: fNormal)),
             pw.Text('Condición: ${venta.condicion}', style: const pw.TextStyle(fontSize: fNormal)),
@@ -446,6 +462,7 @@ class VentaExportService {
             _separador(),
             pw.Text('Cliente: ${venta.nombreCliente.isEmpty ? 'CONSUMIDOR FINAL' : venta.nombreCliente}', style: const pw.TextStyle(fontSize: fNormal)),
             pw.Text('ID/RTN Cliente: ${venta.documentoCliente.isEmpty ? 'N/A' : venta.documentoCliente}', style: const pw.TextStyle(fontSize: fNormal)),
+            if (venta.vehiculo.isNotEmpty) pw.Text('Vehículo: ${venta.vehiculo}', style: const pw.TextStyle(fontSize: fNormal)),
             if (venta.oc.isNotEmpty) pw.Text('No. O/C exenta: ${venta.oc}', style: const pw.TextStyle(fontSize: fNormal)),
             if (venta.regExonerado.isNotEmpty) pw.Text('No. Reg de exonerado: ${venta.regExonerado}', style: const pw.TextStyle(fontSize: fNormal)),
             if (venta.regSag.isNotEmpty) pw.Text('No. De reg de la SAG: ${venta.regSag}', style: const pw.TextStyle(fontSize: fNormal)),
@@ -488,7 +505,7 @@ class VentaExportService {
             _separador(),
             _filaTotal('SUBTOTAL:', venta.subtotal),
             if (venta.descuentoGlobal > 0) pw.Text('Descuento global: ${_formatoCantidad(venta.descuentoGlobal)}%', style: const pw.TextStyle(fontSize: fSmall)),
-            _filaTotal('Descuentos y rebajas:', descuentosYRebajas),
+            if (esFacturable || descuentosYRebajas > 0) _filaTotal('Descuentos y rebajas:', descuentosYRebajas),
             if (esFacturable) ...[
               _filaTotal('Importe Exento:', 0),
               _filaTotal('Importe Exonerado:', 0),
@@ -524,7 +541,11 @@ class VentaExportService {
             // de verdad -el "Venta" del sistema viejo tampoco las imprimía,
             // ver venta_ticket_escpos_service.dart-, así que la única marca
             // que queda es la simple etiqueta ORIGINAL/COPIA de abajo.
-            pw.Text('¡GRACIAS POR SU COMPRA!', style: const pw.TextStyle(fontSize: fNormal)),
+            if (esFactura && (negocio.rangoPrefijo.isNotEmpty || negocio.rangoDesde.isNotEmpty))
+              pw.Text('Rango Aut.: ${negocio.rangoPrefijo}${negocio.rangoDesde} al ${negocio.rangoPrefijo}${negocio.rangoHasta}', style: const pw.TextStyle(fontSize: fSmall)),
+            if (esFactura && negocio.fechaLimiteEmision != null)
+              pw.Text('Fecha Límite: ${formatoDia.format(negocio.fechaLimiteEmision!)}', style: const pw.TextStyle(fontSize: fSmall)),
+            pw.Center(child: pw.Text('¡GRACIAS POR SU COMPRA!', style: pw.TextStyle(fontSize: fNormal, fontWeight: pw.FontWeight.bold))),
             pw.SizedBox(height: 10),
             pw.Align(
               alignment: pw.Alignment.centerRight,
@@ -633,7 +654,7 @@ class VentaExportService {
     for (final v in lista) {
       hoja.appendRow([
         xls.TextCellValue(v.fechaRegistro != null ? formato.format(v.fechaRegistro!) : '-'),
-        xls.TextCellValue(v.tipoDocumento),
+        xls.TextCellValue(etiquetaTipoDocumento(v.tipoDocumento)),
         xls.TextCellValue(v.numeroDocumento),
         xls.TextCellValue(v.nombreCliente),
         xls.TextCellValue(formatearMoneda(v.totalAPagar)),

@@ -13,6 +13,9 @@ import 'core/widgets/app_shell.dart';
 import 'core/widgets/splash_screen.dart';
 import 'features/ventas/presentation/screens/escaneo_remoto_screen.dart';
 import 'core/widgets/animacion_impresion.dart';
+import 'features/negocio/data/negocio_model.dart';
+import 'features/negocio/providers/negocio_provider.dart';
+import 'features/ventas/providers/carrito_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -65,6 +68,10 @@ class SistemaVentasApp extends ConsumerWidget {
     // TipografiaNotifier/appFont en core/services/tipografia_service.dart) -
     // no hace falta que cada pantalla lo escuche por separado.
     final fuente = ref.watch(tipografiaProvider);
+    ref.listen<AsyncValue<NegocioModel>>(negocioStreamProvider, (previo, siguiente) {
+      final negocio = siguiente.value;
+      if (negocio != null) tipoDocumentoVentaPorDefecto = negocio.tipoDocumentoDefecto;
+    });
 
     return MaterialApp(
       title: 'Sistema Ventas',

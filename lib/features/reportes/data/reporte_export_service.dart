@@ -6,6 +6,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'reporte_venta_model.dart';
 import 'reporte_compra_model.dart';
 import '../../../core/utils/formato_moneda.dart';
+import '../../ventas/data/tipos_documento.dart';
 
 class ReporteExportService {
   Uint8List generarExcelVentas(List<ReporteVentaModel> lista) {
@@ -33,7 +34,7 @@ class ReporteExportService {
     for (final v in lista) {
       hoja.appendRow([
         xls.TextCellValue(v.fechaRegistro != null ? formato.format(v.fechaRegistro!) : '-'),
-        xls.TextCellValue(v.tipoDocumento),
+        xls.TextCellValue(etiquetaTipoDocumento(v.tipoDocumento)),
         xls.TextCellValue(v.numeroDocumento),
         xls.TextCellValue(formatearMoneda(v.totalAPagar)),
         xls.TextCellValue(v.cantidadProductos.toString()),
@@ -122,7 +123,7 @@ class ReporteExportService {
             data: lista.map((v) {
               return [
                 v.fechaRegistro != null ? formato.format(v.fechaRegistro!) : '-',
-                v.tipoDocumento,
+                etiquetaTipoDocumento(v.tipoDocumento),
                 v.numeroDocumento,
                 formatearMoneda(v.totalAPagar),
                 v.cantidadProductos.toString(),

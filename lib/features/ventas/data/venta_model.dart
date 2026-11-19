@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'item_venta_model.dart';
 import 'pago_detalle_model.dart';
+import '../../../core/utils/formato_moneda.dart';
 
 class VentaModel {
   final String id;
@@ -59,6 +60,15 @@ class VentaModel {
   final String vehiculo;
 
   bool get estaAnulada => estado == 'Anulada';
+
+  bool get esVentaSinFacturar => tipoDocumento == 'VentaSinFacturar';
+
+  bool get llevaIsv => !esVentaSinFacturar && (tipoDocumento != 'Cotizacion' || impuesto > 0);
+
+  double get descuentosYRebajas {
+    final listaSinDescuento = detalle.fold<double>(0, (s, item) => s + redondearMoneda(item.precioVenta * item.cantidad));
+    return redondearMoneda(listaSinDescuento - subtotal);
+  }
 
   // Usado para completar con el detalle (items) una VentaModel que ya se
   // tenía con todo lo demás (por ejemplo, la que llega de un stream sin

@@ -141,6 +141,16 @@ class NegocioRepository {
     _invalidarCache();
   }
 
+  Future<void> establecerTipoDocumentoDefecto(String tipo) async {
+    await _doc.set({'tipoDocumentoDefecto': tipo}, SetOptions(merge: true));
+    _invalidarCache();
+  }
+
+  Future<void> establecerLogoEnTicket(bool valor) async {
+    await _doc.set({'logoEnTicket': valor}, SetOptions(merge: true));
+    _invalidarCache();
+  }
+
   Future<void> establecerModoImpresion(String modo) async {
     await _doc.set({'modoImpresion': modo}, SetOptions(merge: true));
     _invalidarCache();

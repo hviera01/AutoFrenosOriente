@@ -82,6 +82,8 @@ class NegocioModel {
   // restricción de red configurada -no bloquea a nadie, es el estado por
   // defecto hasta que un admin la active a propósito desde esta pantalla-.
   final String ipsPermitidasInventarioLectura;
+  final String tipoDocumentoDefecto;
+  final bool logoEnTicket;
 
   const NegocioModel({
     this.nombre = '',
@@ -110,6 +112,8 @@ class NegocioModel {
     this.impresoraRedPuerto = 9100,
     this.anchoTicketMm = 80,
     this.ipsPermitidasInventarioLectura = '',
+    this.tipoDocumentoDefecto = 'VentaSinFacturar',
+    this.logoEnTicket = true,
   });
 
   bool get tieneClaveEspecial => claveEspecialHash.isNotEmpty;
@@ -145,6 +149,8 @@ class NegocioModel {
       impresoraRedPuerto: ((data['impresoraRedPuerto'] ?? 9100) as num).toInt(),
       anchoTicketMm: ((data['anchoTicketMm'] ?? 80) as num).toDouble(),
       ipsPermitidasInventarioLectura: data['ipsPermitidasInventarioLectura'] ?? '',
+      tipoDocumentoDefecto: data['tipoDocumentoDefecto'] == 'Factura' ? 'Factura' : 'VentaSinFacturar',
+      logoEnTicket: data['logoEnTicket'] ?? true,
     );
   }
 
@@ -176,6 +182,8 @@ class NegocioModel {
       'impresoraRedPuerto': impresoraRedPuerto,
       'anchoTicketMm': anchoTicketMm,
       'ipsPermitidasInventarioLectura': ipsPermitidasInventarioLectura,
+      'tipoDocumentoDefecto': tipoDocumentoDefecto,
+      'logoEnTicket': logoEnTicket,
     };
   }
 
@@ -206,6 +214,8 @@ class NegocioModel {
     int? impresoraRedPuerto,
     double? anchoTicketMm,
     String? ipsPermitidasInventarioLectura,
+    String? tipoDocumentoDefecto,
+    bool? logoEnTicket,
   }) {
     return NegocioModel(
       nombre: nombre ?? this.nombre,
@@ -234,6 +244,8 @@ class NegocioModel {
       impresoraRedPuerto: impresoraRedPuerto ?? this.impresoraRedPuerto,
       anchoTicketMm: anchoTicketMm ?? this.anchoTicketMm,
       ipsPermitidasInventarioLectura: ipsPermitidasInventarioLectura ?? this.ipsPermitidasInventarioLectura,
+      tipoDocumentoDefecto: tipoDocumentoDefecto ?? this.tipoDocumentoDefecto,
+      logoEnTicket: logoEnTicket ?? this.logoEnTicket,
     );
   }
 }

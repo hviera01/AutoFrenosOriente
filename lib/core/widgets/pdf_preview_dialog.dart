@@ -57,6 +57,8 @@ class _PdfPreviewDialogState extends State<PdfPreviewDialog> {
   bool get _usaEscPosEnWindows =>
       !kIsWeb && Platform.isWindows && widget.generarTicketEscPos != null && (widget.nombreImpresoraWindows?.isNotEmpty ?? false);
 
+  bool get _mostrarVistaPreviaTicket => widget.vistaPreviaTicket != null && (_usaEscPosEnWindows || widget.impresora == null);
+
   Future<void> _imprimirDirecto() async {
     final impresora = widget.impresora;
     if (impresora == null) return;
@@ -128,7 +130,7 @@ class _PdfPreviewDialogState extends State<PdfPreviewDialog> {
             // pierde el ícono de compartir que traía el visor de PDF nativo,
             // así que se ofrece un botón aparte por si igual se quiere
             // mandar el documento en PDF.
-            if (_usaEscPosEnWindows) ...[
+            if (_mostrarVistaPreviaTicket) ...[
               const SizedBox(height: 8),
               SizedBox(
                 width: double.infinity,
@@ -164,7 +166,7 @@ class _PdfPreviewDialogState extends State<PdfPreviewDialog> {
 
   Widget _vistaPreviaNativa() {
     final vistaTicket = widget.vistaPreviaTicket;
-    if (_usaEscPosEnWindows && vistaTicket != null) {
+    if (_mostrarVistaPreviaTicket && vistaTicket != null) {
       // La vía real de impresión acá es ESC/POS crudo, no el PDF (ver
       // _imprimirDirecto): mostrar el PDF en la vista previa daría una idea
       // equivocada de qué va a salir. En su lugar se muestra una

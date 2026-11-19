@@ -3,6 +3,7 @@ import 'venta_model.dart';
 import 'venta_en_espera_model.dart';
 import 'item_venta_model.dart';
 import 'pago_detalle_model.dart';
+import 'tipos_documento.dart';
 import '../../../core/utils/formato_moneda.dart';
 import '../../productos/data/lote_costo_repository.dart';
 
@@ -18,6 +19,8 @@ class VentaRepository {
     switch (tipoDocumento) {
       case 'Cotizacion':
         return 'cotizacion';
+      case 'VentaSinFacturar':
+        return 'ventaSinFacturar';
       default:
         return 'venta';
     }
@@ -30,6 +33,9 @@ class VentaRepository {
   String _formatearCorrelativo(String tipoDocumento, int numero) {
     if (tipoDocumento == 'Cotizacion') {
       return numero.toString().padLeft(10, '0');
+    }
+    if (tipoDocumento == 'Factura') {
+      return numero.toString().padLeft(8, '0');
     }
     return numero.toString().padLeft(4, '0');
   }
@@ -112,6 +118,7 @@ class VentaRepository {
       // no depende de nada más, así que se lanza en paralelo con el resto
       // en vez de esperar a que terminen el contador y el stock primero.
       final idsProductoUnicos = itemsADescontar.map((i) => i.idProducto).toSet().toList();
+      final futureContadorBase = tipoDocumento == 'VentaSinFacturar' ? transaction.get(_colContadores.doc('venta')) : null;
       final futureResultados = Future.wait([
         transaction.get(contadorRef),
         ...itemsADescontar.map((item) => transaction.get(_db.collection('productos').doc(item.idProducto))),
@@ -122,7 +129,13 @@ class VentaRepository {
       final contadorSnap = resultados[0];
       final snapsStock = resultados.sublist(1);
 
-      final actual = ((contadorSnap.data()?['ultimo'] ?? 0) as num).toInt();
+      var actual = ((contadorSnap.data()?['ultimo'] ?? 0) as num).toInt();
+      if (futureContadorBase != null && !contadorSnap.exists) {
+        final base = await futureContadorBase;
+        actual = ((base.data()?['ultimo'] ?? 0) as num).toInt();
+      } else if (futureContadorBase != null) {
+        await futureContadorBase;
+      }
       final nuevo = actual + 1;
       numeroDocumento = _formatearCorrelativo(tipoDocumento, nuevo);
 
@@ -236,7 +249,7 @@ class VentaRepository {
         for (final item in items) {
           final ref = _db.collection('productos').doc(item.idProducto);
           final precioBase = item.precioVenta * (1 - item.descuentoPorcentaje / 100);
-          final precioFinal = redondearMoneda(precioBase * 1.15);
+          final precioFinal = tipoDocumento == 'VentaSinFacturar' ? redondearMoneda(precioBase) : redondearMoneda(precioBase * 1.15);
           final historialVentaRef = ref.collection('historialVentas').doc();
           transaction.set(historialVentaRef, {
             'idVenta': ventaRef.id,
@@ -375,6 +388,7 @@ class VentaRepository {
     if (RegExp(r'^\d+$').hasMatch(limpio)) {
       candidatos.add(limpio.padLeft(8, '0'));
       candidatos.add(limpio.padLeft(4, '0'));
+      candidatos.add(limpio.padLeft(10, '0'));
     }
 
     final snaps = await Future.wait(candidatos.map((c) => _colVentas.where('numeroDocumento', isEqualTo: c).get()));
@@ -382,7 +396,7 @@ class VentaRepository {
 
     final resultados = <VentaModel>[];
     for (final doc in docs) {
-      if (tipoDocumento != null && tipoDocumento.isNotEmpty && doc.data()['tipoDocumento'] != tipoDocumento) continue;
+      if (!coincideTipoDocumentoFiltro((doc.data()['tipoDocumento'] ?? '') as String, tipoDocumento)) continue;
       final detalleSnap = await doc.reference.collection('detalle').get();
       final items = detalleSnap.docs.map((d) => ItemVentaModel.fromMap(d.data())).toList();
       resultados.add(VentaModel.fromMap(doc.id, doc.data(), items));

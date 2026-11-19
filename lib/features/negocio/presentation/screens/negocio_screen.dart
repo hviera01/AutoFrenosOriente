@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/services/impresora_red_service.dart';
 import '../../../../core/services/ip_publica_service.dart';
 import '../../../ventas/providers/ventas_provider.dart';
+import '../../../ventas/providers/carrito_provider.dart';
 import '../../data/negocio_model.dart';
 import '../../providers/negocio_provider.dart';
 import '../widgets/negocio_logo_picker.dart';
@@ -764,6 +765,32 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
             style: appFont(fontSize: 12.5, color: Colors.grey.shade600),
           ),
           const SizedBox(height: 14),
+          Text('Documento que aparece primero al vender', style: appFont(fontSize: 13.5, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A))),
+          const SizedBox(height: 3),
+          Text(
+            'Venta es el ticket simple, sin ISV desglosado (el precio ya lo incluye). Factura desglosa el ISV 15% con CAI y rango autorizado. Siempre se puede cambiar en cada venta.',
+            style: appFont(fontSize: 12, color: Colors.grey.shade600),
+          ),
+          const SizedBox(height: 10),
+          SegmentedButton<String>(
+            segments: [
+              ButtonSegment(value: 'VentaSinFacturar', label: Text('Venta', style: appFont(fontSize: 13)), icon: const Icon(Icons.point_of_sale_outlined)),
+              ButtonSegment(value: 'Factura', label: Text('Factura', style: appFont(fontSize: 13)), icon: const Icon(Icons.receipt_long_outlined)),
+            ],
+            selected: {widget.modelo.tipoDocumentoDefecto},
+            onSelectionChanged: (v) {
+              tipoDocumentoVentaPorDefecto = v.first;
+              ref.read(negocioRepositoryProvider).establecerTipoDocumentoDefecto(v.first);
+            },
+          ),
+          Divider(color: Colors.grey.shade200, height: 28),
+          _filaSwitchFactura(
+            titulo: 'Imprimir el logo en el ticket',
+            descripcion: 'Usa el logo blanco y negro de arriba, impreso como imagen completa (sin rayas).',
+            valor: widget.modelo.logoEnTicket,
+            onChanged: (v) => ref.read(negocioRepositoryProvider).establecerLogoEnTicket(v),
+          ),
+          Divider(color: Colors.grey.shade200, height: 28),
           _filaSwitchFactura(
             titulo: 'Imprimir copia además del original',
             descripcion: 'Si lo apagás, cada venta solo imprime la hoja "ORIGINAL" (se ahorra el papel de la "COPIA").',
@@ -781,7 +808,7 @@ class _NegocioFormState extends ConsumerState<_NegocioForm> {
           Text('Numeración de facturas', style: appFont(fontSize: 13.5, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A1A))),
           const SizedBox(height: 3),
           Text(
-            'El número que le va a tocar a la próxima Factura o Boleta que registrés. Sirve para continuar la numeración de un talonario físico en vez de arrancar siempre desde 1 (por ejemplo, después de vaciar los datos de prueba).',
+            'El número que le va a tocar a la próxima Factura que registrés. Sirve para continuar la numeración de un talonario físico en vez de arrancar siempre desde 1 (por ejemplo, después de vaciar los datos de prueba).',
             style: appFont(fontSize: 12, color: Colors.grey.shade600),
           ),
           const SizedBox(height: 12),

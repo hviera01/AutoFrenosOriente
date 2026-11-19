@@ -1,9 +1,20 @@
-/// Clave interna (guardada en `venta.tipoDocumento` en Firestore) -> etiqueta
-/// legible, de los tipos de documento que puede generar una venta. Este
-/// negocio no maneja facturación fiscal real (sin CAI, ver NEGOCIO.CAI="0"
-/// en los datos migrados): el sistema viejo solo ofrecía "Venta" (un ticket
-/// interno) y "Cotización", sin Factura/Boleta — se replica igual acá.
 const tiposDocumento = {
+  'VentaSinFacturar': 'Venta',
+  'Factura': 'Factura',
+  'Cotizacion': 'Cotización',
   'Venta': 'Venta',
+};
+
+const tiposDocumentoFiltro = {
+  'VentaSinFacturar': 'Venta',
+  'Factura': 'Factura',
   'Cotizacion': 'Cotización',
 };
+
+bool coincideTipoDocumentoFiltro(String tipoVenta, String? filtro) {
+  if (filtro == null || filtro.isEmpty) return true;
+  if (filtro == 'VentaSinFacturar') return tipoVenta == 'VentaSinFacturar' || tipoVenta == 'Venta';
+  return tipoVenta == filtro;
+}
+
+String etiquetaTipoDocumento(String tipo) => tiposDocumento[tipo] ?? tipo;

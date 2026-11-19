@@ -1,4 +1,8 @@
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:printing/printing.dart';
+import '../../../core/services/impresora_usb_windows_service.dart';
+import 'venta_ticket_escpos_service.dart';
 import '../../negocio/data/negocio_model.dart';
 import 'venta_export_service.dart';
 import 'venta_model.dart';
@@ -18,6 +22,7 @@ import '../../../core/widgets/animacion_impresion.dart';
 /// para resolverla a mano (ver VentasPendientesImpresionDialog).
 class ImpresionEnVivoService {
   final _servicioExport = VentaExportService();
+  final _servicioTicketEscPos = VentaTicketEscPosService();
 
   /// [forzarCopia] respeta la elección "Copia"/"Original" que se haya hecho
   /// del lado del celular al pedir esta reimpresión en vivo (ver
@@ -28,6 +33,14 @@ class ImpresionEnVivoService {
   /// Devuelve true si logró imprimir.
   Future<bool> imprimirSilencioso(VentaModel venta, NegocioModel negocio, {bool? forzarCopia}) async {
     if (negocio.impresoraTermicaUrl.isEmpty) return false;
+    if (!kIsWeb && Platform.isWindows) {
+      try {
+        final bytes = await _servicioTicketEscPos.generarTicket(venta, negocio, forzarCopia: forzarCopia);
+        return ImpresoraUsbWindowsService().imprimir(nombreImpresora: negocio.impresoraTermicaNombre, bytes: bytes);
+      } catch (_) {
+        return false;
+      }
+    }
     try {
       final impresora = Printer(url: negocio.impresoraTermicaUrl, name: negocio.impresoraTermicaNombre);
       AnimacionImpresion.mostrar();

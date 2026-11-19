@@ -9,6 +9,7 @@ import '../../data/venta_export_service.dart';
 import '../../data/venta_ticket_escpos_service.dart';
 import '../../data/presencia_impresion_repository.dart';
 import '../../data/tipos_documento.dart';
+import '../widgets/ticket_escpos_preview.dart';
 import '../../providers/carrito_provider.dart';
 import '../../providers/ventas_provider.dart';
 import '../../../auth/providers/auth_provider.dart';
@@ -250,6 +251,9 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
           generarPdf: () => _servicioExport.generarPdfFactura(venta, negocio, forzarCopia: esCopia),
           generarPdfConFormato: (formato) => _servicioExport.generarPdfFactura(venta, negocio, forzarCopia: esCopia, formatoImpresora: formato),
           impresora: impresora,
+          generarTicketEscPos: () => _servicioTicketEscPos.generarTicket(venta, negocio, forzarCopia: esCopia),
+          nombreImpresoraWindows: negocio.impresoraTermicaNombre,
+          vistaPreviaTicket: () => TicketEscPosPreview(venta: venta, negocio: negocio, esCopia: esCopia),
         ),
       );
     } catch (e) {
@@ -265,7 +269,7 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
   // respeta la elección (la PC imprime el PDF, que sí la soporta).
   Future<void> _reimprimirEscPosORemoto(VentaModel venta, NegocioModel negocio, bool esCopia) async {
     if (negocio.impresoraRedIp.isNotEmpty) {
-      final bytes = await _servicioTicketEscPos.generarTicket(venta, negocio);
+      final bytes = await _servicioTicketEscPos.generarTicket(venta, negocio, forzarCopia: esCopia);
       final ok = await _servicioImpresoraRed.imprimir(ip: negocio.impresoraRedIp, puerto: negocio.impresoraRedPuerto, bytes: bytes);
       if (ok) {
         _mostrarMensaje('Ticket reimpreso');
@@ -311,7 +315,7 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
         context: context,
         builder: (context) => PdfPreviewDialog(
           titulo: 'Documento formal · ${venta.numeroDocumento}',
-          nombreArchivo: '${venta.tipoDocumento}_${venta.numeroDocumento}.pdf',
+          nombreArchivo: '${etiquetaTipoDocumento(venta.tipoDocumento)}_${venta.numeroDocumento}.pdf',
           generarPdf: () => _servicioExport.generarPdfDetalleVenta(venta, negocio),
         ),
       );
@@ -496,7 +500,7 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
                           style: appFont(fontSize: 13, color: const Color(0xFF1A1A1A)),
                           items: [
                             DropdownMenuItem<String?>(value: null, child: Text('Tipo (todos)', style: appFont(fontSize: 13))),
-                            ...tiposDocumento.entries.map((e) => DropdownMenuItem<String?>(value: e.key, child: Text(e.value, overflow: TextOverflow.ellipsis))),
+                            ...tiposDocumentoFiltro.entries.map((e) => DropdownMenuItem<String?>(value: e.key, child: Text(e.value, overflow: TextOverflow.ellipsis))),
                           ],
                           onChanged: (v) => setState(() => _tipoDocumentoFiltro = v),
                         ),
@@ -575,7 +579,7 @@ class _DetalleVentaScreenState extends ConsumerState<DetalleVentaScreen> {
             spacing: 24,
             runSpacing: 14,
             children: [
-              _campoInfo('Tipo de documento', venta.tipoDocumento),
+              _campoInfo('Tipo de documento', etiquetaTipoDocumento(venta.tipoDocumento)),
               _campoInfo('No. Documento', venta.numeroDocumento),
               _campoInfo('Fecha', venta.fechaRegistro != null ? formatoDia.format(venta.fechaRegistro!) : '-'),
               _campoInfo('Atendido por', venta.usuarioRegistro),

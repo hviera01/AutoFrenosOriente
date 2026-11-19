@@ -35,6 +35,23 @@ double _subtotalLinea(double precioVenta, double cantidad, double descuentoPorce
   return redondearMoneda(precioVenta * cantidad * (1 - descuentoPorcentaje / 100));
 }
 
+String tipoDocumentoVentaPorDefecto = 'VentaSinFacturar';
+
+String normalizarTipoDocumentoVenta(String tipo) {
+  if (tipo == 'Factura' || tipo == 'VentaSinFacturar' || tipo == 'Cotizacion') return tipo;
+  return tipoDocumentoVentaPorDefecto;
+}
+
+List<ItemVentaModel> _itemsSinIsvDesdeConIsv(List<ItemVentaModel> items) {
+  return [
+    for (final i in items)
+      i.copyWith(
+        precioVenta: i.precioVenta / 1.15,
+        subtotal: _subtotalLinea(i.precioVenta / 1.15, i.cantidad, i.descuentoPorcentaje),
+      ),
+  ];
+}
+
 class CarritoVentaState {
   final String? idEnEspera;
   final List<ItemVentaModel> items;
@@ -66,7 +83,7 @@ class CarritoVentaState {
   CarritoVentaState({
     this.idEnEspera,
     this.items = const [],
-    this.tipoDocumento = 'Venta',
+    String? tipoDocumento,
     this.condicion = 'Contado',
     this.metodoPago = 'Efectivo',
     this.documentoCliente = '',
@@ -82,15 +99,21 @@ class CarritoVentaState {
     this.descuentoGlobalPorcentaje = 0,
     this.porcentajeTarjeta = 0,
     this.pagosMixtos = const [],
-  }) : fecha = fecha ?? DateTime.now();
+  })  : tipoDocumento = normalizarTipoDocumentoVenta(tipoDocumento ?? tipoDocumentoVentaPorDefecto),
+        fecha = fecha ?? DateTime.now();
 
   bool get esCotizacion => tipoDocumento == 'Cotizacion';
+  bool get esVentaSinFacturar => tipoDocumento == 'VentaSinFacturar';
+  bool get aplicaIsv => !esVentaSinFacturar;
+  bool get tienePrecioCero => items.any((i) => i.precioVenta <= 0);
   bool get esCredito => condicion == 'Credito';
   bool get esPagoMixto => metodoPago == 'Mixto';
 
   double get _subtotalLineasSinDescuentoGlobal => items.fold<double>(0, (s, i) => s + i.subtotal);
 
-  double get subtotal => redondearMoneda(_subtotalLineasSinDescuentoGlobal * (1 - descuentoGlobalPorcentaje / 100));
+  double get _subtotalSinIsv => redondearMoneda(_subtotalLineasSinDescuentoGlobal * (1 - descuentoGlobalPorcentaje / 100));
+
+  double get subtotal => aplicaIsv ? _subtotalSinIsv : _totalConImpuestoBase;
 
   // ISV real del 15%, igual que Super Color: este negocio sí lo cobra de
   // verdad en cada venta (a diferencia del taller de barbería hermano, donde
@@ -110,7 +133,18 @@ class CarritoVentaState {
   // vienen cada uno redondeado a centavos, restar dos doubles "limpios" en
   // punto flotante binario puede dar un resultado como 79.99999999999997 en
   // vez de 80.00 exacto, y eso terminaba imprimiéndose como 79.99 o 80.01.
-  double get impuesto => redondearMoneda(_totalConImpuestoBase - subtotal);
+  double get impuesto => aplicaIsv ? redondearMoneda(_totalConImpuestoBase - _subtotalSinIsv) : 0;
+
+  List<ItemVentaModel> get itemsParaGuardar {
+    if (aplicaIsv) return items;
+    return [
+      for (final i in items)
+        i.copyWith(
+          precioVenta: redondearMoneda(i.precioVenta * 1.15),
+          subtotal: _subtotalLinea(redondearMoneda(i.precioVenta * 1.15), i.cantidad, i.descuentoPorcentaje),
+        ),
+    ];
+  }
 
   /// Monto real del recargo por tarjeta (0 si no se aplicó ninguno).
   double get montoRecargoTarjeta => metodoPago == 'Tarjeta' ? redondearMoneda(_totalConImpuestoBase * (porcentajeTarjeta / 100)) : 0;
@@ -296,7 +330,7 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
     state = CarritoVentaState(
       idEnEspera: sesion.id,
       items: sesion.items,
-      tipoDocumento: sesion.tipoDocumento,
+      tipoDocumento: normalizarTipoDocumentoVenta(sesion.tipoDocumento),
       condicion: sesion.condicion,
       metodoPago: sesion.metodoPago,
       documentoCliente: sesion.documentoCliente,
@@ -322,7 +356,7 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
       // momento. Esta es una venta nueva, así que si vuelve a faltar
       // existencia, se pregunta por reembasado de nuevo en vez de asumir
       // que ya está resuelto.
-      items: venta.detalle
+      items: (venta.esVentaSinFacturar ? _itemsSinIsvDesdeConIsv(venta.detalle) : venta.detalle)
           .map((item) => ItemVentaModel(
                 idProducto: item.idProducto,
                 idCategoria: item.idCategoria,
@@ -341,7 +375,7 @@ class CarritoVentaNotifier extends Notifier<CarritoVentaState> {
                 vendidoPorNombre: item.vendidoPorNombre,
               ))
           .toList(),
-      tipoDocumento: (forzarFactura && venta.tipoDocumento == 'Cotizacion') ? 'Venta' : venta.tipoDocumento,
+      tipoDocumento: (forzarFactura && venta.tipoDocumento == 'Cotizacion') ? tipoDocumentoVentaPorDefecto : normalizarTipoDocumentoVenta(venta.tipoDocumento),
       condicion: venta.condicion,
       metodoPago: venta.condicion == 'Credito' ? '' : (venta.metodoPago.isEmpty ? 'Efectivo' : venta.metodoPago),
       documentoCliente: venta.documentoCliente,

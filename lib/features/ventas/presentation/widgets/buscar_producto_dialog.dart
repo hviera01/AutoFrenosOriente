@@ -190,13 +190,7 @@ class _BuscarProductoDialogState extends ConsumerState<BuscarProductoDialog> {
   }
 
   void _confirmarSeleccion(ProductoModel producto) {
-    final precio = _precioActivo(producto);
-    if (precio == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Este producto no tiene un precio configurado')),
-      );
-      return;
-    }
+    final precio = _precioActivo(producto) ?? (precio: 0.0, nivel: 1);
     Navigator.pop(context, ProductoConPrecio(producto: producto, precio: precio.precio, nivelPrecio: precio.nivel));
   }
 

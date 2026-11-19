@@ -8,6 +8,7 @@ import '../../../../core/utils/formato_moneda.dart';
 import '../../../negocio/providers/negocio_provider.dart';
 import '../screens/detalle_venta_screen.dart';
 import '../../../../core/services/tipografia_service.dart';
+import '../../data/tipos_documento.dart';
 
 /// Lista de ventas guardadas pero sin imprimir (típicamente hechas desde el
 /// celular sin la impresora térmica a mano). Tocar una abre su detalle,
@@ -126,7 +127,7 @@ class _VentasPendientesImpresionDialogState extends ConsumerState<VentasPendient
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      '${venta.tipoDocumento} · ${venta.numeroDocumento} · ${formatearMoneda(venta.totalAPagar)}',
+                                      '${etiquetaTipoDocumento(venta.tipoDocumento)} · ${venta.numeroDocumento} · ${formatearMoneda(venta.totalAPagar)}',
                                       style: appFont(fontSize: 11.5, color: Colors.grey.shade600),
                                     ),
                                     if (venta.fechaRegistro != null) ...[

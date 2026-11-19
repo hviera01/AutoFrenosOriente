@@ -29,6 +29,8 @@ import '../../../../core/utils/formato_moneda.dart';
 import '../../../../core/widgets/barcode_scanner_screen.dart';
 import '../../../../core/widgets/pdf_preview_dialog.dart';
 import '../widgets/buscar_producto_dialog.dart';
+import '../widgets/ticket_escpos_preview.dart';
+import '../../../../core/services/impresora_usb_windows_service.dart';
 import '../widgets/buscar_cliente_dialog.dart';
 import '../../../clientes/providers/clientes_provider.dart';
 import '../../../vehiculos/providers/vehiculos_provider.dart';
@@ -202,7 +204,21 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
       _regSagController.text = ventaOrigen.regSag;
       _vehiculoController.text = ventaOrigen.vehiculo;
       _descuentoGlobalController.text = ventaOrigen.descuentoGlobal == 0 ? '' : _formatoCantidad(ventaOrigen.descuentoGlobal);
+    } else {
+      _aplicarTipoDocumentoPorDefecto();
     }
+  }
+
+  Future<void> _aplicarTipoDocumentoPorDefecto() async {
+    try {
+      final negocio = await ref.read(negocioRepositoryProvider).obtenerNegocioActual();
+      tipoDocumentoVentaPorDefecto = negocio.tipoDocumentoDefecto;
+      if (!mounted) return;
+      final carrito = ref.read(carritoVentaProvider);
+      if (carrito.items.isEmpty && !carrito.esCotizacion && carrito.tipoDocumento != negocio.tipoDocumentoDefecto) {
+        ref.read(carritoVentaProvider.notifier).establecerTipoDocumento(negocio.tipoDocumentoDefecto);
+      }
+    } catch (_) {}
   }
 
   void _alCambiarFocoGlobal() {
@@ -517,6 +533,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
     }
     if (!mounted) return;
     ref.read(carritoVentaProvider.notifier).agregarProductoDirecto(producto, precioSeleccionado: resultado.precio);
+    if (resultado.precio <= 0) _mostrarMensaje('"${producto.nombre}" no tiene precio de venta: escribí el precio en la tabla.');
   }
 
   /// Busca un producto por código exacto (código de barras o código interno)
@@ -556,11 +573,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
       return;
     }
     final producto = coincidencias.first;
-    final precio = _primerPrecioDisponible(producto);
-    if (precio == null) {
-      _mostrarMensaje('"${producto.nombre}" no tiene un precio configurado');
-      return;
-    }
+    final precio = _primerPrecioDisponible(producto) ?? 0;
     await _procesarProductoSeleccionado(ProductoConPrecio(producto: producto, precio: precio, nivelPrecio: 1));
   }
 
@@ -839,11 +852,22 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
 
   // ---------- Confirmar venta ----------
 
+  List<DropdownMenuItem<String>> _opcionesTipoDocumento() {
+    final primero = tipoDocumentoVentaPorDefecto == 'Factura' ? 'Factura' : 'VentaSinFacturar';
+    final segundo = primero == 'Factura' ? 'VentaSinFacturar' : 'Factura';
+    return [
+      for (final tipo in [primero, segundo, 'Cotizacion'])
+        DropdownMenuItem(value: tipo, child: Text(tiposDocumento[tipo]!, overflow: TextOverflow.ellipsis)),
+    ];
+  }
+
   String get _textoBoton {
     final tipo = ref.watch(carritoVentaProvider).tipoDocumento;
     switch (tipo) {
       case 'Cotizacion':
         return 'Crear Cotización';
+      case 'Factura':
+        return 'Registrar Factura';
       default:
         return 'Registrar Venta';
     }
@@ -872,6 +896,11 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
     // respuesta del cajero (el diálogo de cobro) o una validación previa
     // (fecha límite), no la red. Mientras tanto el botón queda bloqueado
     // para no disparar la venta dos veces.
+    if (carrito.tienePrecioCero) {
+      final continuar = await _confirmarDialogo('Productos sin precio', 'Hay productos con precio L. 0.00 en esta venta. ¿Querés registrarla de todas formas?');
+      if (!continuar || !mounted) return;
+    }
+
     setState(() => _guardando = true);
     try {
       if (!esCotizacion) {
@@ -893,7 +922,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
 
         negocio = await ref.read(negocioRepositoryProvider).obtenerNegocioActual();
         if (!mounted) return;
-        if (carrito.tipoDocumento == 'Factura' || carrito.tipoDocumento == 'Boleta') {
+        if (carrito.tipoDocumento == 'Factura') {
           final continuar = await _validarFechaLimite(negocio);
           if (!continuar) return;
         }
@@ -968,7 +997,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
             regExonerado: carrito.regExonerado,
             regSag: carrito.regSag,
             descuentoGlobal: carrito.descuentoGlobalPorcentaje,
-            items: carrito.items,
+            items: carrito.itemsParaGuardar,
             montoPago: montoPago,
             montoCambio: montoCambio,
             pagosMixtos: esCotizacion ? const [] : pagosMixtos,
@@ -987,7 +1016,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
 
       if (esFacturable) {
         unawaited(_imprimirEnSegundoPlano(venta));
-        if (negocio != null) _avisarSiRangoSuperado(negocio, venta);
+        if (negocio != null && venta.tipoDocumento == 'Factura') _avisarSiRangoSuperado(negocio, venta);
       } else {
         _mostrarMensaje('${tiposDocumento[venta.tipoDocumento]} generada: ${venta.numeroDocumento}');
       }
@@ -1077,6 +1106,9 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
           generarPdf: () => _servicioExport.generarPdfFactura(venta, negocio),
           generarPdfConFormato: (formato) => _servicioExport.generarPdfFactura(venta, negocio, formatoImpresora: formato),
           impresora: impresora,
+          generarTicketEscPos: () => _servicioTicketEscPos.generarTicket(venta, negocio),
+          nombreImpresoraWindows: negocio.impresoraTermicaNombre,
+          vistaPreviaTicket: () => TicketEscPosPreview(venta: venta, negocio: negocio, esCopia: false),
         ),
       );
       return;
@@ -1146,6 +1178,16 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
     // Desktop (Windows/macOS/Linux).
     if (negocio.impresoraTermicaUrl.isEmpty) {
       _mostrarMensaje('No hay impresora configurada, la venta se guardó sin imprimir');
+      return;
+    }
+    if (Platform.isWindows) {
+      try {
+        final bytes = await _servicioTicketEscPos.generarTicket(venta, negocio);
+        final ok = ImpresoraUsbWindowsService().imprimir(nombreImpresora: negocio.impresoraTermicaNombre, bytes: bytes);
+        if (!ok) _mostrarMensaje('No se pudo imprimir en la impresora configurada');
+      } catch (_) {
+        _mostrarMensaje('No se pudo imprimir en la impresora configurada');
+      }
       return;
     }
     try {
@@ -1422,11 +1464,12 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
               SizedBox(
                 width: esMovil ? double.infinity : 190,
                 child: DropdownButtonFormField<String>(
+                  key: ValueKey('tipoDocumento_${carrito.tipoDocumento}'),
                   initialValue: carrito.tipoDocumento,
                   isExpanded: true,
                   decoration: _decoracion('Tipo de documento'),
                   style: appFont(fontSize: 13, color: const Color(0xFF1A1A1A)),
-                  items: tiposDocumento.entries.map((e) => DropdownMenuItem(value: e.key, child: Text(e.value, overflow: TextOverflow.ellipsis))).toList(),
+                  items: _opcionesTipoDocumento(),
                   onChanged: (v) {
                     if (v == null) return;
                     ref.read(carritoVentaProvider.notifier).establecerTipoDocumento(v);
@@ -2013,14 +2056,15 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
 
   Widget _encabezadoTablaCarrito() {
     final estilo = appFont(fontSize: 11.5, fontWeight: FontWeight.w700, color: Colors.grey.shade600);
+    final conIsv = ref.read(carritoVentaProvider).aplicaIsv;
     return Row(
       children: [
         Expanded(flex: 2, child: Text('Código', style: estilo)),
         Expanded(flex: 4, child: Text('Descripción', style: estilo)),
         Expanded(flex: 2, child: Text('Cantidad', textAlign: TextAlign.center, style: estilo)),
-        Expanded(flex: 2, child: Text('Precio (c/ISV)', textAlign: TextAlign.center, style: estilo)),
+        Expanded(flex: 2, child: Text(conIsv ? 'Precio (c/ISV)' : 'Precio', textAlign: TextAlign.center, style: estilo)),
         Expanded(flex: 2, child: Text('Descuento %', textAlign: TextAlign.center, style: estilo)),
-        Expanded(flex: 2, child: Text('Importe (c/ISV)', textAlign: TextAlign.right, style: estilo)),
+        Expanded(flex: 2, child: Text(conIsv ? 'Importe (c/ISV)' : 'Importe', textAlign: TextAlign.right, style: estilo)),
         const SizedBox(width: 40),
       ],
     );
@@ -2277,7 +2321,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
             children: [
               Expanded(child: _campoInlineConEtiqueta('cantidad_$index', 'Cantidad', ctrlCantidad, item.cantidad as double, (v) => _actualizarCantidad(index, v))),
               const SizedBox(width: 8),
-              Expanded(child: _campoInlineConEtiqueta('precio_$index', 'Precio (c/ISV)', ctrlPrecio, precioMostrado, (v) => _actualizarPrecio(index, v), prefijo: 'L.', dosDecimales: true)),
+              Expanded(child: _campoInlineConEtiqueta('precio_$index', ref.read(carritoVentaProvider).aplicaIsv ? 'Precio (c/ISV)' : 'Precio', ctrlPrecio, precioMostrado, (v) => _actualizarPrecio(index, v), prefijo: 'L.', dosDecimales: true)),
               const SizedBox(width: 8),
               Expanded(child: _campoInlineConEtiqueta('descuento_$index', 'Desc. %', ctrlDescuento, item.descuentoPorcentaje as double, (v) => _actualizarDescuentoLinea(index, v))),
             ],
@@ -2285,7 +2329,7 @@ class _RegistrarVentaScreenState extends ConsumerState<RegistrarVentaScreen> {
           const SizedBox(height: 10),
           Align(
             alignment: Alignment.centerRight,
-            child: Text('Importe (c/ISV): ${formatearMoneda(importe)}', style: appFont(fontSize: 13.5, fontWeight: FontWeight.w700)),
+            child: Text('${ref.read(carritoVentaProvider).aplicaIsv ? 'Importe (c/ISV)' : 'Importe'}: ${formatearMoneda(importe)}', style: appFont(fontSize: 13.5, fontWeight: FontWeight.w700)),
           ),
         ],
       ),
